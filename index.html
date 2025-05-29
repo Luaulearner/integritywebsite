@@ -1,69 +1,139 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Notification Button</title>
-  <style>
-    body {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      background: #121212;
-      color: white;
-      font-family: 'Segoe UI', sans-serif;
-      margin: 0;
-    }
-    button {
-      padding: 1rem 2rem;
-      font-size: 1.5rem;
-      background: #00bcd4;
-      border: none;
-      border-radius: 12px;
-      cursor: pointer;
-      box-shadow: 0 4px 15px rgba(0, 188, 212, 0.4);
-      transition: all 0.2s ease;
-    }
-    button:hover {
-      background: #0097a7;
-      transform: scale(1.05);
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Super Cool Cube UI</title>
+<style>
+  /* Animated gradient background */
+  @keyframes gradientBG {
+    0% {background-position: 0% 50%;}
+    50% {background-position: 100% 50%;}
+    100% {background-position: 0% 50%;}
+  }
+
+  body, html {
+    margin: 0; height: 100%;
+    background: linear-gradient(-45deg, #2b0053, #4b0082, #1a0033, #3c0070);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .cube-container {
+    perspective: 1000px;
+  }
+
+  .cube {
+    width: 300px;
+    height: 300px;
+    background: rgba(30, 0, 50, 0.85);
+    border-radius: 20px;
+    box-shadow: 0 0 25px #8000ffcc;
+    display: flex;
+    flex-direction: column;
+    padding: 25px;
+    color: white;
+    text-align: center;
+    transform-style: preserve-3d;
+    transition: transform 0.7s ease;
+  }
+
+  .cube:hover {
+    transform: rotateY(20deg) rotateX(10deg);
+  }
+
+  h1 {
+    margin-bottom: 15px;
+    font-weight: 900;
+    letter-spacing: 1.5px;
+  }
+
+  input[type="text"] {
+    padding: 10px 15px;
+    border-radius: 10px;
+    border: none;
+    margin-bottom: 20px;
+    font-size: 1em;
+    width: calc(100% - 30px);
+  }
+
+  button {
+    background: linear-gradient(135deg, #8e2de2, #4a00e0);
+    border: none;
+    padding: 12px 0;
+    margin: 8px 0;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 1.1em;
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 0 10px #8e2de2;
+    transition: background 0.3s ease;
+  }
+
+  button:hover {
+    background: linear-gradient(135deg, #4a00e0, #8e2de2);
+  }
+
+  #ip-display {
+    margin-top: 15px;
+    font-size: 1.1em;
+    font-weight: 600;
+    user-select: text;
+  }
+</style>
 </head>
 <body>
-  <button id="notifyBtn">Send Notification</button>
 
-  <script>
-    const notifyBtn = document.getElementById('notifyBtn');
+<div class="cube-container">
+  <div class="cube">
+    <h1>Super Cool Cube UI</h1>
+    
+    <input id="website-input" type="text" placeholder="Enter website URL (example: google.com)" />
+    <button onclick="goToWebsite()">Go to Website</button>
 
-    notifyBtn.addEventListener('click', () => {
-      // Ask for permission
-      if (Notification.permission === 'granted') {
-        sendNotification();
-      } else if (Notification.permission !== 'denied') {
-        Notification.requestPermission().then(permission => {
-          if (permission === 'granted') {
-            sendNotification();
-          } else {
-            alert('Notification permission was denied 😢');
-          }
-        });
-      } else {
-        alert('Notifications are blocked. Please enable them in your browser settings.');
-      }
-    });
+    <button onclick="getIP()">Show My IP</button>
+    <div id="ip-display"></div>
 
-    function sendNotification() {
-      const notification = new Notification('🚀 Hello!', {
-        body: 'You just clicked the button!',
-        icon: 'https://cdn-icons-png.flaticon.com/512/545/545705.png'
-      });
+    <button onclick="goRobloxLogin()">Go to Roblox Login</button>
+  </div>
+</div>
 
-      notification.onclick = () => {
-        window.open('roblox.com/login'); // Optional: link on click
-      };
+<script>
+  function goToWebsite() {
+    let url = document.getElementById('website-input').value.trim();
+    if (!url) {
+      alert('Please enter a website URL!');
+      return;
     }
-  </script>
+    // Add http if missing
+    if (!/^https?:\/\//i.test(url)) {
+      url = 'https://' + url;
+    }
+    window.open(url, '_blank');
+  }
+
+  async function getIP() {
+    const ipDisplay = document.getElementById('ip-display');
+    ipDisplay.textContent = 'Fetching IP...';
+
+    try {
+      const res = await fetch('https://api.ipify.org?format=json');
+      const data = await res.json();
+      ipDisplay.textContent = `Your IP: ${data.ip}`;
+    } catch (err) {
+      ipDisplay.textContent = 'Failed to get IP. Check your internet.';
+    }
+  }
+
+  function goRobloxLogin() {
+    window.open('https://www.roblox.com/login', '_blank');
+  }
+</script>
+
 </body>
 </html>
