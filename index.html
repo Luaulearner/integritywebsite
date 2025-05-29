@@ -1,140 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <title>AdvancedUsername's UI</title>
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      overflow: hidden;
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(-45deg, #0f0f0f, #2e003e, #000000, #3d0066);
-      background-size: 400% 400%;
-      animation: bgAnim 20s ease infinite;
-      color: white;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      -webkit-user-select: none;
-      user-select: none;
-    }
-
-    @keyframes bgAnim {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-
-    .cube-ui {
-      position: relative;
-      background: rgba(0, 0, 0, 0.5);
-      border-radius: 12px;
-      padding: 30px;
-      box-shadow: 0 0 25px rgba(255, 0, 255, 0.2);
-      display: flex;
-      flex-direction: column;
-      width: 300px;
-      backdrop-filter: blur(10px);
-      z-index: 1;
-    }
-
-    h1 {
-      text-align: center;
-      margin-bottom: 20px;
-      font-size: 1.5em;
-    }
-
-    .input-container {
-      position: relative;
-      margin-bottom: 15px;
-    }
-
-    .cube-input {
-      position: relative;
-      background: #1a0033;
-      color: #fff;
-      border: none;
-      padding: 10px;
-      font-size: 1em;
-      border-radius: 8px;
-      width: 100%;
-      outline: none;
-      z-index: 2;
-    }
-
-    .input-container::before {
-      content: '';
-      position: absolute;
-      top: -3px;
-      left: -3px;
-      right: -3px;
-      bottom: -3px;
-      background: linear-gradient(270deg, red, orange, yellow, green, cyan, blue, violet, red);
-      background-size: 400% 400%;
-      border-radius: 10px;
-      animation: rainbow 6s linear infinite;
-      z-index: 1;
-    }
-
-    @keyframes rainbow {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-
-    button {
-      padding: 10px;
-      margin-top: 10px;
-      background: #4e008e;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background 0.3s;
-      font-weight: bold;
-    }
-
-    button:hover {
-      background: #6a00c7;
-    }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login/Signup UI</title>
+  <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
-  <div class="cube-ui">
-    <h1>AdvancedUsername's UI</h1>
-
-    <div class="input-container">
-      <input type="text" id="urlInput" class="cube-input" placeholder="Enter a URL (https://...)"/>
+  <div class="container">
+    <div class="form-box">
+      <h2 id="form-title">Log In</h2>
+      <form id="auth-form">
+        <input type="text" id="username" placeholder="Username" required />
+        <input type="password" id="password" placeholder="Password" required />
+        <div id="extra-field" class="hidden">
+          <input type="email" id="email" placeholder="Email (Sign Up only)" />
+        </div>
+        <button type="submit" id="submit-btn">Log In</button>
+      </form>
+      <p class="toggle-text">
+        Don't have an account? <span id="toggle-link">Sign Up</span>
+      </p>
     </div>
-
-    <button onclick="goToURL()">Go to Website</button>
-    <button onclick="goToRoblox()">Go to Roblox</button>
-    <button onclick="getIP()">Your IP</button>
   </div>
 
-  <script>
-    function goToURL() {
-      const url = document.getElementById('urlInput').value;
-      if (url.startsWith("http://") || url.startsWith("https://")) {
-        window.open(url, "_blank");
-      } else {
-        alert("Enter a valid URL starting with http:// or https://");
-      }
-    }
-
-    function goToRoblox() {
-      window.open("https://roblox.com/login", "_blank");
-    }
-
-    function getIP() {
-      fetch("https://api.ipify.org?format=json")
-        .then(res => res.json())
-        .then(data => alert("Your IP: " + data.ip))
-        .catch(() => alert("Could not fetch IP"));
-    }
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>
