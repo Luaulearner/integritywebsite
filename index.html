@@ -1,154 +1,143 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>AdvancedUsername's UI</title>
-<style>
-  @keyframes bgAnimation {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-  }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AdvancedUsername's UI</title>
+  <style>
+    @keyframes bgScroll {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
 
-  body, html {
-    margin: 0; padding: 0; height: 100%;
-    background: linear-gradient(-45deg, #1a002e, #4b0082, #220044, #6600cc);
-    background-size: 400% 400%;
-    animation: bgAnimation 20s ease infinite;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    user-select: none;
-  }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(-45deg, #0a001f, #330066, #1a0033, #4b0082);
+      background-size: 400% 400%;
+      animation: bgScroll 25s ease infinite;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
 
-  #uiContainer {
-    width: 360px;
-    background: rgba(30, 0, 50, 0.85);
-    border-radius: 12px;
-    box-shadow: 0 0 20px rgba(102, 0, 204, 0.8);
-    color: white;
-    padding: 20px;
-    user-select: text;
-  }
+    .cube-ui {
+      background: rgba(0, 0, 0, 0.7);
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 0 25px rgba(120, 0, 255, 0.8);
+      width: 360px;
+      color: #fff;
+    }
 
-  #titleBar {
-    font-size: 1.5em;
-    font-weight: bold;
-    margin-bottom: 15px;
-    cursor: default;
-    text-align: center;
-  }
+    .cube-title {
+      font-size: 1.6em;
+      text-align: center;
+      margin-bottom: 20px;
+      font-weight: bold;
+      color: #b27fff;
+    }
 
-  button {
-    width: 100%;
-    margin: 10px 0;
-    padding: 12px;
-    border: none;
-    border-radius: 8px;
-    background: #6600cc;
-    color: white;
-    font-weight: 600;
-    font-size: 1em;
-    transition: background 0.3s ease;
-    cursor: pointer;
-  }
-  button:hover {
-    background: #9a4fff;
-  }
+    .cube-input,
+    .cube-file {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: none;
+      outline: none;
+      font-size: 1em;
+      background: #1a0033;
+      color: #fff;
+    }
 
-  #ipDisplay, #fileContent {
-    margin-top: 10px;
-    font-size: 0.9em;
-    font-style: italic;
-    white-space: pre-wrap;
-    max-height: 150px;
-    overflow-y: auto;
-    text-align: left;
-    background: rgba(255,255,255,0.1);
-    padding: 8px;
-    border-radius: 8px;
-  }
+    .cube-btn {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 8px;
+      font-size: 1em;
+      font-weight: 600;
+      background: #6600cc;
+      color: white;
+      cursor: pointer;
+      transition: 0.3s ease;
+    }
 
-  input[type="text"] {
-    width: 100%;
-    padding: 10px 12px;
-    margin: 10px 0 5px 0;
-    border-radius: 8px;
-    border: none;
-    font-size: 1em;
-    box-sizing: border-box;
-    outline: none;
-  }
+    .cube-btn:hover {
+      background: #9933ff;
+    }
 
-  input[type="file"] {
-    margin-top: 10px;
-    width: 100%;
-    cursor: pointer;
-    border-radius: 8px;
-  }
-</style>
+    .output-box {
+      background: rgba(255,255,255,0.08);
+      border-radius: 8px;
+      padding: 10px;
+      margin-top: 10px;
+      font-size: 0.95em;
+      white-space: pre-wrap;
+      max-height: 150px;
+      overflow-y: auto;
+    }
+  </style>
 </head>
 <body>
 
-<div id="uiContainer">
-  <div id="titleBar">AdvancedUsername's UI</div>
-  
-  <input type="text" id="urlInput" placeholder="Enter a URL (include https://)" />
-  <button id="goWebsiteBtn">Go to Website</button>
-  
-  <button id="showIpBtn">Show your IP</button>
-  <button id="robloxLoginBtn">Go to roblox.com/login</button>
-  
-  <input type="file" id="fileInput" accept=".txt,.js,.json,.html,.css" />
-  <div id="fileContent"></div>
-  
-  <div id="ipDisplay"></div>
-</div>
+  <div class="cube-ui">
+    <div class="cube-title">AdvancedUsername's UI</div>
 
-<script>
-  document.getElementById("goWebsiteBtn").addEventListener("click", () => {
-    let url = document.getElementById("urlInput").value.trim();
-    if (url) {
+    <input type="text" id="urlInput" class="cube-input" placeholder="Enter a URL (https://...)"/>
+
+    <button class="cube-btn" onclick="goToSite()">Go to Website</button>
+    <button class="cube-btn" onclick="showIp()">Show your IP</button>
+    <button class="cube-btn" onclick="goToRoblox()">Go to roblox.com/login</button>
+
+    <input type="file" id="fileInput" class="cube-file" accept=".txt,.js,.json,.html,.css"/>
+    <div id="fileContent" class="output-box"></div>
+
+    <div id="ipDisplay" class="output-box"></div>
+  </div>
+
+  <script>
+    function goToSite() {
+      const url = document.getElementById("urlInput").value.trim();
+      if (!url) return alert("Enter a URL!");
       try {
         new URL(url);
         window.open(url, "_blank");
       } catch {
         alert("Invalid URL!");
       }
-    } else {
-      alert("Please enter a URL!");
     }
-  });
 
-  document.getElementById("showIpBtn").addEventListener("click", async () => {
-    const ipDisplay = document.getElementById("ipDisplay");
-    ipDisplay.textContent = "Fetching IP...";
-    try {
-      const res = await fetch("https://api.ipify.org?format=json");
-      const data = await res.json();
-      ipDisplay.textContent = `Your IP is: ${data.ip}`;
-    } catch (e) {
-      ipDisplay.textContent = "Failed to fetch IP.";
+    function goToRoblox() {
+      window.open("https://roblox.com/login", "_blank");
     }
-  });
 
-  document.getElementById("robloxLoginBtn").addEventListener("click", () => {
-    window.open("https://roblox.com/login", "_blank");
-  });
+    async function showIp() {
+      const ipBox = document.getElementById("ipDisplay");
+      ipBox.textContent = "Fetching IP...";
+      try {
+        const res = await fetch("https://api.ipify.org?format=json");
+        const data = await res.json();
+        ipBox.textContent = `Your IP: ${data.ip}`;
+      } catch {
+        ipBox.textContent = "Failed to fetch IP.";
+      }
+    }
 
-  // File reader
-  document.getElementById("fileInput").addEventListener("change", (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      document.getElementById("fileContent").textContent = event.target.result;
-    };
-    reader.readAsText(file);
-  });
-</script>
+    document.getElementById("fileInput").addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        document.getElementById("fileContent").textContent = e.target.result;
+      };
+      reader.readAsText(file);
+    });
+  </script>
 
 </body>
 </html>
