@@ -5,267 +5,229 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>AdvancedUsername's UI</title>
 <style>
-  body {
-    margin: 0; padding: 0; 
+  /* Animated black-purple gradient background */
+  body, html {
+    margin: 0; padding: 0; height: 100%;
+    background: linear-gradient(270deg, #0d001f, #330066, #660099, #330066);
+    background-size: 800% 800%;
+    animation: bgAnim 20s ease infinite;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #0b0023, #3a005f);
-    color: white;
-    display: flex; justify-content: center; align-items: center;
-    height: 100vh;
+    color: #eee;
+    user-select: none;
   }
+  @keyframes bgAnim {
+    0%{background-position:0% 50%}
+    50%{background-position:100% 50%}
+    100%{background-position:0% 50%}
+  }
+
+  /* Center container */
   #container {
-    background: linear-gradient(135deg, #240047, #6a00ff);
+    max-width: 400px;
+    margin: 3rem auto;
+    background: #110022cc;
+    border-radius: 20px;
     padding: 30px;
-    border-radius: 12px;
-    box-shadow: 0 0 20px #6a00ff88;
-    width: 360px;
+    box-shadow: 0 0 30px #bb33ffaa;
   }
+
+  /* Title */
   h1 {
-    margin-bottom: 24px;
     text-align: center;
-    font-weight: 700;
+    margin-bottom: 1.5rem;
+    font-weight: 900;
+    text-shadow: 0 0 8px #bb33ffcc;
   }
-  input[type="text"], input[type="email"], input[type="password"] {
+
+  /* Cube style inputs */
+  input[type="email"], input[type="password"], input[type="text"] {
     width: 100%;
-    padding: 10px 14px;
-    margin-bottom: 14px;
-    border-radius: 8px;
-    border: 2px solid;
-    border-image-slice: 1;
-    border-width: 2px;
-    border-image-source: linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet);
-    background: #2a005f;
-    color: white;
-    font-weight: 600;
+    padding: 12px 15px;
+    margin: 10px 0 20px 0;
+    border-radius: 12px;
+    border: 3px solid transparent;
+    background: #220044dd;
+    color: #eee;
+    font-size: 1rem;
     outline: none;
-    transition: border-color 0.3s ease;
+    box-shadow:
+      4px 4px 10px #330066cc,
+      inset 0 0 15px #660099cc;
+    transition: border 0.5s ease;
   }
-  input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focus {
-    border-image-source: linear-gradient(90deg, violet, indigo, blue, green, yellow, orange, red);
+  input[type="email"]:focus, input[type="password"]:focus, input[type="text"]:focus {
+    border: 3px solid;
+    border-image-slice: 1;
+    border-width: 3px;
+    border-image-source: linear-gradient(45deg, red, orange, yellow, green, blue, indigo, violet);
+    box-shadow:
+      0 0 15px #bb33ffcc,
+      inset 0 0 15px #aa33ffaa;
   }
+
+  /* Buttons */
   button {
-    width: 100%;
-    background: #6a00ff;
-    border: none;
-    border-radius: 8px;
-    color: white;
-    font-size: 16px;
+    width: 48%;
+    margin: 5px 1% 20px 1%;
     padding: 12px 0;
-    cursor: pointer;
+    border-radius: 14px;
+    border: none;
     font-weight: 700;
-    margin-bottom: 12px;
+    font-size: 1rem;
+    cursor: pointer;
+    background: linear-gradient(45deg, #4400bb, #bb33ff);
+    color: #eee;
+    box-shadow: 0 0 15px #bb33ffaa;
     transition: background 0.3s ease;
   }
   button:hover {
-    background: #8c33ff;
+    background: linear-gradient(45deg, #bb33ff, #4400bb);
   }
-  #message {
-    text-align: center;
-    margin-bottom: 12px;
-    min-height: 20px;
-    font-weight: 600;
+
+  /* Notification UI */
+  #notification {
+    position: fixed;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #330066cc;
+    padding: 15px 30px;
+    border-radius: 16px;
+    box-shadow: 0 0 20px #bb33ffcc;
+    font-weight: 700;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+    z-index: 999;
   }
+  #notification.show {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* Main dashboard UI */
   #dashboard {
     display: none;
     text-align: center;
   }
   #dashboard h2 {
-    margin-bottom: 10px;
+    margin-bottom: 1rem;
   }
   #logcash {
-    font-weight: 700;
-    color: #ffdb00;
+    font-size: 1.4rem;
+    font-weight: 900;
+    margin-bottom: 1.5rem;
+    color: #bb33ff;
+    text-shadow: 0 0 10px #bb33ffbb;
   }
-  #btnStyle {
-    margin-top: 20px;
-    background: #ff00cc;
-    box-shadow: 0 0 10px #ff00ccaa;
+  #robloxBtn {
+    background: linear-gradient(45deg, #f44336, #e91e63);
+    width: 60%;
+    margin: 0 auto;
+    display: block;
+  }
+
+  /* File reader box */
+  #fileReaderBox {
+    margin-top: 2rem;
+    background: #220044cc;
+    border-radius: 16px;
+    padding: 1rem;
+    box-shadow: inset 0 0 15px #660099cc;
+  }
+  #fileContent {
+    margin-top: 0.8rem;
+    white-space: pre-wrap;
+    max-height: 150px;
+    overflow-y: auto;
+    font-family: monospace;
+    font-size: 0.9rem;
+    background: #330066dd;
+    padding: 10px;
+    border-radius: 12px;
   }
 </style>
 </head>
 <body>
+<div id="notification"></div>
 
 <div id="container">
   <h1>AdvancedUsername's UI</h1>
 
+  <!-- Login/signup UI -->
   <div id="authUI">
-    <input type="text" id="username" placeholder="Username" autocomplete="off" />
-    <input type="email" id="email" placeholder="Email" autocomplete="off" />
-    <input type="password" id="password" placeholder="Password" autocomplete="off" />
-    <button id="btnSignup">Sign Up</button>
-    <button id="btnLogin">Log In</button>
-    <div id="message"></div>
+    <input type="email" id="email" placeholder="Email (unique username)" />
+    <input type="password" id="password" placeholder="Password" />
+    <div>
+      <button id="signupBtn">Sign Up</button>
+      <button id="loginBtn">Log In</button>
+    </div>
   </div>
 
+  <!-- Dashboard UI after login/signup -->
   <div id="dashboard">
-    <h2>Welcome, <span id="displayUser"></span>!</h2>
-    <p>LogCash: <span id="logcash">0</span></p>
-    <button id="btnStyle">Buy UI Style (Cost: 10 LogCash)</button>
-    <button id="btnLogout">Log Out</button>
+    <h2>Welcome!</h2>
+    <div id="logcash">LogCash: 0</div>
+    <button id="robloxBtn">Go to roblox.com/login</button>
+
+    <!-- File reader -->
+    <div id="fileReaderBox">
+      <label for="fileInput" style="cursor:pointer; color:#bb33ff; font-weight:700;">
+        Drop a file here or click to select
+      </label>
+      <input type="file" id="fileInput" style="display:none;" />
+      <pre id="fileContent"></pre>
+    </div>
   </div>
 </div>
 
-<!-- Firebase SDK -->
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-app.js";
-  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-auth.js";
-  import { getDatabase, ref, get, set, update } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-database.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
+  import {
+    getAuth,
+    createUserWithEmailAndPassword,
+    signInWithEmailAndPassword,
+    onAuthStateChanged,
+  } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
 
-  // Your Firebase config here (update this with your actual config)
+  import {
+    getDatabase,
+    ref,
+    set,
+    get,
+    child,
+    update,
+  } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-database.js";
+
   const firebaseConfig = {
     apiKey: "AIzaSyBjA2O3QDuKsAGLzq008VEDug69WDroulI",
     authDomain: "supercoollogin999.firebaseapp.com",
-    databaseURL: "https://supercoollogin999-default-rtdb.firebaseio.com/",
+    databaseURL: "https://supercoollogin999-default-rtdb.firebaseio.com",
     projectId: "supercoollogin999",
-    storageBucket: "supercoollogin999.appspot.com",
+    storageBucket: "supercoollogin999.firebasestorage.app",
     messagingSenderId: "472488806884",
-    appId: "1:472488806884:web:a2ef5e6a2660a36ac51ff1",
-    measurementId: "G-6HSSSTQHMS"
+    appId: "1:472488806884:web:885f97531677a384c51ff1",
+    measurementId: "G-FSD3TZLK82",
   };
 
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
-  const db = getDatabase(app);
+  const database = getDatabase(app);
 
-  const authUI = document.getElementById('authUI');
-  const dashboard = document.getElementById('dashboard');
-  const usernameInp = document.getElementById('username');
-  const emailInp = document.getElementById('email');
-  const passwordInp = document.getElementById('password');
-  const btnSignup = document.getElementById('btnSignup');
-  const btnLogin = document.getElementById('btnLogin');
-  const btnLogout = document.getElementById('btnLogout');
-  const btnStyle = document.getElementById('btnStyle');
-  const messageDiv = document.getElementById('message');
-  const displayUser = document.getElementById('displayUser');
-  const logcashSpan = document.getElementById('logcash');
+  // UI elements
+  const emailInput = document.getElementById("email");
+  const passwordInput = document.getElementById("password");
+  const signupBtn = document.getElementById("signupBtn");
+  const loginBtn = document.getElementById("loginBtn");
+  const notification = document.getElementById("notification");
+  const authUI = document.getElementById("authUI");
+  const dashboard = document.getElementById("dashboard");
+  const logcashDisplay = document.getElementById("logcash");
+  const robloxBtn = document.getElementById("robloxBtn");
+  const fileInput = document.getElementById("fileInput");
+  const fileContent = document.getElementById("fileContent");
 
-  function showMessage(msg, color = "white") {
-    messageDiv.textContent = msg;
-    messageDiv.style.color = color;
-  }
-
-  // Check if username already exists
-  async function usernameExists(username) {
-    const usersRef = ref(db, 'users');
-    const snapshot = await get(usersRef);
-    if (!snapshot.exists()) return false;
-
-    const users = snapshot.val();
-    return Object.values(users).some(user => user.username.toLowerCase() === username.toLowerCase());
-  }
-
-  // Create user data in Realtime Database with initial LogCash 0
-  async function createUserData(uid, username) {
-    await set(ref(db, 'users/' + uid), {
-      username: username,
-      logcash: 2 // initial logcash for new signup
-    });
-  }
-
-  async function updateLogCash(uid, newAmount) {
-    await update(ref(db, 'users/' + uid), {
-      logcash: newAmount
-    });
-  }
-
-  btnSignup.onclick = async () => {
-    const username = usernameInp.value.trim();
-    const email = emailInp.value.trim();
-    const password = passwordInp.value.trim();
-
-    if (!username || !email || !password) {
-      showMessage("Fill all fields!", "orange");
-      return;
-    }
-
-    if (password.length < 6) {
-      showMessage("Password must be 6+ chars.", "orange");
-      return;
-    }
-
-    if (await usernameExists(username)) {
-      showMessage("Username taken!", "red");
-      return;
-    }
-
-    try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-      await createUserData(user.uid, username);
-      showMessage("Signup successful! Logging in...", "lime");
-    } catch (error) {
-      showMessage(error.message, "red");
-    }
-  };
-
-  btnLogin.onclick = async () => {
-    const email = emailInp.value.trim();
-    const password = passwordInp.value.trim();
-
-    if (!email || !password) {
-      showMessage("Fill email and password!", "orange");
-      return;
-    }
-
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      showMessage("Logged in!", "lime");
-    } catch (error) {
-      showMessage(error.message, "red");
-    }
-  };
-
-  btnLogout.onclick = async () => {
-    await signOut(auth);
-  };
-
-  onAuthStateChanged(auth, async (user) => {
-    if (user) {
-      authUI.style.display = "none";
-      dashboard.style.display = "block";
-
-      const userRef = ref(db, 'users/' + user.uid);
-      const snap = await get(userRef);
-      const data = snap.val();
-
-      displayUser.textContent = data?.username || "User";
-      logcashSpan.textContent = data?.logcash || "0";
-      showMessage("");
-    } else {
-      authUI.style.display = "block";
-      dashboard.style.display = "none";
-      showMessage("");
-      usernameInp.value = "";
-      emailInp.value = "";
-      passwordInp.value = "";
-    }
-  });
-
-  btnStyle.onclick = async () => {
-    const user = auth.currentUser;
-    if (!user) return;
-
-    const userRef = ref(db, 'users/' + user.uid);
-    const snap = await get(userRef);
-    const data = snap.val();
-
-    if (!data) return;
-
-    const cost = 10;
-    if (data.logcash >= cost) {
-      const newLogCash = data.logcash - cost;
-      await updateLogCash(user.uid, newLogCash);
-      logcashSpan.textContent = newLogCash;
-
-      // Change container background gradient to show style purchased
-      document.getElementById('container').style.background = 'linear-gradient(45deg, #ff00cc, #6600ff)';
-      showMessage("UI Style purchased!", "lime");
-    } else {
-      showMessage("Not enough LogCash!", "orange");
-    }
-  };
-</script>
-
-</body>
-</html>
+  // Show notification helper
+  function showNotification(msg, isError = false) {
+    notification.textContent = msg;
+    notification.style.background = isError ? "#aa000088
