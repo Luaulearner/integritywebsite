@@ -1,28 +1,238 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>LogCash UI</title>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Simple Login/Signup UI</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+    background: linear-gradient(135deg, #2c2c54, #7f00ff);
+    font-family: 'Poppins', sans-serif;
+    color: #eee;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+  .container {
+    background: #1e1e2f;
+    border-radius: 10px;
+    padding: 30px 40px;
+    width: 350px;
+    box-shadow: 0 8px 20px rgba(127,0,255,0.4);
+  }
+  h2 {
+    margin-bottom: 24px;
+    font-weight: 600;
+    text-align: center;
+  }
+  input {
+    width: 100%;
+    padding: 12px 15px;
+    margin-bottom: 16px;
+    border-radius: 6px;
+    border: none;
+    outline: none;
+    font-size: 16px;
+  }
+  input[type="text"], input[type="password"] {
+    background: #2a2a40;
+    color: #eee;
+  }
+  button {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 8px;
+    background: #7f00ff;
+    color: #fff;
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  button:hover {
+    background: #5b00cc;
+  }
+  .toggle {
+    margin-top: 15px;
+    text-align: center;
+    font-size: 14px;
+    color: #bbb;
+    cursor: pointer;
+    user-select: none;
+  }
+  .toggle:hover {
+    text-decoration: underline;
+  }
+  .message {
+    text-align: center;
+    margin-bottom: 12px;
+    font-weight: 500;
+    min-height: 20px;
+  }
+  .success {
+    color: #4caf50;
+  }
+  .error {
+    color: #ff4c4c;
+  }
+  .main-ui {
+    text-align: center;
+  }
+  .logcash {
+    font-weight: 600;
+    margin-top: 15px;
+    font-size: 18px;
+  }
+</style>
 </head>
 <body>
-  <div id="auth-ui">
-    <h1>Welcome to LogCash</h1>
-    <input id="username" placeholder="Username" />
-    <input id="password" type="password" placeholder="Password" />
-    <button onclick="signUp()">Sign Up</button>
-    <button onclick="logIn()">Log In</button>
-    <p id="notif"></p>
-  </div>
 
-  <div id="main-ui" style="display:none;">
-    <h2>Welcome, <span id="user-name"></span>!</h2>
-    <p>LogCash: <span id="logcash"></span></p>
-    <button onclick="buyStyle()">Buy New UI Style (Cost: 4)</button>
-  </div>
+<div class="container" id="auth-container">
+  <h2 id="form-title">Login</h2>
+  <div class="message" id="message"></div>
+  <input type="text" id="username" placeholder="Username" autocomplete="off" />
+  <input type="password" id="password" placeholder="Password" autocomplete="off" />
+  <button id="submit-btn">Login</button>
+  <div class="toggle" id="toggle-auth">Don't have an account? Sign up</div>
+</div>
 
-  <script src="script.js"></script>
+<div class="container" id="main-ui" style="display:none;">
+  <h2>Welcome, <span id="display-user"></span>!</h2>
+  <div class="logcash">LogCash: <span id="logcash">0</span></div>
+  <button id="logout-btn" style="margin-top: 20px; background: #ff4444;">Logout</button>
+</div>
+
+<!-- Firebase App (the core Firebase SDK) -->
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<!-- Firebase Database -->
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
+<script>
+  // Your Firebase config here
+  const firebaseConfig = {
+    apiKey: "AIzaSyBjA2O3QDuKsAGLzq008VEDug69WDroulI",
+    authDomain: "supercoollogin999.firebaseapp.com",
+    databaseURL: "https://supercoollogin999-default-rtdb.firebaseio.com",
+    projectId: "supercoollogin999",
+    storageBucket: "supercoollogin999.firebasestorage.app",
+    messagingSenderId: "472488806884",
+    appId: "1:472488806884:web:a2ef5e6a2660a36ac51ff1"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
+  // Elements
+  const authContainer = document.getElementById('auth-container');
+  const mainUI = document.getElementById('main-ui');
+  const messageEl = document.getElementById('message');
+  const formTitle = document.getElementById('form-title');
+  const toggleAuth = document.getElementById('toggle-auth');
+  const submitBtn = document.getElementById('submit-btn');
+  const usernameInput = document.getElementById('username');
+  const passwordInput = document.getElementById('password');
+  const displayUser = document.getElementById('display-user');
+  const logcashEl = document.getElementById('logcash');
+  const logoutBtn = document.getElementById('logout-btn');
+
+  let isLogin = true;
+
+  toggleAuth.addEventListener('click', () => {
+    isLogin = !isLogin;
+    formTitle.textContent = isLogin ? "Login" : "Sign Up";
+    submitBtn.textContent = isLogin ? "Login" : "Sign Up";
+    messageEl.textContent = '';
+    toggleAuth.textContent = isLogin
+      ? "Don't have an account? Sign up"
+      : "Already have an account? Login";
+  });
+
+  function showMessage(msg, isSuccess) {
+    messageEl.textContent = msg;
+    messageEl.className = 'message ' + (isSuccess ? 'success' : 'error');
+  }
+
+  async function getUserData(username) {
+    const snapshot = await db.ref('users/' + username).get();
+    return snapshot.exists() ? snapshot.val() : null;
+  }
+
+  async function saveUserData(username, data) {
+    await db.ref('users/' + username).set(data);
+  }
+
+  async function countUsers() {
+    const snapshot = await db.ref('users').get();
+    if (!snapshot.exists()) return 0;
+    return Object.keys(snapshot.val()).length;
+  }
+
+  submitBtn.addEventListener('click', async () => {
+    const username = usernameInput.value.trim();
+    const password = passwordInput.value;
+
+    if (!username || !password) {
+      showMessage("Please enter username and password.", false);
+      return;
+    }
+
+    if (isLogin) {
+      // Login flow
+      const userData = await getUserData(username);
+      if (!userData) {
+        showMessage("User not found.", false);
+        return;
+      }
+      if (userData.password !== password) {
+        showMessage("Wrong password.", false);
+        return;
+      }
+      showMessage("Login successful! Loading...", true);
+      openMainUI(username, userData);
+    } else {
+      // Signup flow
+      const existing = await getUserData(username);
+      if (existing) {
+        showMessage("Username already taken.", false);
+        return;
+      }
+      // Count users for LogCash
+      const totalUsers = await countUsers();
+      const newLogCash = 2 + totalUsers;
+
+      const newUserData = {
+        password: password,
+        logCash: newLogCash,
+        createdAt: Date.now()
+      };
+      await saveUserData(username, newUserData);
+      showMessage("Sign up successful! You earned " + newLogCash + " LogCash.", true);
+      openMainUI(username, newUserData);
+    }
+  });
+
+  function openMainUI(username, data) {
+    displayUser.textContent = username;
+    logcashEl.textContent = data.logCash || 0;
+    authContainer.style.display = 'none';
+    mainUI.style.display = 'block';
+  }
+
+  logoutBtn.addEventListener('click', () => {
+    usernameInput.value = '';
+    passwordInput.value = '';
+    messageEl.textContent = '';
+    authContainer.style.display = 'block';
+    mainUI.style.display = 'none';
+  });
+</script>
 </body>
 </html>
