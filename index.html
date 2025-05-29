@@ -1,10 +1,69 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>My First Website</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Notification Button</title>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: #121212;
+      color: white;
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+    }
+    button {
+      padding: 1rem 2rem;
+      font-size: 1.5rem;
+      background: #00bcd4;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(0, 188, 212, 0.4);
+      transition: all 0.2s ease;
+    }
+    button:hover {
+      background: #0097a7;
+      transform: scale(1.05);
+    }
+  </style>
 </head>
 <body>
-  <h1>Hey, world! 🌍</h1>
-  <p>This is my very first GitHub Pages site.</p>
+  <button id="notifyBtn">Send Notification</button>
+
+  <script>
+    const notifyBtn = document.getElementById('notifyBtn');
+
+    notifyBtn.addEventListener('click', () => {
+      // Ask for permission
+      if (Notification.permission === 'granted') {
+        sendNotification();
+      } else if (Notification.permission !== 'denied') {
+        Notification.requestPermission().then(permission => {
+          if (permission === 'granted') {
+            sendNotification();
+          } else {
+            alert('Notification permission was denied 😢');
+          }
+        });
+      } else {
+        alert('Notifications are blocked. Please enable them in your browser settings.');
+      }
+    });
+
+    function sendNotification() {
+      const notification = new Notification('🚀 Hello!', {
+        body: 'You just clicked the button!',
+        icon: 'https://cdn-icons-png.flaticon.com/512/545/545705.png'
+      });
+
+      notification.onclick = () => {
+        window.open('roblox.com/login'); // Optional: link on click
+      };
+    }
+  </script>
 </body>
 </html>
