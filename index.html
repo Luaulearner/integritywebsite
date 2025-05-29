@@ -1,235 +1,108 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>AdvancedUsername's UI</title>
-<style>
-  body {
-    margin: 0; height: 100vh; 
-    background: linear-gradient(135deg, #2c003e, #44005a);
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: white;
-    display: flex; justify-content: center; align-items: center;
-  }
-  #container {
-    background: #1a0a2b;
-    padding: 30px;
-    border-radius: 12px;
-    width: 320px;
-    box-shadow: 0 0 20px #7a33f9;
-    display: flex; flex-direction: column; gap: 20px;
-  }
-  h1 {
-    text-align: center; margin-bottom: 10px;
-    font-weight: 700;
-  }
-  input {
-    background: #2c0054;
-    border: 2px solid #7a33f9;
-    border-radius: 8px;
-    padding: 10px;
-    color: white;
-    font-size: 16px;
-    outline: none;
-    transition: border-color 0.3s;
-  }
-  input:focus {
-    border-color: #d95eff;
-  }
-  button {
-    background: #7a33f9;
-    border: none;
-    padding: 12px;
-    border-radius: 8px;
-    font-weight: 700;
-    font-size: 16px;
-    cursor: pointer;
-    color: white;
-    transition: background-color 0.3s;
-  }
-  button:hover {
-    background: #a855f7;
-  }
-  #notification {
-    position: fixed;
-    top: 20px; left: 50%; transform: translateX(-50%);
-    background: #4a006e;
-    padding: 15px 30px;
-    border-radius: 10px;
-    font-weight: 600;
-    display: none;
-    box-shadow: 0 0 15px #b474ff;
-  }
-  #mainUI {
-    display: none;
-    flex-direction: column;
-    gap: 20px;
-  }
-  #logcash {
-    font-weight: 600;
-    font-size: 18px;
-  }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AdvancedUsername's UI</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(-45deg, #1a1a1a, #2c003e, #1a1a1a);
+      background-size: 400% 400%;
+      animation: gradientBG 10s ease infinite;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      overflow: hidden;
+    }@keyframes gradientBG {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.cube-ui {
+  background-color: #2e2e2e;
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  width: 320px;
+}
+
+.rainbow-input {
+  width: 100%;
+  padding: 0.8rem;
+  border: 3px solid transparent;
+  border-radius: 10px;
+  background-color: #1a1a1a;
+  color: white;
+  font-size: 1rem;
+  background-image: linear-gradient(#1a1a1a, #1a1a1a),
+    linear-gradient(90deg, red, orange, yellow, lime, cyan, blue, violet, red);
+  background-origin: border-box;
+  background-clip: content-box, border-box;
+  animation: rainbowBorder 6s linear infinite;
+}
+
+@keyframes rainbowBorder {
+  0% { background-position: 0 0, 0 0; }
+  100% { background-position: 0 0, 300% 0; }
+}
+
+.ui-button {
+  padding: 0.7rem 1.5rem;
+  background-color: #6200ea;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.ui-button:hover {
+  background-color: #7e3ff2;
+}
+
+#notification {
+  display: none;
+  background-color: #1e1e1e;
+  color: #00ff88;
+  padding: 10px 20px;
+  border-radius: 10px;
+  margin-top: 10px;
+  text-align: center;
+}
+
+#mainUI {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  color: white;
+}
+
+#logcash {
+  font-size: 1.2rem;
+  margin-top: 10px;
+}
+
+  </style>
 </head>
 <body>
-  <div id="container">
-    <h1>AdvancedUsername's UI</h1>
-    <div id="authUI">
-      <input type="text" id="username" placeholder="Username" />
-      <input type="email" id="email" placeholder="Email" />
-      <input type="password" id="password" placeholder="Password" />
-      <button id="signupBtn">Sign Up</button>
-      <button id="loginBtn">Log In</button>
-    </div>
-
-    <div id="mainUI">
-      <div id="logcash">LogCash: 0</div>
-      <button id="logoutBtn">Log Out</button>
-    </div>
-  </div>
-
-  <div id="notification"></div>
-
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
-
-  <script>
-    // Your Firebase config here
-    const firebaseConfig = {
-      apiKey: "AIzaSyBjA2O3QDuKsAGLzq008VEDug69WDroulI",
-      authDomain: "supercoollogin999.firebaseapp.com",
-      databaseURL: "https://supercoollogin999-default-rtdb.firebaseio.com",
-      projectId: "supercoollogin999",
-      storageBucket: "supercoollogin999.appspot.com",
-      messagingSenderId: "472488806884",
-      appId: "1:472488806884:web:a2ef5e6a2660a36ac51ff1"
-    };
-
-    // Init Firebase
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.database();
-
-    // DOM
-    const usernameInput = document.getElementById('username');
-    const emailInput = document.getElementById('email');
-    const passwordInput = document.getElementById('password');
-    const signupBtn = document.getElementById('signupBtn');
-    const loginBtn = document.getElementById('loginBtn');
-    const logoutBtn = document.getElementById('logoutBtn');
-    const authUI = document.getElementById('authUI');
-    const mainUI = document.getElementById('mainUI');
-    const logcashDisplay = document.getElementById('logcash');
-    const notification = document.getElementById('notification');
-
-    // Notification helper
-    function showNotification(msg, duration = 2500) {
-      notification.textContent = msg;
-      notification.style.display = 'block';
-      setTimeout(() => notification.style.display = 'none', duration);
-    }
-
-    // Anti-same-name check
-    async function usernameExists(name) {
-      const snapshot = await db.ref('users').orderByChild('username').equalTo(name).once('value');
-      return snapshot.exists();
-    }
-
-    // Create user DB entry
-    async function createUserData(uid, username) {
-      // Count how many accounts this user already created by that name (simulate)
-      const userCountSnap = await db.ref('users').once('value');
-      let userCount = 0;
-      userCountSnap.forEach(() => userCount++);
-      const logcash = 2 + userCount; // +2 for each account made total
-
-      await db.ref('users/' + uid).set({
-        username: username,
-        logcash: logcash
-      });
-
-      return logcash;
-    }
-
-    // Update UI for logged-in user
-    function showMainUI(username, logcash) {
-      authUI.style.display = 'none';
-      mainUI.style.display = 'flex';
-      logcashDisplay.textContent = `LogCash: ${logcash}`;
-      showNotification(`Welcome, ${username}!`);
-    }
-
-    // Auth state observer
-    auth.onAuthStateChanged(async user => {
-      if (user) {
-        // Logged in, fetch DB data
-        const snapshot = await db.ref('users/' + user.uid).once('value');
-        if (snapshot.exists()) {
-          const data = snapshot.val();
-          showMainUI(data.username, data.logcash);
-        } else {
-          // No user data? Force logout to prevent issues
-          await auth.signOut();
-          authUI.style.display = 'flex';
-          mainUI.style.display = 'none';
-        }
-      } else {
-        authUI.style.display = 'flex';
-        mainUI.style.display = 'none';
-      }
-    });
-
-    // Signup
-    signupBtn.addEventListener('click', async () => {
-      const username = usernameInput.value.trim();
-      const email = emailInput.value.trim();
-      const password = passwordInput.value.trim();
-
-      if (!username || !email || !password) {
-        showNotification('Fill in all fields!');
-        return;
-      }
-
-      if (await usernameExists(username)) {
-        showNotification('Username already taken!');
-        return;
-      }
-
-      try {
-        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-        await createUserData(userCredential.user.uid, username);
-        showNotification('Sign up successful!');
-      } catch (err) {
-        showNotification(err.message);
-      }
-    });
-
-    // Login
-    loginBtn.addEventListener('click', async () => {
-      const email = emailInput.value.trim();
-      const password = passwordInput.value.trim();
-
-      if (!email || !password) {
-        showNotification('Fill in email & password!');
-        return;
-      }
-
-      try {
-        const userCredential = await auth.signInWithEmailAndPassword(email, password);
-        showNotification('Login successful!');
-      } catch (err) {
-        showNotification('Wrong email or password!');
-      }
-    });
-
-    // Logout
-    logoutBtn.addEventListener('click', () => {
-      auth.signOut();
-      showNotification('Logged out!');
-    });
-  </script>
-</body>
-</html>
+  <div class="cube-ui" id="authUI">
+    <h2 style="color: white;">AdvancedUsername's UI</h2>
+    <input type="text" placeholder="Email" id="email" class="rainbow-input">
+    <input type="password" placeholder="Password" id="password" class="rainbow-input">
+    <button class="ui-button" id="signupBtn">Sign Up</button>
+    <button class="ui-button" id="loginBtn">Login</button>
+    <div id="notification"></div>
+  </div>  <div id="mainUI">
+    <h2>Welcome!</h2>
+    <div id="logcash">LogCash: 0</div>
+  </div>  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js';
+    import { getAuth, createUserWithEmailAndPassword, sign
