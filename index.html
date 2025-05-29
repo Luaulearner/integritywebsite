@@ -6,15 +6,9 @@
 <title>AdvancedUsername's UI</title>
 <style>
   @keyframes bgAnimation {
-    0% {
-      background-position: 0% 50%;
-    }
-    50% {
-      background-position: 100% 50%;
-    }
-    100% {
-      background-position: 0% 50%;
-    }
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
   }
 
   body, html {
@@ -23,7 +17,6 @@
     background-size: 400% 400%;
     animation: bgAnimation 20s ease infinite;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    display: flex; justify-content: center; align-items: center;
     user-select: none;
   }
 
@@ -35,16 +28,17 @@
     color: white;
     padding: 20px;
     cursor: grab;
-    position: absolute;
+    position: fixed;
     top: 100px;
     left: 100px;
+    user-select: none;
   }
 
   #titleBar {
     font-size: 1.5em;
     font-weight: bold;
     margin-bottom: 15px;
-    cursor: grab;
+    cursor: default;
   }
 
   button {
@@ -81,52 +75,60 @@
 </div>
 
 <script>
-  // Draggable UI
   const dragItem = document.getElementById("draggableUI");
-  const titleBar = document.getElementById("titleBar");
-  let active = false;
-  let currentX, currentY, initialX, initialY;
-  let xOffset = 0, yOffset = 0;
 
-  titleBar.addEventListener("mousedown", dragStart);
-  document.addEventListener("mouseup", dragEnd);
-  document.addEventListener("mousemove", drag);
+  let active = false;
+  let offsetX = 0;
+  let offsetY = 0;
+
+  // Mouse down / touch start anywhere in the UI
+  dragItem.addEventListener("mousedown", dragStart);
+  dragItem.addEventListener("touchstart", dragStart);
 
   function dragStart(e) {
+    e.preventDefault();
     active = true;
-    initialX = e.clientX - xOffset;
-    initialY = e.clientY - yOffset;
+    // Get the current mouse/touch position
+    const clientX = e.type === "touchstart" ? e.touches[0].clientX : e.clientX;
+    const clientY = e.type === "touchstart" ? e.touches[0].clientY : e.clientY;
+    // Calculate offset between the mouse/touch and top-left corner of the UI
+    const rect = dragItem.getBoundingClientRect();
+    offsetX = clientX - rect.left;
+    offsetY = clientY - rect.top;
     dragItem.style.cursor = "grabbing";
   }
 
+  // Mouse move / touch move updates position
+  window.addEventListener("mousemove", dragMove);
+  window.addEventListener("touchmove", dragMove);
+
+  function dragMove(e) {
+    if (!active) return;
+    e.preventDefault();
+    const clientX = e.type === "touchmove" ? e.touches[0].clientX : e.clientX;
+    const clientY = e.type === "touchmove" ? e.touches[0].clientY : e.clientY;
+
+    // Set the UI top-left to the mouse/touch minus the offset to keep it "stuck"
+    dragItem.style.left = (clientX - offsetX) + "px";
+    dragItem.style.top = (clientY - offsetY) + "px";
+  }
+
+  // Mouse up / touch end stops dragging
+  window.addEventListener("mouseup", dragEnd);
+  window.addEventListener("touchend", dragEnd);
+  window.addEventListener("touchcancel", dragEnd);
+
   function dragEnd(e) {
     active = false;
-    xOffset = currentX;
-    yOffset = currentY;
     dragItem.style.cursor = "grab";
   }
 
-  function drag(e) {
-    if (!active) return;
-
-    e.preventDefault();
-
-    currentX = e.clientX - initialX;
-    currentY = e.clientY - initialY;
-
-    setTranslate(currentX, currentY, dragItem);
-  }
-
-  function setTranslate(xPos, yPos, el) {
-    el.style.transform = `translate(${xPos}px, ${yPos}px)`;
-  }
-
-  // Button functions
+  // Buttons
   document.getElementById("goWebsiteBtn").addEventListener("click", () => {
     let url = prompt("Enter a URL to visit (include https://):", "https://");
     if (url) {
       try {
-        new URL(url); // validate url format
+        new URL(url);
         window.open(url, "_blank");
       } catch {
         alert("Invalid URL!");
