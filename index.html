@@ -17,21 +17,20 @@
     background-size: 400% 400%;
     animation: bgAnimation 20s ease infinite;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     user-select: none;
   }
 
-  #draggableUI {
-    width: 350px;
+  #uiContainer {
+    width: 360px;
     background: rgba(30, 0, 50, 0.85);
     border-radius: 12px;
     box-shadow: 0 0 20px rgba(102, 0, 204, 0.8);
     color: white;
     padding: 20px;
-    cursor: grab;
-    position: fixed;
-    top: 100px;
-    left: 100px;
-    user-select: none;
+    user-select: text;
   }
 
   #titleBar {
@@ -39,6 +38,7 @@
     font-weight: bold;
     margin-bottom: 15px;
     cursor: default;
+    text-align: center;
   }
 
   button {
@@ -52,80 +52,64 @@
     font-weight: 600;
     font-size: 1em;
     transition: background 0.3s ease;
+    cursor: pointer;
   }
   button:hover {
     background: #9a4fff;
   }
 
-  #ipDisplay {
+  #ipDisplay, #fileContent {
     margin-top: 10px;
     font-size: 0.9em;
     font-style: italic;
+    white-space: pre-wrap;
+    max-height: 150px;
+    overflow-y: auto;
+    text-align: left;
+    background: rgba(255,255,255,0.1);
+    padding: 8px;
+    border-radius: 8px;
+  }
+
+  input[type="text"] {
+    width: 100%;
+    padding: 10px 12px;
+    margin: 10px 0 5px 0;
+    border-radius: 8px;
+    border: none;
+    font-size: 1em;
+    box-sizing: border-box;
+    outline: none;
+  }
+
+  input[type="file"] {
+    margin-top: 10px;
+    width: 100%;
+    cursor: pointer;
+    border-radius: 8px;
   }
 </style>
 </head>
 <body>
 
-<div id="draggableUI">
+<div id="uiContainer">
   <div id="titleBar">AdvancedUsername's UI</div>
-  <button id="goWebsiteBtn">Go to any website</button>
+  
+  <input type="text" id="urlInput" placeholder="Enter a URL (include https://)" />
+  <button id="goWebsiteBtn">Go to Website</button>
+  
   <button id="showIpBtn">Show your IP</button>
   <button id="robloxLoginBtn">Go to roblox.com/login</button>
+  
+  <input type="file" id="fileInput" accept=".txt,.js,.json,.html,.css" />
+  <div id="fileContent"></div>
+  
   <div id="ipDisplay"></div>
 </div>
 
 <script>
-  const dragItem = document.getElementById("draggableUI");
-
-  let active = false;
-  let offsetX = 0;
-  let offsetY = 0;
-
-  // Mouse down / touch start anywhere in the UI
-  dragItem.addEventListener("mousedown", dragStart);
-  dragItem.addEventListener("touchstart", dragStart);
-
-  function dragStart(e) {
-    e.preventDefault();
-    active = true;
-    // Get the current mouse/touch position
-    const clientX = e.type === "touchstart" ? e.touches[0].clientX : e.clientX;
-    const clientY = e.type === "touchstart" ? e.touches[0].clientY : e.clientY;
-    // Calculate offset between the mouse/touch and top-left corner of the UI
-    const rect = dragItem.getBoundingClientRect();
-    offsetX = clientX - rect.left;
-    offsetY = clientY - rect.top;
-    dragItem.style.cursor = "grabbing";
-  }
-
-  // Mouse move / touch move updates position
-  window.addEventListener("mousemove", dragMove);
-  window.addEventListener("touchmove", dragMove);
-
-  function dragMove(e) {
-    if (!active) return;
-    e.preventDefault();
-    const clientX = e.type === "touchmove" ? e.touches[0].clientX : e.clientX;
-    const clientY = e.type === "touchmove" ? e.touches[0].clientY : e.clientY;
-
-    // Set the UI top-left to the mouse/touch minus the offset to keep it "stuck"
-    dragItem.style.left = (clientX - offsetX) + "px";
-    dragItem.style.top = (clientY - offsetY) + "px";
-  }
-
-  // Mouse up / touch end stops dragging
-  window.addEventListener("mouseup", dragEnd);
-  window.addEventListener("touchend", dragEnd);
-  window.addEventListener("touchcancel", dragEnd);
-
-  function dragEnd(e) {
-    active = false;
-    dragItem.style.cursor = "grab";
-  }
-
-  // Buttons
   document.getElementById("goWebsiteBtn").addEventListener("click", () => {
-    let url = prompt("Enter a URL to visit (include https://):", "https://");
+    let url = document.getElementById("urlInput").value.trim();
     if (url) {
       try {
         new URL(url);
@@ -133,6 +117,8 @@
       } catch {
         alert("Invalid URL!");
       }
+    } else {
+      alert("Please enter a URL!");
     }
   });
 
@@ -142,14 +128,25 @@
     try {
       const res = await fetch("https://api.ipify.org?format=json");
       const data = await res.json();
-      ipDisplay.textContent = `Your IP: ${data.ip}`;
-    } catch {
-      ipDisplay.textContent = "Failed to get IP.";
+      ipDisplay.textContent = `Your IP is: ${data.ip}`;
+    } catch (e) {
+      ipDisplay.textContent = "Failed to fetch IP.";
     }
   });
 
   document.getElementById("robloxLoginBtn").addEventListener("click", () => {
-    window.open("https://www.roblox.com/login", "_blank");
+    window.open("https://roblox.com/login", "_blank");
+  });
+
+  // File reader
+  document.getElementById("fileInput").addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      document.getElementById("fileContent").textContent = event.target.result;
+    };
+    reader.readAsText(file);
   });
 </script>
 
