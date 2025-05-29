@@ -1,108 +1,338 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AdvancedUsername's UI</title>
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(-45deg, #1a1a1a, #2c003e, #1a1a1a);
-      background-size: 400% 400%;
-      animation: gradientBG 10s ease infinite;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      overflow: hidden;
-    }@keyframes gradientBG {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AdvancedUsername's UI</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap');
 
-.cube-ui {
-  background-color: #2e2e2e;
-  border-radius: 20px;
-  padding: 2rem;
-  box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  width: 320px;
-}
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(270deg, #1a0033, #440077, #220044);
+    background-size: 600% 600%;
+    animation: bgShift 15s ease infinite;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+  }
 
-.rainbow-input {
-  width: 100%;
-  padding: 0.8rem;
-  border: 3px solid transparent;
-  border-radius: 10px;
-  background-color: #1a1a1a;
-  color: white;
-  font-size: 1rem;
-  background-image: linear-gradient(#1a1a1a, #1a1a1a),
-    linear-gradient(90deg, red, orange, yellow, lime, cyan, blue, violet, red);
-  background-origin: border-box;
-  background-clip: content-box, border-box;
-  animation: rainbowBorder 6s linear infinite;
-}
+  @keyframes bgShift {
+    0%{background-position:0% 50%}
+    50%{background-position:100% 50%}
+    100%{background-position:0% 50%}
+  }
 
-@keyframes rainbowBorder {
-  0% { background-position: 0 0, 0 0; }
-  100% { background-position: 0 0, 300% 0; }
-}
+  /* Cube container */
+  #container {
+    background: #220044dd;
+    padding: 30px 40px;
+    border-radius: 15px;
+    box-shadow: 0 0 30px #aa33ffcc;
+    width: 350px;
+    text-align: center;
+  }
 
-.ui-button {
-  padding: 0.7rem 1.5rem;
-  background-color: #6200ea;
-  color: white;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
+  h1 {
+    margin-bottom: 20px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    user-select: none;
+    text-shadow: 0 0 5px #aa33ffcc;
+  }
 
-.ui-button:hover {
-  background-color: #7e3ff2;
-}
+  input[type=text], input[type=password], input[type=email] {
+    width: 100%;
+    background: transparent;
+    border: 3px solid transparent;
+    border-radius: 8px;
+    padding: 12px 15px;
+    margin: 12px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: white;
+    outline: none;
+    /* rainbow outline animation */
+    border-image-slice: 1;
+    border-width: 3px;
+    border-style: solid;
+    border-image-source: linear-gradient(270deg, #ff00cc, #6600ff, #00ccff, #ff00cc);
+    animation: rainbowBorder 4s linear infinite;
+  }
 
-#notification {
-  display: none;
-  background-color: #1e1e1e;
-  color: #00ff88;
-  padding: 10px 20px;
-  border-radius: 10px;
-  margin-top: 10px;
-  text-align: center;
-}
+  @keyframes rainbowBorder {
+    0%{border-image-source: linear-gradient(270deg, #ff00cc, #6600ff, #00ccff, #ff00cc);}
+    25%{border-image-source: linear-gradient(270deg, #6600ff, #00ccff, #ff00cc, #ff00cc);}
+    50%{border-image-source: linear-gradient(270deg, #00ccff, #ff00cc, #6600ff, #ff00cc);}
+    75%{border-image-source: linear-gradient(270deg, #ff00cc, #00ccff, #6600ff, #ff00cc);}
+    100%{border-image-source: linear-gradient(270deg, #ff00cc, #6600ff, #00ccff, #ff00cc);}
+  }
 
-#mainUI {
-  display: none;
-  flex-direction: column;
-  align-items: center;
-  color: white;
-}
+  button {
+    background: #6600ffcc;
+    border: none;
+    padding: 14px 0;
+    width: 100%;
+    border-radius: 10px;
+    color: white;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 12px;
+    box-shadow: 0 0 10px #aa33ffcc;
+    transition: background 0.3s ease;
+  }
+  button:hover {
+    background: #aa33ffcc;
+  }
 
-#logcash {
-  font-size: 1.2rem;
-  margin-top: 10px;
-}
+  #message {
+    margin-top: 14px;
+    font-weight: 600;
+    min-height: 22px;
+    user-select: none;
+  }
 
-  </style>
+  #dashboard {
+    display: none;
+    margin-top: 20px;
+    text-align: left;
+  }
+
+  #dashboard h2 {
+    margin: 0 0 10px 0;
+    font-weight: 700;
+  }
+
+  #logcash {
+    font-size: 24px;
+    font-weight: 900;
+    color: #ff33cc;
+    text-shadow: 0 0 8px #ff33ccaa;
+  }
+
+  #btn-style {
+    margin-top: 20px;
+    background: linear-gradient(270deg, #ff00cc, #6600ff, #00ccff);
+    box-shadow: 0 0 15px #aa33ffcc;
+  }
+
+  #btn-style:hover {
+    background: linear-gradient(270deg, #00ccff, #6600ff, #ff00cc);
+  }
+
+</style>
 </head>
 <body>
-  <div class="cube-ui" id="authUI">
-    <h2 style="color: white;">AdvancedUsername's UI</h2>
-    <input type="text" placeholder="Email" id="email" class="rainbow-input">
-    <input type="password" placeholder="Password" id="password" class="rainbow-input">
-    <button class="ui-button" id="signupBtn">Sign Up</button>
-    <button class="ui-button" id="loginBtn">Login</button>
-    <div id="notification"></div>
-  </div>  <div id="mainUI">
-    <h2>Welcome!</h2>
-    <div id="logcash">LogCash: 0</div>
-  </div>  <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js';
-    import { getAuth, createUserWithEmailAndPassword, sign
+
+<div id="container">
+  <h1>AdvancedUsername's UI</h1>
+
+  <div id="auth-ui">
+    <input type="text" id="username" placeholder="Username" autocomplete="off" />
+    <input type="email" id="email" placeholder="Email" autocomplete="off" />
+    <input type="password" id="password" placeholder="Password" autocomplete="off" />
+
+    <button id="btn-signup">Sign Up</button>
+    <button id="btn-login">Log In</button>
+
+    <div id="message"></div>
+  </div>
+
+  <div id="dashboard">
+    <h2>Welcome, <span id="displayUser">User</span>!</h2>
+    <div>LogCash: <span id="logcash">0</span></div>
+    <button id="btn-style">Buy UI Style (Cost: 10 LogCash)</button>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-app.js";
+  import {
+    getAuth,
+    createUserWithEmailAndPassword,
+    signInWithEmailAndPassword,
+    onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-auth.js";
+  import {
+    getDatabase,
+    ref,
+    get,
+    set,
+    update,
+    child
+  } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-database.js";
+
+  // Your Firebase config (replace with yours!)
+  const firebaseConfig = {
+    apiKey: "AIzaSyBjA2O3QDuKsAGLzq008VEDug69WDroulI",
+    authDomain: "supercoollogin999.firebaseapp.com",
+    databaseURL: "https://supercoollogin999-default-rtdb.firebaseio.com",
+    projectId: "supercoollogin999",
+    storageBucket: "supercoollogin999.appspot.com",
+    messagingSenderId: "472488806884",
+    appId: "1:472488806884:web:a2ef5e6a2660a36ac51ff1",
+    measurementId: "G-6HSSSTQHMS"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getDatabase(app);
+
+  // UI Elements
+  const usernameInp = document.getElementById('username');
+  const emailInp = document.getElementById('email');
+  const passwordInp = document.getElementById('password');
+  const btnSignup = document.getElementById('btn-signup');
+  const btnLogin = document.getElementById('btn-login');
+  const messageDiv = document.getElementById('message');
+  const authUI = document.getElementById('auth-ui');
+  const dashboard = document.getElementById('dashboard');
+  const displayUser = document.getElementById('displayUser');
+  const logcashSpan = document.getElementById('logcash');
+  const btnStyle = document.getElementById('btn-style');
+
+  // Show message helper
+  function showMessage(msg, color = 'white') {
+    messageDiv.textContent = msg;
+    messageDiv.style.color = color;
+  }
+
+  // Fetch LogCash from DB
+  async function fetchLogCash(uid) {
+    const logCashRef = ref(db, 'users/' + uid + '/logcash');
+    const snap = await get(logCashRef);
+    return snap.exists() ? snap.val() : 0;
+  }
+
+  // Update LogCash in DB
+  async function updateLogCash(uid, amount) {
+    const logCashRef = ref(db, 'users/' + uid + '/logcash');
+    await set(logCashRef, amount);
+  }
+
+  // Create user in DB with username and initial LogCash +2
+  async function createUserData(uid, username) {
+    const userRef = ref(db, 'users/' + uid);
+    await set(userRef, {
+      username: username,
+      logcash: 2
+    });
+  }
+
+  // Check if username exists anywhere in DB (returns true if taken)
+  async function usernameExists(username) {
+    const usersRef = ref(db, 'users');
+    const snap = await get(usersRef);
+    if (!snap.exists()) return false;
+    const users = snap.val();
+    return Object.values(users).some(user => user.username === username);
+  }
+
+  // Sign Up
+  btnSignup.onclick = async () => {
+    const username = usernameInp.value.trim();
+    const email = emailInp.value.trim();
+    const password = passwordInp.value.trim();
+
+    if (!username || !email || !password) {
+      showMessage("Fill all fields!", "orange");
+      return;
+    }
+
+    // Check username availability
+    if (await usernameExists(username)) {
+      showMessage("Username taken!", "orange");
+      return;
+    }
+
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // Save username + logcash initial in DB
+      await createUserData(user.uid, username);
+
+      showMessage("Sign Up success!", "lightgreen");
+
+      // Automatically switch UI & update LogCash display
+      displayUser.textContent = username;
+      logcashSpan.textContent = 2;
+      authUI.style.display = 'none';
+      dashboard.style.display = 'block';
+
+    } catch (error) {
+      showMessage(error.message, "red");
+    }
+  };
+
+  // Log In
+  btnLogin.onclick = async () => {
+    const email = emailInp.value.trim();
+    const password = passwordInp.value.trim();
+
+    if (!email || !password) {
+      showMessage("Fill email & password!", "orange");
+      return;
+    }
+
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // Get username and logcash from DB
+      const userRef = ref(db, 'users/' + user.uid);
+      const snap = await get(userRef);
+
+      if (snap.exists()) {
+        const data = snap.val();
+        displayUser.textContent = data.username || "User";
+        logcashSpan.textContent = data.logcash || 0;
+        showMessage("Logged in!", "lightgreen");
+        authUI.style.display = 'none';
+        dashboard.style.display = 'block';
+      } else {
+        showMessage("No user data found.", "red");
+      }
+
+    } catch (error) {
+      showMessage(error.message, "red");
+    }
+  };
+
+  // Buy UI style button
+  btnStyle.onclick = async () => {
+    const user = auth.currentUser;
+    if (!user) {
+      showMessage("Not logged in!", "orange");
+      return;
+    }
+    const currentCash = parseInt(logcashSpan.textContent);
+
+    if (currentCash < 10) {
+      showMessage("Not enough LogCash!", "orange");
+      return;
+    }
+
+    // Just a dummy UI style change example:
+    document.body.style.background = "linear-gradient(270deg, #ff00cc, #00ffff, #6600ff)";
+    document.body.style.animation = "bgShift 10s ease infinite";
+
+    // Deduct 10 LogCash
+    const newCash = currentCash - 10;
+    logcashSpan.textContent = newCash;
+
+    await updateLogCash(user.uid, newCash);
+
+    showMessage("UI style purchased!", "lightgreen");
+  };
+
+  // On page load: check auth state
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      // User logged in
+      const userRef = ref(db, 'users/'
