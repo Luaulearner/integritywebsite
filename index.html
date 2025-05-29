@@ -3,136 +3,152 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Super Cool Cube UI</title>
+<title>AdvancedUsername's UI</title>
 <style>
-  /* Animated gradient background */
-  @keyframes gradientBG {
-    0% {background-position: 0% 50%;}
-    50% {background-position: 100% 50%;}
-    100% {background-position: 0% 50%;}
+  @keyframes bgAnimation {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
   }
 
   body, html {
-    margin: 0; height: 100%;
-    background: linear-gradient(-45deg, #2b0053, #4b0082, #1a0033, #3c0070);
+    margin: 0; padding: 0; height: 100%;
+    background: linear-gradient(-45deg, #1a002e, #4b0082, #220044, #6600cc);
     background-size: 400% 400%;
-    animation: gradientBG 15s ease infinite;
+    animation: bgAnimation 20s ease infinite;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    display: flex; justify-content: center; align-items: center;
+    user-select: none;
   }
 
-  .cube-container {
-    perspective: 1000px;
-  }
-
-  .cube {
-    width: 300px;
-    height: 300px;
+  #draggableUI {
+    width: 350px;
     background: rgba(30, 0, 50, 0.85);
-    border-radius: 20px;
-    box-shadow: 0 0 25px #8000ffcc;
-    display: flex;
-    flex-direction: column;
-    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(102, 0, 204, 0.8);
     color: white;
-    text-align: center;
-    transform-style: preserve-3d;
-    transition: transform 0.7s ease;
+    padding: 20px;
+    cursor: grab;
+    position: absolute;
+    top: 100px;
+    left: 100px;
   }
 
-  .cube:hover {
-    transform: rotateY(20deg) rotateX(10deg);
-  }
-
-  h1 {
+  #titleBar {
+    font-size: 1.5em;
+    font-weight: bold;
     margin-bottom: 15px;
-    font-weight: 900;
-    letter-spacing: 1.5px;
-  }
-
-  input[type="text"] {
-    padding: 10px 15px;
-    border-radius: 10px;
-    border: none;
-    margin-bottom: 20px;
-    font-size: 1em;
-    width: calc(100% - 30px);
+    cursor: grab;
   }
 
   button {
-    background: linear-gradient(135deg, #8e2de2, #4a00e0);
+    width: 100%;
+    margin: 10px 0;
+    padding: 12px;
     border: none;
-    padding: 12px 0;
-    margin: 8px 0;
-    border-radius: 12px;
-    font-weight: 700;
-    font-size: 1.1em;
+    border-radius: 8px;
+    background: #6600cc;
     color: white;
-    cursor: pointer;
-    box-shadow: 0 0 10px #8e2de2;
+    font-weight: 600;
+    font-size: 1em;
     transition: background 0.3s ease;
   }
-
   button:hover {
-    background: linear-gradient(135deg, #4a00e0, #8e2de2);
+    background: #9a4fff;
   }
 
-  #ip-display {
-    margin-top: 15px;
-    font-size: 1.1em;
-    font-weight: 600;
-    user-select: text;
+  #ipDisplay {
+    margin-top: 10px;
+    font-size: 0.9em;
+    font-style: italic;
   }
 </style>
 </head>
 <body>
 
-<div class="cube-container">
-  <div class="cube">
-    <h1>Super Cool Cube UI</h1>
-    
-    <input id="website-input" type="text" placeholder="Enter website URL (example: google.com)" />
-    <button onclick="goToWebsite()">Go to Website</button>
-
-    <button onclick="getIP()">Show My IP</button>
-    <div id="ip-display"></div>
-
-    <button onclick="goRobloxLogin()">Go to Roblox Login</button>
-  </div>
+<div id="draggableUI">
+  <div id="titleBar">AdvancedUsername's UI</div>
+  <button id="goWebsiteBtn">Go to any website</button>
+  <button id="showIpBtn">Show your IP</button>
+  <button id="robloxLoginBtn">Go to roblox.com/login</button>
+  <div id="ipDisplay"></div>
 </div>
 
 <script>
-  function goToWebsite() {
-    let url = document.getElementById('website-input').value.trim();
-    if (!url) {
-      alert('Please enter a website URL!');
-      return;
-    }
-    // Add http if missing
-    if (!/^https?:\/\//i.test(url)) {
-      url = 'https://' + url;
-    }
-    window.open(url, '_blank');
+  // Draggable UI
+  const dragItem = document.getElementById("draggableUI");
+  const titleBar = document.getElementById("titleBar");
+  let active = false;
+  let currentX, currentY, initialX, initialY;
+  let xOffset = 0, yOffset = 0;
+
+  titleBar.addEventListener("mousedown", dragStart);
+  document.addEventListener("mouseup", dragEnd);
+  document.addEventListener("mousemove", drag);
+
+  function dragStart(e) {
+    active = true;
+    initialX = e.clientX - xOffset;
+    initialY = e.clientY - yOffset;
+    dragItem.style.cursor = "grabbing";
   }
 
-  async function getIP() {
-    const ipDisplay = document.getElementById('ip-display');
-    ipDisplay.textContent = 'Fetching IP...';
+  function dragEnd(e) {
+    active = false;
+    xOffset = currentX;
+    yOffset = currentY;
+    dragItem.style.cursor = "grab";
+  }
 
+  function drag(e) {
+    if (!active) return;
+
+    e.preventDefault();
+
+    currentX = e.clientX - initialX;
+    currentY = e.clientY - initialY;
+
+    setTranslate(currentX, currentY, dragItem);
+  }
+
+  function setTranslate(xPos, yPos, el) {
+    el.style.transform = `translate(${xPos}px, ${yPos}px)`;
+  }
+
+  // Button functions
+  document.getElementById("goWebsiteBtn").addEventListener("click", () => {
+    let url = prompt("Enter a URL to visit (include https://):", "https://");
+    if (url) {
+      try {
+        new URL(url); // validate url format
+        window.open(url, "_blank");
+      } catch {
+        alert("Invalid URL!");
+      }
+    }
+  });
+
+  document.getElementById("showIpBtn").addEventListener("click", async () => {
+    const ipDisplay = document.getElementById("ipDisplay");
+    ipDisplay.textContent = "Fetching IP...";
     try {
-      const res = await fetch('https://api.ipify.org?format=json');
+      const res = await fetch("https://api.ipify.org?format=json");
       const data = await res.json();
       ipDisplay.textContent = `Your IP: ${data.ip}`;
-    } catch (err) {
-      ipDisplay.textContent = 'Failed to get IP. Check your internet.';
+    } catch {
+      ipDisplay.textContent = "Failed to get IP.";
     }
-  }
+  });
 
-  function goRobloxLogin() {
-    window.open('https://www.roblox.com/login', '_blank');
-  }
+  document.getElementById("robloxLoginBtn").addEventListener("click", () => {
+    window.open("https://www.roblox.com/login", "_blank");
+  });
 </script>
 
 </body>
