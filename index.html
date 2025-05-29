@@ -3,217 +3,233 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>SuperCool Login UI</title>
+<title>AdvancedUsername's UI</title>
 <style>
   body {
-    background: linear-gradient(135deg, #120f2b, #4e2370);
+    margin: 0; height: 100vh; 
+    background: linear-gradient(135deg, #2c003e, #44005a);
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: white;
-    margin: 0; padding: 0;
     display: flex; justify-content: center; align-items: center;
-    height: 100vh;
   }
-  .cube-ui {
-    background: #1e1540;
-    border-radius: 16px;
-    box-shadow:
-      0 0 8px #7b45d1,
-      inset 0 0 10px #9c64ff;
-    width: 320px;
-    padding: 24px;
-    box-sizing: border-box;
-  }
-  .cube-ui h2 {
-    margin: 0 0 16px 0;
-    font-weight: 700;
-    text-align: center;
-    letter-spacing: 1.2px;
-  }
-  .cube-ui input {
-    width: 100%;
-    padding: 10px 12px;
-    margin-bottom: 14px;
+  #container {
+    background: #1a0a2b;
+    padding: 30px;
     border-radius: 12px;
-    border: 2px solid #7b45d1;
-    background: #2a1e5d;
+    width: 320px;
+    box-shadow: 0 0 20px #7a33f9;
+    display: flex; flex-direction: column; gap: 20px;
+  }
+  h1 {
+    text-align: center; margin-bottom: 10px;
+    font-weight: 700;
+  }
+  input {
+    background: #2c0054;
+    border: 2px solid #7a33f9;
+    border-radius: 8px;
+    padding: 10px;
     color: white;
     font-size: 16px;
     outline: none;
     transition: border-color 0.3s;
   }
-  .cube-ui input:focus {
-    border-color: #a67fff;
+  input:focus {
+    border-color: #d95eff;
   }
-  .cube-ui button {
-    width: 100%;
-    background: #7b45d1;
+  button {
+    background: #7a33f9;
     border: none;
-    border-radius: 12px;
-    color: white;
+    padding: 12px;
+    border-radius: 8px;
     font-weight: 700;
     font-size: 16px;
-    padding: 12px;
     cursor: pointer;
-    transition: background 0.3s;
+    color: white;
+    transition: background-color 0.3s;
   }
-  .cube-ui button:hover {
-    background: #a67fff;
+  button:hover {
+    background: #a855f7;
   }
-  .notification {
-    margin-bottom: 16px;
-    padding: 12px;
-    border-radius: 12px;
-    text-align: center;
+  #notification {
+    position: fixed;
+    top: 20px; left: 50%; transform: translateX(-50%);
+    background: #4a006e;
+    padding: 15px 30px;
+    border-radius: 10px;
     font-weight: 600;
+    display: none;
+    box-shadow: 0 0 15px #b474ff;
   }
-  .success {
-    background: #3a7d44;
+  #mainUI {
+    display: none;
+    flex-direction: column;
+    gap: 20px;
   }
-  .error {
-    background: #7d3a3a;
-  }
-  .main-ui {
-    text-align: center;
-  }
-  .logcash {
+  #logcash {
+    font-weight: 600;
     font-size: 18px;
-    margin: 20px 0 0 0;
-    font-weight: 700;
   }
 </style>
 </head>
 <body>
+  <div id="container">
+    <h1>AdvancedUsername's UI</h1>
+    <div id="authUI">
+      <input type="text" id="username" placeholder="Username" />
+      <input type="email" id="email" placeholder="Email" />
+      <input type="password" id="password" placeholder="Password" />
+      <button id="signupBtn">Sign Up</button>
+      <button id="loginBtn">Log In</button>
+    </div>
 
-<div id="app" class="cube-ui">
-  <h2>SuperCool Login</h2>
+    <div id="mainUI">
+      <div id="logcash">LogCash: 0</div>
+      <button id="logoutBtn">Log Out</button>
+    </div>
+  </div>
+
   <div id="notification"></div>
-  <input type="text" id="username" placeholder="Username (unique)" />
-  <input type="email" id="email" placeholder="Email" />
-  <input type="password" id="password" placeholder="Password" />
-  <button id="signupBtn">Sign Up</button>
-  <button id="loginBtn" style="margin-top: 8px; background:#4a357a;">Log In</button>
-</div>
 
-<script type="module">
-// Import Firebase SDK functions
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-app.js";
-import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-database.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-auth.js";
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 
-// Your Firebase config — replace with your own!
-const firebaseConfig = {
-  apiKey: "AIzaSyBjA2O3QDuKsAGLzq008VEDug69WDroulI",
-  authDomain: "supercoollogin999.firebaseapp.com",
-  databaseURL: "https://supercoollogin999-default-rtdb.firebaseio.com",
-  projectId: "supercoollogin999",
-  storageBucket: "supercoollogin999.appspot.com",
-  messagingSenderId: "472488806884",
-  appId: "1:472488806884:web:a2ef5e6a2660a36ac51ff1"
-};
+  <script>
+    // Your Firebase config here
+    const firebaseConfig = {
+      apiKey: "AIzaSyBjA2O3QDuKsAGLzq008VEDug69WDroulI",
+      authDomain: "supercoollogin999.firebaseapp.com",
+      databaseURL: "https://supercoollogin999-default-rtdb.firebaseio.com",
+      projectId: "supercoollogin999",
+      storageBucket: "supercoollogin999.appspot.com",
+      messagingSenderId: "472488806884",
+      appId: "1:472488806884:web:a2ef5e6a2660a36ac51ff1"
+    };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getDatabase(app);
+    // Init Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.database();
 
-const appDiv = document.getElementById('app');
-const notificationDiv = document.getElementById('notification');
+    // DOM
+    const usernameInput = document.getElementById('username');
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const signupBtn = document.getElementById('signupBtn');
+    const loginBtn = document.getElementById('loginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const authUI = document.getElementById('authUI');
+    const mainUI = document.getElementById('mainUI');
+    const logcashDisplay = document.getElementById('logcash');
+    const notification = document.getElementById('notification');
 
-function showNotification(message, type='success') {
-  notificationDiv.textContent = message;
-  notificationDiv.className = `notification ${type}`;
-  setTimeout(() => {
-    notificationDiv.textContent = '';
-    notificationDiv.className = '';
-  }, 3500);
-}
+    // Notification helper
+    function showNotification(msg, duration = 2500) {
+      notification.textContent = msg;
+      notification.style.display = 'block';
+      setTimeout(() => notification.style.display = 'none', duration);
+    }
 
-async function usernameExists(username) {
-  const dbRef = ref(db, 'usernames/' + username);
-  const snapshot = await get(dbRef);
-  return snapshot.exists();
-}
+    // Anti-same-name check
+    async function usernameExists(name) {
+      const snapshot = await db.ref('users').orderByChild('username').equalTo(name).once('value');
+      return snapshot.exists();
+    }
 
-async function createUserData(uid, username) {
-  // Save username mapping (to prevent duplicates)
-  await set(ref(db, 'usernames/' + username), uid);
-  // Save user profile with LogCash = 2 + count of accounts created
-  const usersSnapshot = await get(ref(db, 'users'));
-  const accountsCount = usersSnapshot.exists() ? Object.keys(usersSnapshot.val()).length : 0;
-  const logCash = 2 + accountsCount;
-  await set(ref(db, 'users/' + uid), { username, logCash });
-}
+    // Create user DB entry
+    async function createUserData(uid, username) {
+      // Count how many accounts this user already created by that name (simulate)
+      const userCountSnap = await db.ref('users').once('value');
+      let userCount = 0;
+      userCountSnap.forEach(() => userCount++);
+      const logcash = 2 + userCount; // +2 for each account made total
 
-document.getElementById('signupBtn').addEventListener('click', async () => {
-  const username = document.getElementById('username').value.trim();
-  const email = document.getElementById('email').value.trim();
-  const password = document.getElementById('password').value;
+      await db.ref('users/' + uid).set({
+        username: username,
+        logcash: logcash
+      });
 
-  if (!username || !email || !password) {
-    showNotification("Please fill in all fields", 'error');
-    return;
-  }
+      return logcash;
+    }
 
-  if (await usernameExists(username)) {
-    showNotification("Username already taken", 'error');
-    return;
-  }
+    // Update UI for logged-in user
+    function showMainUI(username, logcash) {
+      authUI.style.display = 'none';
+      mainUI.style.display = 'flex';
+      logcashDisplay.textContent = `LogCash: ${logcash}`;
+      showNotification(`Welcome, ${username}!`);
+    }
 
-  try {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
-    await createUserData(user.uid, username);
-    showNotification("Signed up successfully!");
-    loadMainUI(user.uid);
-  } catch (error) {
-    showNotification(error.message, 'error');
-  }
-});
+    // Auth state observer
+    auth.onAuthStateChanged(async user => {
+      if (user) {
+        // Logged in, fetch DB data
+        const snapshot = await db.ref('users/' + user.uid).once('value');
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          showMainUI(data.username, data.logcash);
+        } else {
+          // No user data? Force logout to prevent issues
+          await auth.signOut();
+          authUI.style.display = 'flex';
+          mainUI.style.display = 'none';
+        }
+      } else {
+        authUI.style.display = 'flex';
+        mainUI.style.display = 'none';
+      }
+    });
 
-document.getElementById('loginBtn').addEventListener('click', async () => {
-  const email = document.getElementById('email').value.trim();
-  const password = document.getElementById('password').value;
+    // Signup
+    signupBtn.addEventListener('click', async () => {
+      const username = usernameInput.value.trim();
+      const email = emailInput.value.trim();
+      const password = passwordInput.value.trim();
 
-  if (!email || !password) {
-    showNotification("Fill email and password", 'error');
-    return;
-  }
+      if (!username || !email || !password) {
+        showNotification('Fill in all fields!');
+        return;
+      }
 
-  try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
-    showNotification("Logged in successfully!");
-    loadMainUI(user.uid);
-  } catch (error) {
-    showNotification(error.message, 'error');
-  }
-});
+      if (await usernameExists(username)) {
+        showNotification('Username already taken!');
+        return;
+      }
 
-async function loadMainUI(uid) {
-  const userRef = ref(db, 'users/' + uid);
-  const snapshot = await get(userRef);
-  if (!snapshot.exists()) {
-    showNotification("User data not found!", 'error');
-    return;
-  }
-  const userData = snapshot.val();
+      try {
+        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+        await createUserData(userCredential.user.uid, username);
+        showNotification('Sign up successful!');
+      } catch (err) {
+        showNotification(err.message);
+      }
+    });
 
-  appDiv.innerHTML = `
-    <h2>Welcome, ${userData.username}</h2>
-    <div class="logcash">LogCash: ${userData.logCash}</div>
-    <button id="logoutBtn" style="margin-top:20px; background:#7b45d1;">Log Out</button>
-  `;
+    // Login
+    loginBtn.addEventListener('click', async () => {
+      const email = emailInput.value.trim();
+      const password = passwordInput.value.trim();
 
-  document.getElementById('logoutBtn').addEventListener('click', () => {
-    auth.signOut();
-    location.reload();
-  });
-}
+      if (!email || !password) {
+        showNotification('Fill in email & password!');
+        return;
+      }
 
-// Auto-load main UI if user already logged in
-onAuthStateChanged(auth, user => {
-  if (user) loadMainUI(user.uid);
-});
-</script>
+      try {
+        const userCredential = await auth.signInWithEmailAndPassword(email, password);
+        showNotification('Login successful!');
+      } catch (err) {
+        showNotification('Wrong email or password!');
+      }
+    });
 
+    // Logout
+    logoutBtn.addEventListener('click', () => {
+      auth.signOut();
+      showNotification('Logged out!');
+    });
+  </script>
 </body>
 </html>
