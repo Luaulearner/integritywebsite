@@ -1,97 +1,622 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Panel - LloydOWN</title>
-  <style>
-    body {
-      background: #0f001f;
-      color: #eee;
-      font-family: 'Segoe UI', sans-serif;
-      margin: 0;
-      padding: 0;
-    }
-    .panel {
-      max-width: 600px;
-      margin: 3rem auto;
-      background: #220044dd;
-      border-radius: 20px;
-      padding: 2rem;
-      box-shadow: 0 0 20px #bb33ffbb;
-    }
-    h1 {
-      text-align: center;
-      color: #bb33ff;
-    }
-    .log-item {
-      background: #330066bb;
-      margin: 1rem 0;
-      padding: 1rem;
-      border-radius: 10px;
-    }
-    .log-item strong {
-      color: #ff66cc;
-    }
-    #refreshBtn {
-      display: block;
-      margin: 1rem auto;
-      padding: 10px 20px;
-      background: #bb33ff;
-      color: #fff;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-    }
-    #refreshBtn:hover {
-      background: #9900cc;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SuperCool Login + Admin Panel + Shop + Leaderboard</title>
+<style>
+  body, html {
+    margin: 0; padding: 0; height: 100%;
+    background: linear-gradient(270deg, #0d001f, #330066, #660099, #330066);
+    background-size: 800% 800%;
+    animation: bgAnim 20s ease infinite;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #eee;
+    user-select: none;
+  }
+  @keyframes bgAnim {
+    0%{background-position:0% 50%}
+    50%{background-position:100% 50%}
+    100%{background-position:0% 50%}
+  }
+  #container {
+    max-width: 450px;
+    margin: 2rem auto 4rem;
+    background: #110022dd;
+    border-radius: 18px;
+    padding: 30px;
+    box-shadow: 0 0 30px #bb33ffaa;
+  }
+  h1, h2, h3 {
+    text-align: center;
+    margin-bottom: 1rem;
+    font-weight: 900;
+    text-shadow: 0 0 10px #bb33ffcc;
+  }
+  input[type="email"], input[type="password"], input[type="text"], select, input[type="number"] {
+    width: 100%;
+    padding: 12px 15px;
+    margin: 10px 0 20px 0;
+    border-radius: 12px;
+    border: 3px solid transparent;
+    background: #220044dd;
+    color: #eee;
+    font-size: 1rem;
+    outline: none;
+    box-shadow:
+      4px 4px 10px #330066cc,
+      inset 0 0 15px #660099cc;
+    transition: border 0.5s ease;
+  }
+  input[type="email"]:focus, input[type="password"]:focus, input[type="text"]:focus, select:focus, input[type="number"]:focus {
+    border: 3px solid;
+    border-image-slice: 1;
+    border-width: 3px;
+    border-image-source: linear-gradient(45deg, red, orange, yellow, green, blue, indigo, violet);
+    box-shadow:
+      0 0 15px #bb33ffcc,
+      inset 0 0 15px #aa33ffaa;
+  }
+  button {
+    width: 48%;
+    margin: 5px 1% 20px 1%;
+    padding: 12px 0;
+    border-radius: 14px;
+    border: none;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    background: linear-gradient(45deg, #4400bb, #bb33ff);
+    color: #eee;
+    box-shadow: 0 0 15px #bb33ffaa;
+    transition: background 0.3s ease;
+  }
+  button:hover {
+    background: linear-gradient(45deg, #bb33ff, #4400bb);
+  }
+  #notification {
+    position: fixed;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #330066cc;
+    padding: 15px 30px;
+    border-radius: 16px;
+    box-shadow: 0 0 20px #bb33ffcc;
+    font-weight: 700;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+    z-index: 999;
+  }
+  #notification.show {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  #authUI, #dashboard, #adminPanel, #shop {
+    margin-top: 1rem;
+  }
+  #dashboard, #adminPanel, #shop {
+    display: none;
+  }
+  #logcash {
+    font-size: 1.5rem;
+    font-weight: 900;
+    margin-bottom: 1.5rem;
+    color: #bb33ff;
+    text-shadow: 0 0 12px #bb33ffbb;
+  }
+  #adminPanel {
+    background: #220044cc;
+    border-radius: 16px;
+    padding: 15px;
+    box-shadow: inset 0 0 20px #660099cc;
+    margin-top: 2rem;
+  }
+  #adminPanel label {
+    font-weight: 700;
+    color: #bb33ff;
+  }
+  #adminPanel input[type="text"], #adminPanel input[type="email"], #adminPanel input[type="number"] {
+    margin-bottom: 12px;
+  }
+  #adminPanel button {
+    width: 100%;
+    margin: 10px 0 0 0;
+  }
+  #shop {
+    background: #220044cc;
+    border-radius: 16px;
+    padding: 15px;
+    box-shadow: inset 0 0 20px #660099cc;
+    margin-top: 2rem;
+  }
+  #shopItems {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+  }
+  .shop-item {
+    background: #330066cc;
+    border-radius: 12px;
+    padding: 10px;
+    width: 130px;
+    box-shadow: 0 0 10px #bb33ffcc;
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.3s ease;
+  }
+  .shop-item:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px #ff33eecc;
+  }
+  .shop-item p {
+    margin: 0.3rem 0 0 0;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #eee;
+  }
+  #leaderboard {
+    margin-top: 2rem;
+    background: #220044cc;
+    border-radius: 16px;
+    padding: 15px;
+    box-shadow: inset 0 0 20px #660099cc;
+    max-height: 250px;
+    overflow-y: auto;
+  }
+  #leaderboard h3 {
+    margin-top: 0;
+  }
+  #leaderboard ol {
+    padding-left: 20px;
+  }
+  #leaderboard li {
+    margin-bottom: 10px;
+  }
+  .title {
+    font-style: italic;
+    color: #aa66ff;
+  }
+  .styles-list {
+    color: #cc99ff;
+    font-size: 0.9rem;
+    margin-left: 15px;
+  }
+</style>
 </head>
 <body>
-  <div class="panel">
-    <h1>Admin Panel - LloydOWN</h1>
-    <button id="refreshBtn">Refresh Logs</button>
-    <div id="logContainer">Loading logs...</div>
-  </div>  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
-    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-database.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyBjA2O3QDuKsAGLzq008VEDug69WDroulI",
-      authDomain: "supercoollogin999.firebaseapp.com",
-      databaseURL: "https://supercoollogin999-default-rtdb.firebaseio.com",
-      projectId: "supercoollogin999",
-      storageBucket: "supercoollogin999.firebasestorage.app",
-      messagingSenderId: "472488806884",
-      appId: "1:472488806884:web:885f97531677a384c51ff1",
-      measurementId: "G-FSD3TZLK82",
-    };
+<div id="notification"></div>
 
-    const app = initializeApp(firebaseConfig);
-    const database = getDatabase(app);
+<div id="container">
+  <h1>SuperCool Login + Admin Panel</h1>
 
-    const logContainer = document.getElementById("logContainer");
-    const refreshBtn = document.getElementById("refreshBtn");
+  <!-- Auth UI -->
+  <div id="authUI">
+    <input type="email" id="email" placeholder="Email (unique)" />
+    <input type="password" id="password" placeholder="Password" />
+    <div>
+      <button id="signupBtn">Sign Up</button>
+      <button id="loginBtn">Log In</button>
+    </div>
+  </div>
 
-    function loadLogs() {
-      const userRef = ref(database, "users/LloydOWN/logs");
-      onValue(userRef, (snapshot) => {
-        logContainer.innerHTML = "";
-        if (snapshot.exists()) {
-          const data = snapshot.val();
-          for (const key in data) {
-            const item = document.createElement("div");
-            item.className = "log-item";
-            item.innerHTML = `<strong>${key}:</strong> ${data[key]}`;
-            logContainer.appendChild(item);
-          }
-        } else {
-          logContainer.textContent = "No logs found.";
-        }
+  <!-- Dashboard -->
+  <div id="dashboard">
+    <h2>Welcome, <span id="displayName"></span>!</h2>
+    <div id="logcash">LogCash: 0</div>
+    <button id="logoutBtn" style="width:100%; margin-bottom:1rem; background: #bb33ff;">Log Out</button>
+    
+    <!-- Shop UI -->
+    <div id="shop">
+      <h3>Shop</h3>
+      <div id="shopItems"></div>
+    </div>
+    
+    <!-- Leaderboard -->
+    <div id="leaderboard">
+      <h3>Leaderboard (Top LogCash)</h3>
+      <ol id="leaderboardList"></ol>
+    </div>
+  </div>
+
+  <!-- Admin Panel -->
+  <div id="adminPanel">
+    <h2>Admin Panel</h2>
+    <label for="banEmail">Ban Email:</label>
+    <input type="email" id="banEmail" placeholder="User email to ban" />
+    <label for="banUsername">Ban Username:</label>
+    <input type="text" id="banUsername" placeholder="Username to ban" />
+    <button id="banBtn">Ban User</button>
+    
+    <label for="addLogcashUser">Add LogCash to Username:</label>
+    <input type="text" id="addLogcashUser" placeholder="Username" />
+    <label for="addLogcashAmount">Amount:</label>
+    <input type="number" id="addLogcashAmount" placeholder="Amount" min="1" />
+    <button id="addLogcashBtn">Add LogCash</button>
+  </div>
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
+<script>
+  // Your Firebase config here - replace with your actual config!
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_AUTH_DOMAIN",
+    databaseURL: "YOUR_DB_URL",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_STORAGE_BUCKET",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId: "YOUR_APP_ID"
+  };
+  
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.database();
+  
+  // Admin email constant
+  const ADMIN_EMAIL = "ppggyar@gmail.com";
+  
+  // Cached DOM
+  const notification = document.getElementById('notification');
+  const authUI = document.getElementById('authUI');
+  const dashboard = document.getElementById('dashboard');
+  const adminPanel = document.getElementById('adminPanel');
+  const shopDiv = document.getElementById('shop');
+  
+  const emailInput = document.getElementById('email');
+  const passwordInput = document.getElementById('password');
+  const signupBtn = document.getElementById('signupBtn');
+  const loginBtn = document.getElementById('loginBtn');
+  const logoutBtn = document.getElementById('logoutBtn');
+  
+  const displayNameSpan = document.getElementById('displayName');
+  const logcashDisplay = document.getElementById('logcash');
+  
+  // Admin panel elements
+  const banEmailInput = document.getElementById('banEmail');
+  const banUsernameInput = document.getElementById('banUsername');
+  const banBtn = document.getElementById('banBtn');
+  const addLogcashUserInput = document.getElementById('addLogcashUser');
+  const addLogcashAmountInput = document.getElementById('addLogcashAmount');
+  const addLogcashBtn = document.getElementById('addLogcashBtn');
+  
+  const shopItemsDiv = document.getElementById('shopItems');
+  const leaderboardList = document.getElementById('leaderboardList');
+  
+  // Show notification helper
+  function showNotification(msg, duration=2500) {
+    notification.textContent = msg;
+    notification.classList.add('show');
+    setTimeout(() => {
+      notification.classList.remove('show');
+    }, duration);
+  }
+  
+  // User state & data
+  let currentUser = null;
+  let currentUserData = null; // from DB: {username, logcash, title, styles: []}
+  let bannedEmails = {};
+  let bannedUsernames = {};
+  
+  // SHOP ITEMS: example styles and titles
+  // style = a CSS color for name, title is text
+  const shopItems = [
+    { id: "style-purple", name: "Purple Style", price: 100, type: "style", style: "color:#bb33ff;" },
+    { id: "style-green", name: "Green Style", price: 100, type: "style", style: "color:#33bb44;" },
+    { id: "style-gold", name: "Gold Style", price: 250, type: "style", style: "color:#f5d742;" },
+    { id: "title-vip", name: "VIP Title", price: 500, type: "title", title: "VIP" },
+    { id: "title-legend", name: "Legend Title", price: 1200, type: "title", title: "Legend" },
+  ];
+  
+  // AUTH EVENTS
+  signupBtn.onclick = async () => {
+    const email = emailInput.value.trim().toLowerCase();
+    const password = passwordInput.value;
+    if(!email || !password) return showNotification("Fill email & password!");
+    try {
+      const banEmailCheck = bannedEmails[email];
+      if(banEmailCheck) return showNotification("Your email is banned!");
+      const userCred = await auth.createUserWithEmailAndPassword(email, password);
+      // Create initial user DB entry
+      const username = email.split('@')[0];
+      const userRef = db.ref(`users/${userCred.user.uid}`);
+      await userRef.set({
+        email,
+        username,
+        logcash: 0,
+        title: "",
+        styles: []
       });
+      showNotification("Signup successful! Logging in...");
+    } catch(e) {
+      showNotification(e.message);
+    }
+  };
+  
+  loginBtn.onclick = async () => {
+    const email = emailInput.value.trim().toLowerCase();
+    const password = passwordInput.value;
+    if(!email || !password) return showNotification("Fill email & password!");
+    try {
+      const banEmailCheck = bannedEmails[email];
+      if(banEmailCheck) return showNotification("Your email is banned!");
+      await auth.signInWithEmailAndPassword(email, password);
+      showNotification("Login successful!");
+    } catch(e) {
+      showNotification(e.message);
+    }
+  };
+  
+  logoutBtn.onclick = () => auth.signOut();
+  
+  // Load bans from DB
+  async function loadBans() {
+    const snap = await db.ref("bans").once("value");
+    if(snap.exists()){
+      bannedEmails = snap.val().emails || {};
+      bannedUsernames = snap.val().usernames || {};
+    }
+  }
+  
+  // Listen for auth state change
+  auth.onAuthStateChanged(async user => {
+    currentUser = user;
+    if(user) {
+      await loadBans();
+      if(bannedEmails[user.email]) {
+        showNotification("You are banned by email!");
+        await auth.signOut();
+        return;
+      }
+      
+      // Load user data from DB
+      const userRef = db.ref(`users/${user.uid}`);
+      const snap = await userRef.once("value");
+      currentUserData = snap.val();
+      if(!currentUserData) {
+        // New user fallback
+        const username = user.email.split('@')[0];
+        await userRef.set({email: user.email, username, logcash: 0, title: "", styles: []});
+        currentUserData = {email: user.email, username, logcash:0, title:"", styles:[]};
+      }
+      if(bannedUsernames[currentUserData.username]) {
+        showNotification("You are banned by username!");
+        await auth.signOut();
+        return;
+      }
+      
+      // Show dashboard, hide login
+      authUI.style.display = "none";
+      dashboard.style.display = "block";
+      displayNameSpan.textContent = currentUserData.username;
+      updateLogcashDisplay();
+      
+      // Show admin panel only if admin
+      if(user.email.toLowerCase() === ADMIN_EMAIL) {
+        adminPanel.style.display = "block";
+      } else {
+        adminPanel.style.display = "none";
+      }
+      
+      // Show shop and leaderboard
+      shopDiv.style.display = "block";
+      renderShop();
+      renderLeaderboard();
+      
+    } else {
+      // No user logged in
+      currentUserData = null;
+      authUI.style.display = "block";
+      dashboard.style.display = "none";
+      adminPanel.style.display = "none";
+      shopDiv.style.display = "none";
+      leaderboardList.innerHTML = "";
+      displayNameSpan.textContent = "";
+    }
+  });
+  
+  // Update LogCash display
+  function updateLogcashDisplay(){
+    logcashDisplay.textContent = `LogCash: ${currentUserData?.logcash || 0}`;
+  }
+  
+  // Ban user by email or username (admin)
+  // Ban user by email or username (admin)
+banBtn.onclick = async () => {
+  const emailToBan = banEmailInput.value.trim().toLowerCase();
+  const usernameToBan = banUsernameInput.value.trim();
+  if(!emailToBan && !usernameToBan) {
+    showNotification("Enter email or username to ban!");
+    return;
+  }
+
+  try {
+    // Load bans node ref
+    const bansRef = db.ref("bans");
+
+    // Fetch current bans once
+    const bansSnap = await bansRef.once("value");
+    let bansData = bansSnap.exists() ? bansSnap.val() : { emails: {}, usernames: {} };
+
+    // Add to bans object
+    if(emailToBan) bansData.emails = bansData.emails || {};
+    if(usernameToBan) bansData.usernames = bansData.usernames || {};
+
+    if(emailToBan) bansData.emails[emailToBan] = true;
+    if(usernameToBan) bansData.usernames[usernameToBan] = true;
+
+    // Save back
+    await bansRef.set(bansData);
+    
+    // Update local cache too
+    bannedEmails = bansData.emails;
+    bannedUsernames = bansData.usernames;
+
+    showNotification("User banned successfully!");
+
+    // Optional: If banned user is currently logged in, sign them out forcibly would require extra security logic outside this scope
+  } catch (err) {
+    showNotification("Ban failed: " + err.message);
+  }
+};
+
+// Add LogCash to user by username (admin)
+addLogcashBtn.onclick = async () => {
+  const username = addLogcashUserInput.value.trim();
+  const amount = parseInt(addLogcashAmountInput.value);
+
+  if(!username || !amount || amount <= 0) {
+    showNotification("Enter valid username and amount!");
+    return;
+  }
+
+  try {
+    // Find user by username (scan all users)
+    const usersSnap = await db.ref("users").once("value");
+    if(!usersSnap.exists()) {
+      showNotification("No users found!");
+      return;
     }
 
-    refreshBtn.addEventListener("click", loadLogs);
-    loadLogs();
-  </script></body>
+    const users = usersSnap.val();
+    let targetUid = null;
+
+    for (const uid in users) {
+      if(users[uid].username === username) {
+        targetUid = uid;
+        break;
+      }
+    }
+
+    if(!targetUid) {
+      showNotification("Username not found!");
+      return;
+    }
+
+    // Update logcash atomically
+    const userRef = db.ref(`users/${targetUid}/logcash`);
+    const logcashSnap = await userRef.once("value");
+    const currentCash = logcashSnap.exists() ? logcashSnap.val() : 0;
+    const newCash = currentCash + amount;
+
+    await userRef.set(newCash);
+
+    showNotification(`Added ${amount} LogCash to ${username}`);
+
+    // If current logged user is this one, update display
+    if(currentUser && currentUser.uid === targetUid) {
+      currentUserData.logcash = newCash;
+      updateLogcashDisplay();
+      renderLeaderboard(); // refresh leaderboard
+    }
+
+  } catch(err) {
+    showNotification("Failed to add LogCash: " + err.message);
+  }
+};
+
+// Renders shop items with buy buttons
+function renderShop(){
+  shopItemsDiv.innerHTML = "";
+  shopItems.forEach(item => {
+    const div = document.createElement("div");
+    div.className = "shop-item";
+    div.title = `Price: ${item.price} LogCash`;
+    div.innerHTML = `<strong>${item.name}</strong><br>Price: ${item.price}`;
+    div.onclick = () => buyItem(item);
+    shopItemsDiv.appendChild(div);
+  });
+}
+
+// Buy item handler
+async function buyItem(item){
+  if(!currentUser) {
+    showNotification("Log in to buy!");
+    return;
+  }
+  if(currentUserData.logcash < item.price){
+    showNotification("Not enough LogCash!");
+    return;
+  }
+
+  try {
+    // Check if user already owns title/style
+    if(item.type === "title" && currentUserData.title === item.title){
+      showNotification("You already own this title!");
+      return;
+    }
+    if(item.type === "style" && currentUserData.styles.includes(item.id)){
+      showNotification("You already own this style!");
+      return;
+    }
+
+    // Deduct logcash
+    const newCash = currentUserData.logcash - item.price;
+    await db.ref(`users/${currentUser.uid}/logcash`).set(newCash);
+
+    // Add item to user data
+    if(item.type === "title") {
+      await db.ref(`users/${currentUser.uid}/title`).set(item.title);
+      currentUserData.title = item.title;
+    } else if(item.type === "style") {
+      const newStyles = currentUserData.styles.slice();
+      newStyles.push(item.id);
+      await db.ref(`users/${currentUser.uid}/styles`).set(newStyles);
+      currentUserData.styles = newStyles;
+    }
+
+    currentUserData.logcash = newCash;
+    updateLogcashDisplay();
+    renderLeaderboard();
+
+    showNotification(`Purchased ${item.name}!`);
+
+  } catch(err) {
+    showNotification("Purchase failed: " + err.message);
+  }
+}
+
+// Render leaderboard with usernames, titles and styles
+async function renderLeaderboard(){
+  leaderboardList.innerHTML = "";
+  const usersSnap = await db.ref("users").once("value");
+  if(!usersSnap.exists()) {
+    leaderboardList.innerHTML = "<li>No users found.</li>";
+    return;
+  }
+
+  const users = usersSnap.val();
+
+  // Create array for sorting by logcash desc
+  const sortedUsers = Object.values(users).sort((a,b) => (b.logcash || 0) - (a.logcash || 0));
+
+  sortedUsers.slice(0, 10).forEach(user => {
+    const li = document.createElement("li");
+    // Username styled by first owned style if any, else default white
+    let styleColor = "#eee";
+    if(user.styles && user.styles.length > 0){
+      // find first style id in shop to get its color
+      const styleItem = shopItems.find(s => s.id === user.styles[0] && s.type === "style");
+      if(styleItem) styleColor = styleItem.style.replace("color:", "");
+    }
+    li.innerHTML = `<span style="font-weight:900; color:${styleColor};">${user.username}</span> 
+      ${user.title ? `<span class="title">[${user.title}]</span>` : ""}
+      <br><span class="styles-list">Styles: ${user.styles && user.styles.length > 0 ? user.styles.map(id => {
+        const s = shopItems.find(si => si.id === id);
+        return s ? s.name : id;
+      }).join(", ") : "None"}</span>
+      <br>LogCash: ${user.logcash || 0}`;
+    leaderboardList.appendChild(li);
+  });
+}
+</script>
+
+</body>
 </html>
