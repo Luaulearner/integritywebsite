@@ -1,114 +1,119 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
   <title>AdvancedUsername's UI</title>
   <style>
-    @keyframes bgScroll {
+    html, body {
+      margin: 0;
+      height: 100%;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(-45deg, #0f0f0f, #2e003e, #000000, #3d0066);
+      background-size: 400% 400%;
+      animation: bgAnim 20s ease infinite;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    @keyframes bgAnim {
       0% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
 
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(-45deg, #0a001f, #330066, #1a0033, #4b0082);
-      background-size: 400% 400%;
-      animation: bgScroll 25s ease infinite;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-
     .cube-ui {
-      background: rgba(0, 0, 0, 0.7);
-      padding: 25px;
+      background: rgba(0, 0, 0, 0.5);
       border-radius: 12px;
-      box-shadow: 0 0 25px rgba(120, 0, 255, 0.8);
-      width: 360px;
-      color: #fff;
+      padding: 30px;
+      box-shadow: 0 0 25px rgba(255, 0, 255, 0.2);
+      display: flex;
+      flex-direction: column;
+      width: 300px;
+      backdrop-filter: blur(10px);
     }
 
-    .cube-title {
-      font-size: 1.6em;
+    h1 {
       text-align: center;
       margin-bottom: 20px;
-      font-weight: bold;
-      color: #b27fff;
+      font-size: 1.5em;
     }
 
-    .cube-input,
-    .cube-file {
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      border-radius: 8px;
-      border: none;
-      outline: none;
-      font-size: 1em;
+    .input-container {
+      position: relative;
+      margin-bottom: 15px;
+    }
+
+    .cube-input {
+      position: relative;
+      z-index: 1;
       background: #1a0033;
       color: #fff;
-    }
-
-    .cube-btn {
-      width: 100%;
-      padding: 12px;
-      margin: 10px 0;
       border: none;
-      border-radius: 8px;
+      padding: 10px;
       font-size: 1em;
-      font-weight: 600;
-      background: #6600cc;
-      color: white;
-      cursor: pointer;
-      transition: 0.3s ease;
-    }
-
-    .cube-btn:hover {
-      background: #9933ff;
-    }
-
-    .output-box {
-      background: rgba(255,255,255,0.08);
       border-radius: 8px;
+      width: 100%;
+      outline: none;
+    }
+
+    .input-container::before {
+      content: '';
+      position: absolute;
+      z-index: 0;
+      top: -2px;
+      left: -2px;
+      right: -2px;
+      bottom: -2px;
+      background: linear-gradient(270deg, red, orange, yellow, green, cyan, blue, violet, red);
+      background-size: 400% 400%;
+      border-radius: 10px;
+      animation: rainbow 6s linear infinite;
+    }
+
+    @keyframes rainbow {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    button {
       padding: 10px;
       margin-top: 10px;
-      font-size: 0.95em;
-      white-space: pre-wrap;
-      max-height: 150px;
-      overflow-y: auto;
+      background: #4e008e;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background: #6a00c7;
     }
   </style>
 </head>
 <body>
-
   <div class="cube-ui">
-    <div class="cube-title">AdvancedUsername's UI</div>
+    <h1>AdvancedUsername's UI</h1>
 
-    <input type="text" id="urlInput" class="cube-input" placeholder="Enter a URL (https://...)"/>
+    <div class="input-container">
+      <input type="text" id="urlInput" class="cube-input" placeholder="Enter a URL (https://...)"/>
+    </div>
 
-    <button class="cube-btn" onclick="goToSite()">Go to Website</button>
-    <button class="cube-btn" onclick="showIp()">Show your IP</button>
-    <button class="cube-btn" onclick="goToRoblox()">Go to roblox.com/login</button>
-
-    <input type="file" id="fileInput" class="cube-file" accept=".txt,.js,.json,.html,.css"/>
-    <div id="fileContent" class="output-box"></div>
-
-    <div id="ipDisplay" class="output-box"></div>
+    <button onclick="goToURL()">Go to Website</button>
+    <button onclick="goToRoblox()">Go to Roblox</button>
+    <button onclick="getIP()">Your IP</button>
   </div>
 
   <script>
-    function goToSite() {
-      const url = document.getElementById("urlInput").value.trim();
-      if (!url) return alert("Enter a URL!");
-      try {
-        new URL(url);
+    function goToURL() {
+      const url = document.getElementById('urlInput').value;
+      if (url.startsWith("http://") || url.startsWith("https://")) {
         window.open(url, "_blank");
-      } catch {
-        alert("Invalid URL!");
+      } else {
+        alert("Enter a valid URL starting with http:// or https://");
       }
     }
 
@@ -116,28 +121,12 @@
       window.open("https://roblox.com/login", "_blank");
     }
 
-    async function showIp() {
-      const ipBox = document.getElementById("ipDisplay");
-      ipBox.textContent = "Fetching IP...";
-      try {
-        const res = await fetch("https://api.ipify.org?format=json");
-        const data = await res.json();
-        ipBox.textContent = `Your IP: ${data.ip}`;
-      } catch {
-        ipBox.textContent = "Failed to fetch IP.";
-      }
+    function getIP() {
+      fetch("https://api.ipify.org?format=json")
+        .then(res => res.json())
+        .then(data => alert("Your IP: " + data.ip))
+        .catch(() => alert("Could not fetch IP"));
     }
-
-    document.getElementById("fileInput").addEventListener("change", (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        document.getElementById("fileContent").textContent = e.target.result;
-      };
-      reader.readAsText(file);
-    });
   </script>
-
 </body>
 </html>
