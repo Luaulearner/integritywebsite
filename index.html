@@ -1,10 +1,1089 @@
-// Fetch the HTML file
-fetch('/storage/emulated/0/Download/code.html')
-  .then(response => response.text())
-  .then(html => {
-    // Insert the HTML into an element
-    document.getElementById('target-element').innerHTML = html;
-  })
-  .catch(error => {
-    console.error('Error loading HTML:', error);
+<!DOCTYPE html>
+<!--
+  Global Messenger with:
+  - Firebase Auth (email/password) with username on signup
+  - Real-time messaging, showing username + title only (no email leaks)
+  - Current user messages right-aligned, others left-aligned
+  - Points earned per message (1 or 2 if 2x points upgrade owned)
+  - Store for buying titles and 2x Points upgrade
+  - Titles displayed next to username in chat (e.g. John [Pro])
+  - Rich Title styled as shiny gold animated
+  - Store UI toggle with smooth style
+  - Clean modern UI with Inter font
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Global Messenger with Points & Store</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      background: #f4f6f8;
+      font-family: 'Inter', sans-serif;
+      color: #222;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .app-container {
+      width: 480px;
+      max-width: 95vw;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 10px 28px rgba(0,0,0,0.12);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      min-height: 700px;
+    }
+    header {
+      background: #4338ca;
+      color: white;
+      padding: 24px 20px;
+      text-align: center;
+      font-weight: 700;
+      font-size: 1.8rem;
+      letter-spacing: 0.07em;
+      user-select: none;
+    }
+
+    /* === Auth Container === */
+    #auth-container {
+      flex-grow: 1;
+      padding: 32px 30px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      max-width: 100%;
+    }
+    label {
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 4px;
+      color: #444;
+      user-select: none;
+    }
+    input[type="email"],
+    input[type="password"],
+    input[type="text"] {
+      padding: 12px 16px;
+      border: 1.5px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: border-color 0.3s ease;
+    }
+    input[type="email"]:focus,
+    input[type="password"]:focus,
+    input[type="text"]:focus {
+      outline: none;
+      border-color: #4338ca;
+      box-shadow: 0 0 8px rgba(67, 56, 202, 0.35);
+    }
+    button {
+      background-color: #4338ca;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 14px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      user-select: none;
+    }
+    button:disabled {
+      background-color: #a5a6fc;
+      cursor: not-allowed;
+    }
+    button:hover:not(:disabled) {
+      background-color: #312e81;
+    }
+    .toggle-auth {
+      margin-top: 16px;
+      font-size: 0.9rem;
+      color: #666;
+      text-align: center;
+      user-select: none;
+    }
+    .toggle-auth button {
+      background: none;
+      border: none;
+      color: #4338ca;
+      cursor: pointer;
+      font-weight: 700;
+      padding: 0;
+      text-decoration: underline;
+    }
+    .toggle-auth button:hover {
+      color: #312e81;
+    }
+    .error-msg {
+      background-color: #fee2e2;
+      color: #911111;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      user-select: text;
+    }
+    /* === Chat + Store Container === */
+    #chat-store-container {
+      display: none;
+      flex-grow: 1;
+      flex-direction: column;
+      height: 100%;
+    }
+    /* Chat Header */
+    #chat-header {
+      padding: 18px 22px;
+      background: #4338ca;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 700;
+      font-size: 1.2rem;
+      letter-spacing: 0.02em;
+      user-select: none;
+      position: relative;
+    }
+    #greeting {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 200px;
+    }
+    #points-display {
+      font-weight: 700;
+      font-size: 1rem;
+      opacity: 0.85;
+      user-select: none;
+      margin-left: 16px;
+      white-space: nowrap;
+    }
+    #header-buttons {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    #logout-btn,
+    #store-toggle-btn {
+      background: #fbbf24;
+      border: none;
+      color: #5c3d00;
+      cursor: pointer;
+      padding: 10px 14px;
+      font-weight: 700;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
+      user-select: none;
+      font-size: 0.95rem;
+      white-space: nowrap;
+    }
+    #logout-btn:hover {
+      background: #b88b0d;
+    }
+    #store-toggle-btn:hover {
+      background: #b88b0d;
+    }
+
+    /* Chat messages container */
+    #messages {
+      flex-grow: 1;
+      padding: 16px 24px;
+      overflow-y: auto;
+      background: #e0e7ff;
+      scrollbar-width: thin;
+      scrollbar-color: #4338ca transparent;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    #messages::-webkit-scrollbar {
+      width: 9px;
+    }
+    #messages::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    #messages::-webkit-scrollbar-thumb {
+      background-color: #4338ca;
+      border-radius: 10px;
+    }
+
+    /* Message bubbles */
+    .message {
+      max-width: 75%;
+      padding: 14px 20px;
+      border-radius: 24px;
+      position: relative;
+      font-size: 1rem;
+      line-height: 1.3;
+      box-shadow: 0 4px 12px rgba(67,56,202,0.15);
+      white-space: pre-line;
+      word-wrap: break-word;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    /* Outgoing messages on right */
+    .message.outgoing {
+      background: #4338ca;
+      color: white;
+      margin-left: auto;
+      border-bottom-right-radius: 4px;
+    }
+    /* Incoming messages on left */
+    .message.incoming {
+      background: #f3f4f6;
+      color: #222;
+      margin-right: auto;
+      border-bottom-left-radius: 4px;
+    }
+
+    /* Username + title */
+    .message .meta {
+      font-weight: 700;
+      font-size: 0.85rem;
+      user-select: text;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .username {
+      color: inherit;
+    }
+
+    .title-badge {
+      font-weight: 700;
+      font-size: 0.8rem;
+      padding: 2px 8px;
+      border-radius: 10px;
+      user-select: none;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+    }
+    /* Basic titles */
+    .title-Pro {
+      background: #4338ca;
+      color: white;
+    }
+    .title-Rich {
+      background: linear-gradient(90deg, #f6e58d 0%, #f7d358 40%, #f7cd3e 60%, #fbd14e 100%);
+      color: #5c4000;
+      font-weight: 900;
+      text-shadow: 0 0 8px #fbd14e, 0 0 10px #fbed6a;
+      animation: shine 3s linear infinite;
+      box-shadow: 0 0 15px #fbd14e;
+    }
+
+    @keyframes shine {
+      0% {
+        background-position: 0% 50%;
+        text-shadow: 0 0 5px #fbd14e, 0 0 10px #fbdd4e;
+      }
+      50% {
+        background-position: 100% 50%;
+        text-shadow: 0 0 12px #f7e651, 0 0 25px #fef369;
+      }
+      100% {
+        background-position: 0% 50%;
+        text-shadow: 0 0 5px #fbd14e, 0 0 10px #fbdd4e;
+      }
+    }
+
+    /* Message text */
+    .message .text {
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    /* Message timestamp */
+    .message .timestamp {
+      font-size: 0.70rem;
+      color: rgba(0,0,0,0.4);
+      position: absolute;
+      bottom: 6px;
+      right: 14px;
+      user-select: text;
+    }
+    .message.outgoing .timestamp {
+      color: rgba(255,255,255,0.6);
+    }
+
+    /* Message form */
+    #messageForm {
+      display: flex;
+      padding: 18px 22px;
+      background: #4338ca;
+      gap: 14px;
+      align-items: center;
+      user-select: none;
+    }
+    #message {
+      flex-grow: 1;
+      border-radius: 14px;
+      border: none;
+      padding: 16px 20px;
+      resize: none;
+      font-size: 1.05rem;
+      font-family: 'Inter', sans-serif;
+      height: 56px;
+      max-height: 120px;
+      transition: box-shadow 0.3s ease;
+    }
+    #message:focus {
+      outline: none;
+      box-shadow: 0 0 14px rgba(203, 213, 255, 0.8);
+      background-color: #f3f4f6;
+      color: #111;
+    }
+    #sendBtn {
+      background-color: #fbbf24;
+      color: #5c3d00;
+      font-weight: 700;
+      border-radius: 14px;
+      border: none;
+      padding: 0 28px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      user-select: none;
+      font-size: 1.1rem;
+      height: 56px;
+    }
+    #sendBtn:disabled {
+      background-color: #fdebaf;
+      cursor: not-allowed;
+      color: #bfa740;
+    }
+    #sendBtn:not(:disabled):hover {
+      background-color: #d89e0d;
+    }
+
+    /* === Store UI === */
+    #store-container {
+      background: #fff;
+      border-top: 1px solid #ddd;
+      padding: 14px 18px;
+      max-height: 280px;
+      overflow-y: auto;
+      display: none;
+      flex-direction: column;
+      gap: 18px;
+      font-size: 0.95rem;
+      user-select: none;
+    }
+    #store-container.show {
+      display: flex;
+    }
+    #store-container h2 {
+      margin: 0 0 8px 0;
+      font-weight: 700;
+      color: #4338ca;
+      text-align: center;
+      user-select: none;
+    }
+    .store-item {
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: box-shadow 0.3s ease;
+      cursor: pointer;
+    }
+    .store-item:hover {
+      box-shadow: 0 0 12px rgba(67, 56, 202, 0.3);
+      border-color: #4338ca;
+    }
+    .store-item.disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+      box-shadow: none !important;
+      border-color: #bbb;
+    }
+    .store-info {
+      flex-grow: 1;
+      user-select: text;
+    }
+    .store-name {
+      font-weight: 700;
+      font-size: 1.05rem;
+      margin-bottom: 4px;
+    }
+    .store-desc {
+      font-size: 0.85rem;
+      color: #555;
+      margin: 0;
+      user-select: none;
+    }
+    .store-cost {
+      font-weight: 800;
+      color: #b45309;
+      user-select: none;
+      min-width: 48px;
+      text-align: right;
+    }
+    .btn-buy {
+      background: #fbbf24;
+      border: none;
+      color: #5c3d00;
+      font-weight: 700;
+      border-radius: 10px;
+      padding: 8px 16px;
+      margin-left: 14px;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.3s ease;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+    }
+    .btn-buy:hover:not(:disabled) {
+      background: #b87f01;
+    }
+    .btn-buy:disabled {
+      background: #fdebaf;
+      color: #bfa740;
+      cursor: not-allowed;
+    }
+
+  </style>
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+</head>
+<body>
+  <main class="app-container" aria-label="Global Messenger App">
+
+    <header>Global Messenger</header>
+
+    <!-- Authentication Container -->
+    <section id="auth-container" aria-live="polite">
+      <!-- Login Form -->
+      <form id="login-form" novalidate>
+        <div>
+          <label for="login-email">Email</label>
+          <input type="email" id="login-email" name="login-email" autocomplete="email" required />
+        </div>
+        <div>
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" name="login-password" minlength="6" autocomplete="current-password" required />
+        </div>
+        <button type="submit" id="login-btn" disabled>Log In</button>
+        <p class="toggle-auth">Don't have an account? <button type="button" id="show-signup">Sign Up</button></p>
+        <p class="error-msg" id="login-error" role="alert" aria-live="assertive" style="display:none;"></p>
+      </form>
+
+      <!-- Signup Form -->
+      <form id="signup-form" style="display:none" novalidate>
+        <div>
+          <label for="signup-username">Username</label>
+          <input type="text" id="signup-username" name="signup-username" autocomplete="username" minlength="3" maxlength="20" required />
+        </div>
+        <div>
+          <label for="signup-email">Email</label>
+          <input type="email" id="signup-email" name="signup-email" autocomplete="email" required />
+        </div>
+        <div>
+          <label for="signup-password">Password (min 6 chars)</label>
+          <input type="password" id="signup-password" name="signup-password" minlength="6" autocomplete="new-password" required />
+        </div>
+        <button type="submit" id="signup-btn" disabled>Sign Up</button>
+        <p class="toggle-auth">Already have an account? <button type="button" id="show-login">Log In</button></p>
+        <p class="error-msg" id="signup-error" role="alert" aria-live="assertive" style="display:none;"></p>
+      </form>
+    </section>
+
+    <!-- Chat and Store Container -->
+    <section id="chat-store-container" aria-live="polite">
+      <div id="chat-header">
+        <div style="display:flex; align-items:center; gap:12px; min-width:0; overflow:hidden;">
+          <span id="greeting" title=""></span>
+          <span id="points-display" title="Your Points"></span>
+        </div>
+        <div id="header-buttons">
+          <button id="store-toggle-btn" aria-label="Toggle Store">Store</button>
+          <button id="logout-btn" aria-label="Logout">Log Out</button>
+        </div>
+      </div>
+
+      <div id="messages" tabindex="0" aria-label="Message list"></div>
+
+      <form id="messageForm" aria-label="Send a message form" novalidate>
+        <textarea id="message" name="message" placeholder="Type your message..." rows="2" maxlength="280" required></textarea>
+        <button type="submit" id="sendBtn" disabled>Send</button>
+      </form>
+
+      <!-- Store UI -->
+      <div id="store-container" aria-label="Store">
+        <h2>Store: Buy Titles & Upgrades</h2>
+        <div id="store-items"></div>
+      </div>
+    </section>
+  </main>
+
+<script>
+  // Firebase config
+  const firebaseConfig = {
+    apiKey: "AIzaSyBjA2O3QDuKsAGLzq008VEDug69WDroulI",
+    authDomain: "supercoollogin999.firebaseapp.com",
+    databaseURL: "https://supercoollogin999-default-rtdb.firebaseio.com",
+    projectId: "supercoollogin999",
+    storageBucket: "supercoollogin999.firebasestorage.app",
+    messagingSenderId: "472488806884",
+    appId: "1:472488806884:web:d904be3b09548dbbc51ff1",
+    measurementId: "G-03NQP912BX"
+  };
+
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.database();
+
+  // Elements references
+  const authContainer = document.getElementById('auth-container');
+  const loginForm = document.getElementById('login-form');
+  const signupForm = document.getElementById('signup-form');
+  const loginEmail = document.getElementById('login-email');
+  const loginPassword = document.getElementById('login-password');
+  const loginBtn = document.getElementById('login-btn');
+  const loginError = document.getElementById('login-error');
+
+  const signupUsername = document.getElementById('signup-username');
+  const signupEmail = document.getElementById('signup-email');
+  const signupPassword = document.getElementById('signup-password');
+  const signupBtn = document.getElementById('signup-btn');
+  const signupError = document.getElementById('signup-error');
+
+  const showSignupBtn = document.getElementById('show-signup');
+  const showLoginBtn = document.getElementById('show-login');
+
+  const chatStoreContainer = document.getElementById('chat-store-container');
+  const greetingEl = document.getElementById('greeting');
+  const pointsDisplay = document.getElementById('points-display');
+  const logoutBtn = document.getElementById('logout-btn');
+  const storeToggleBtn = document.getElementById('store-toggle-btn');
+
+  const messagesEl = document.getElementById('messages');
+  const messageForm = document.getElementById('messageForm');
+  const messageInput = document.getElementById('message');
+  const sendBtn = document.getElementById('sendBtn');
+
+  const storeContainer = document.getElementById('store-container');
+  const storeItemsEl = document.getElementById('store-items');
+
+  const messagesRef = db.ref('messages');
+  let userRef = null;
+
+  // === Authentication Variables & Helper ===
+  let currentUserProfile = null; // {username, points, titles:[], upgrades:{}}
+  let currentUserUid = null;
+  let messagesListener = null;
+
+  // Store Data
+  // Define available titles and upgrades with costs
+  const STORE_ITEMS = [
+    {
+      id: 'title_pro',
+      name: 'Pro Title',
+      type: 'title',
+      cost: 50,
+      description: 'Adds [Pro] next to your username.',
+      titleClass: 'title-Pro',
+    },
+    {
+      id: 'title_rich',
+      name: 'Rich Title',
+      type: 'title',
+      cost: 250,
+      description: 'Adds shiny gold [Rich] title next to your username.',
+      titleClass: 'title-Rich',
+    },
+    {
+      id: 'upgrade_2x_points',
+      name: '2x Points Upgrade',
+      type: 'upgrade',
+      cost: 100,
+      description: 'Earn double points for every message you send.',
+      upgradeKey: '2xPoints',
+    },
+  ];
+
+  // === Buttons state updates ===
+  function updateLoginButton() {
+    loginBtn.disabled = !loginEmail.value.trim() || loginPassword.value.length < 6;
+  }
+  function updateSignupButton() {
+    signupBtn.disabled = !signupEmail.value.trim() ||
+      signupPassword.value.length < 6 ||
+      !signupUsername.value.trim() || signupUsername.value.trim().length < 3;
+  }
+  function updateSendButton() {
+    sendBtn.disabled = !messageInput.value.trim();
+  }
+
+  // Show/hide login/signup forms
+  function showSignup() {
+    loginForm.style.display = 'none';
+    signupForm.style.display = 'flex';
+    clearLoginErrors();
+    clearSignupErrors();
+  }
+  function showLogin() {
+    signupForm.style.display = 'none';
+    loginForm.style.display = 'flex';
+    clearLoginErrors();
+    clearSignupErrors();
+  }
+
+  showSignupBtn.onclick = showSignup;
+  showLoginBtn.onclick = showLogin;
+
+  function clearLoginErrors() {
+    loginError.textContent = '';
+    loginError.style.display = 'none';
+  }
+  function clearSignupErrors() {
+    signupError.textContent = '';
+    signupError.style.display = 'none';
+  }
+
+  // Monitor inputs
+  loginEmail.addEventListener('input', () => {
+    updateLoginButton();
+    clearLoginErrors();
   });
+  loginPassword.addEventListener('input', () => {
+    updateLoginButton();
+    clearLoginErrors();
+  });
+  signupEmail.addEventListener('input', () => {
+    updateSignupButton();
+    clearSignupErrors();
+  });
+  signupPassword.addEventListener('input', () => {
+    updateSignupButton();
+    clearSignupErrors();
+  });
+  signupUsername.addEventListener('input', () => {
+    updateSignupButton();
+    clearSignupErrors();
+  });
+  messageInput.addEventListener('input', () => updateSendButton());
+
+  // Signup form submit
+  signupForm.addEventListener('submit', e => {
+    e.preventDefault();
+    clearSignupErrors();
+    signupBtn.disabled = true;
+
+    const username = signupUsername.value.trim();
+    if (username.length < 3) {
+      signupError.textContent = 'Username must be at least 3 characters.';
+      signupError.style.display = 'block';
+      signupBtn.disabled = false;
+      return;
+    }
+    const email = signupEmail.value.trim();
+    const password = signupPassword.value;
+
+    // Check if username already exists (username uniqueness simple check)
+    db.ref('usernames/' + username.toLowerCase()).get().then(snapshot => {
+      if (snapshot.exists()) {
+        signupError.textContent = 'Username already taken, please choose another.';
+        signupError.style.display = 'block';
+        signupBtn.disabled = false;
+      } else {
+        // Create user
+        auth.createUserWithEmailAndPassword(email, password).then(cred => {
+          currentUserUid = cred.user.uid;
+          // Save username -> uid mapping for fast uniqueness check
+          const updates = {};
+          updates['usernames/' + username.toLowerCase()] = currentUserUid;
+          updates['users/' + currentUserUid] = {
+            username: username,
+            email: email, // stored but never displayed in chat
+            points: 0,
+            titles: [],
+            upgrades: {}, // e.g. { "2xPoints": true }
+            createdAt: new Date().toISOString(),
+          };
+          return db.ref().update(updates);
+        }).catch(err => {
+          signupError.textContent = err.message;
+          signupError.style.display = 'block';
+          signupBtn.disabled = false;
+        });
+      }
+    }).catch(err => {
+      signupError.textContent = err.message || 'Error checking username.';
+      signupError.style.display = 'block';
+      signupBtn.disabled = false;
+    });
+  });
+
+  // Login form submit
+  loginForm.addEventListener('submit', e => {
+    e.preventDefault();
+    clearLoginErrors();
+    loginBtn.disabled = true;
+    auth.signInWithEmailAndPassword(loginEmail.value.trim(), loginPassword.value)
+      .then(cred => {
+        currentUserUid = cred.user.uid;
+      })
+      .catch(error => {
+        loginBtn.disabled = false;
+        loginError.textContent = error.message;
+        loginError.style.display = 'block';
+      });
+  });
+
+  // Logout
+  logoutBtn.addEventListener('click', () => {
+    auth.signOut();
+  });
+
+  // Store toggle
+  storeToggleBtn.addEventListener('click', () => {
+    if (storeContainer.classList.contains('show')) {
+      storeContainer.classList.remove('show');
+      storeToggleBtn.textContent = "Store";
+    } else {
+      storeContainer.classList.add('show');
+      storeToggleBtn.textContent = "Close Store";
+    }
+  });
+
+  // Authentication state change handler
+  auth.onAuthStateChanged(user => {
+    if (user) {
+      currentUserUid = user.uid;
+      authContainer.style.display = 'none';
+      chatStoreContainer.style.display = 'flex';
+      loadUserProfile(user.uid);
+    } else {
+      currentUserUid = null;
+      currentUserProfile = null;
+      clearMessagesListener();
+      greetingEl.textContent = '';
+      pointsDisplay.textContent = '';
+      messagesEl.innerHTML = '';
+      storeContainer.classList.remove('show');
+      storeToggleBtn.textContent = 'Store';
+      authContainer.style.display = 'flex';
+      chatStoreContainer.style.display = 'none';
+
+      // Clear inputs
+      loginForm.reset();
+      signupForm.reset();
+      messageForm.reset();
+
+      sendBtn.disabled = true;
+      loginBtn.disabled = true;
+      signupBtn.disabled = true;
+      clearLoginErrors();
+      clearSignupErrors();
+    }
+  });
+
+  // Load user profile from database and listen for updates
+  function loadUserProfile(uid) {
+    if (userRef) {
+      userRef.off();
+    }
+    userRef = db.ref('users/' + uid);
+    userRef.on('value', snapshot => {
+      currentUserProfile = snapshot.val();
+      if (!currentUserProfile) {
+        // Shouldn't happen, logout forcibly
+        auth.signOut();
+        return;
+      }
+      // Update greeting, points display
+      greetingEl.textContent = `Hello, ${currentUserProfile.username || 'User'}`;
+      greetingEl.title = currentUserProfile.email || '';
+      pointsDisplay.textContent = `Points: ${currentUserProfile.points || 0}`;
+
+      // Render store items with correct buy button states
+      renderStoreItems();
+
+      // Subscribe to messages
+      subscribeMessages();
+
+    });
+  }
+
+  // Clear message listener
+  function clearMessagesListener() {
+    if (messagesListener) {
+      messagesRef.off('value', messagesListener);
+      messagesListener = null;
+    }
+  }
+
+  // Subscribe to latest 100 messages, render on change
+  function subscribeMessages() {
+    if (messagesListener) {
+      messagesRef.off('value', messagesListener);
+    }
+    messagesListener = messagesRef.limitToLast(100).on('value', snapshot => {
+      const data = snapshot.val() || {};
+      const messages = Object.values(data);
+      messages.sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
+      renderMessages(messages);
+    });
+  }
+
+  // Compose username with title badges to display
+  function usernameWithTitles(userProfile) {
+    if (!userProfile) return "Unknown";
+    const username = userProfile.username || 'User';
+    const titles = userProfile.titles || [];
+    if (titles.length === 0) return username;
+    // For display, show last title bought or all titles comma separated?
+    // We will show last title only in brackets for clarity
+    // If have multiple titles: oldest title displayed first, newest last. Show last only with brackets.
+    const lastTitle = titles[titles.length - 1];
+    const titleObj = STORE_ITEMS.find(i => i.id === lastTitle && i.type === 'title');
+    if (titleObj) {
+      return `${username} [${titleObj.name}]`;
+    }
+    return username;
+  }
+
+  // Create chat message element with alignment, titles, timestamps
+  function createMessageElement(msg) {
+    const div = document.createElement('div');
+    div.className = 'message';
+
+    // Determine if outgoing (from current user)
+    const outgoing = currentUserProfile && msg.uid === currentUserUid;
+    div.classList.add(outgoing ? 'outgoing' : 'incoming');
+
+    // Meta (username with title badge)
+    const meta = document.createElement('div');
+    meta.className = 'meta';
+
+    // Find user title class for styling
+    const userTitles = msg.titles || [];
+    let titleClass = '';
+    if (userTitles.length > 0) {
+      const lastTitle = userTitles[userTitles.length - 1];
+      const titleInfo = STORE_ITEMS.find(i => i.id === lastTitle && i.type === 'title');
+      if (titleInfo) {
+        titleClass = titleInfo.titleClass;
+      }
+    }
+
+    // Username span
+    const usernameSp = document.createElement('span');
+    usernameSp.className = 'username';
+    usernameSp.textContent = msg.username || 'Unknown';
+
+    meta.appendChild(usernameSp);
+
+    // If have title, add badge span (with CSS class for style)
+    if (titleClass) {
+      const badgeSpan = document.createElement('span');
+      badgeSpan.className = 'title-badge ' + titleClass;
+      // Show title short name, e.g. Pro or Rich
+      const titleInfo = STORE_ITEMS.find(i => i.id === userTitles[userTitles.length -1]);
+      badgeSpan.textContent = titleInfo ? titleInfo.name : '';
+      meta.appendChild(badgeSpan);
+    }
+    div.appendChild(meta);
+
+    // Message text
+    const textDiv = document.createElement('div');
+    textDiv.className = 'text';
+    textDiv.textContent = msg.text || '';
+    div.appendChild(textDiv);
+
+    // Timestamp
+    const ts = document.createElement('div');
+    ts.className = 'timestamp';
+    let d = new Date(msg.timestamp);
+    if (isNaN(d.getTime())) d = new Date();
+    ts.textContent = d.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+    div.appendChild(ts);
+
+    return div;
+  }
+
+  // Render messages list with proper alignment
+  function renderMessages(messages) {
+    messagesEl.innerHTML = '';
+    messages.forEach(msg => {
+      const el = createMessageElement(msg);
+      messagesEl.appendChild(el);
+    });
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  // Send message logic - add points based on upgrades, update DB
+  messageForm.addEventListener('submit', e => {
+    e.preventDefault();
+    if (sendBtn.disabled) return;
+    if (!currentUserProfile || !currentUserUid) return;
+
+    let pointsGain = 1;
+    if (currentUserProfile.upgrades && currentUserProfile.upgrades['2xPoints']) {
+      pointsGain = 2;
+    }
+
+    const newMsg = {
+      uid: currentUserUid,
+      username: currentUserProfile.username || 'User',
+      titles: currentUserProfile.titles || [],
+      text: messageInput.value.trim().substring(0, 280),
+      timestamp: new Date().toISOString()
+    };
+
+    sendBtn.disabled = true;
+
+    // Push message + add points atomically with transaction on user profile points
+    messagesRef.push(newMsg).then(() => {
+      // Update points with transaction to avoid race
+      const userPointsRef = db.ref('users/' + currentUserUid + '/points');
+      userPointsRef.transaction(currentPoints => {
+        if (currentPoints === null) return pointsGain;
+        return currentPoints + pointsGain;
+      }).then(() => {
+        // Refresh local profile points forcibly (userRef listener will catch)
+        messageInput.value = '';
+        updateSendButton();
+        sendBtn.disabled = false;
+      }).catch(err => {
+        alert('Error updating points: ' + err.message);
+        sendBtn.disabled = false;
+      });
+    }).catch(err => {
+      alert('Error sending message: ' + err.message);
+      sendBtn.disabled = false;
+    });
+  });
+
+  // Render store items with buy buttons, disables if insufficient points or already owned
+  function renderStoreItems() {
+    storeItemsEl.innerHTML = '';
+    const userPoints = currentUserProfile.points || 0;
+    const userTitles = currentUserProfile.titles || [];
+    const userUpgrades = currentUserProfile.upgrades || {};
+
+    STORE_ITEMS.forEach(item => {
+      const owned = item.type === 'title' ? userTitles.includes(item.id) :
+                    item.type === 'upgrade' ? !!userUpgrades[item.upgradeKey] : false;
+
+      const affordable = userPoints >= item.cost;
+
+      const disabled = owned || !affordable;
+
+      const div = document.createElement('div');
+      div.className = 'store-item' + (disabled ? ' disabled' : '');
+
+      const infoDiv = document.createElement('div');
+      infoDiv.className = 'store-info';
+
+      const nameDiv = document.createElement('div');
+      nameDiv.className = 'store-name';
+      nameDiv.textContent = item.name;
+
+      const descP = document.createElement('p');
+      descP.className = 'store-desc';
+      descP.textContent = item.description;
+
+      infoDiv.appendChild(nameDiv);
+      infoDiv.appendChild(descP);
+
+      const costDiv = document.createElement('div');
+      costDiv.className = 'store-cost';
+      costDiv.textContent = item.cost + ' pts';
+
+      const btn = document.createElement('button');
+      btn.className = 'btn-buy';
+      btn.textContent = owned ? 'Owned' : 'Buy';
+      btn.disabled = disabled;
+      btn.title = owned ? 'You already own this.' : '';
+
+      btn.addEventListener('click', () => {
+        if (btn.disabled) return;
+        purchaseStoreItem(item);
+      });
+
+      div.appendChild(infoDiv);
+      div.appendChild(costDiv);
+      div.appendChild(btn);
+
+      storeItemsEl.appendChild(div);
+    });
+  }
+
+  // Purchase handler - update points and owned titles/upgrades atomically
+  function purchaseStoreItem(item) {
+    if (!currentUserUid || !currentUserProfile) return;
+
+    const userRefForPurchase = db.ref('users/' + currentUserUid);
+
+    userRefForPurchase.transaction(currentData => {
+      if (currentData === null) {
+        return; // abort transaction no data
+      }
+      if (!currentData.points || currentData.points < item.cost) {
+        alert('Not enough points to purchase ' + item.name);
+        return; // abort transaction insufficient points
+      }
+      if (item.type === 'title') {
+        if (currentData.titles && currentData.titles.includes(item.id)) {
+          alert('You already own this title.');
+          return; // abort transaction duplicate
+        }
+        currentData.titles = currentData.titles || [];
+        currentData.titles.push(item.id);
+      } else if (item.type === 'upgrade') {
+        currentData.upgrades = currentData.upgrades || {};
+        if (currentData.upgrades[item.upgradeKey]) {
+          alert('You already own this upgrade.');
+          return;
+        }
+        currentData.upgrades[item.upgradeKey] = true;
+      }
+      currentData.points -= item.cost;
+      if (currentData.points < 0) currentData.points = 0;
+      return currentData;
+    }, (err, committed, snapshot) => {
+      if (err) {
+        alert('Purchase failed: ' + err.message);
+      } else if (!committed) {
+        // transaction aborted, do nothing, alerts shown inside transaction
+      } else {
+        // success! local UI will update because of userRef listener
+        alert(`Successfully purchased: ${item.name}`);
+      }
+    });
+  }
+
+  // Initialize buttons states
+  updateLoginButton();
+  updateSignupButton();
+  updateSendButton();
+
+</script>
+
+</body>
+</html>
+
