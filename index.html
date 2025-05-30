@@ -163,6 +163,10 @@
     #profile-name {
       font-weight: 700;
       color: #333;
+      max-width: 120px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     #logcash-balance {
       font-weight: 600;
@@ -193,7 +197,6 @@
       min-height: calc(100vh - 60px);
       overflow: hidden;
       flex-wrap: nowrap;
-      /* Support scrolling on small widths */
       overflow-x: auto;
     }
 
@@ -378,6 +381,9 @@
       padding: 10px;
       border-bottom: 1px solid #eee;
       text-align: left;
+      max-width: 200px;
+      overflow-wrap: break-word;
+      word-break: break-all;
     }
     #admin-users-list th {
       background: #764ba2;
@@ -628,44 +634,53 @@
       return re.test(email);
     }
 
-    // Signup user in Firebase, add user doc in Firestore with logcash credits
+    // Create or update user document in Firestore with defaults as needed
+    async function ensureUserDoc(user) {
+      const userDocRef = db.collection('users').doc(user.uid);
+      const doc = await userDocRef.get();
+      if (!doc.exists) {
+        // Create new user doc with default logcash
+        await userDocRef.set({
+          email: user.email,
+          name: user.displayName || "",
+          logcash: 10,
+          ownedStyles: [],
+          ownedTitles: [],
+          currentStyle: null,
+          currentTitle: null,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      } else {
+        // Update lastLogin and name if needed
+        const data = doc.data();
+        const updateData = {};
+        if (!data.name && user.displayName) updateData.name = user.displayName;
+        updateData.lastLogin = firebase.firestore.FieldValue.serverTimestamp();
+        if (Object.keys(updateData).length > 0) await userDocRef.update(updateData);
+      }
+      return await userDocRef.get();
+    }
+
+    // Signup user in Firebase, update Firestore user doc
     async function signupUser(email, password, name) {
       const userCredential = await auth.createUserWithEmailAndPassword(email, password);
       const user = userCredential.user;
-      // Update displayName
       await user.updateProfile({ displayName: name });
-      // Create user document in Firestore
-      const userDocRef = db.collection('users').doc(user.uid);
-      await userDocRef.set({
-        email: email,
-        name: name,
-        logcash: 10, // Starting credits plus 10 logcash
-        ownedStyles: [],
-        ownedTitles: [],
-        currentStyle: null,
-        currentTitle: null,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        lastLogin: firebase.firestore.FieldValue.serverTimestamp()
-      });
-      return user;
+      return await ensureUserDoc(user);
     }
 
-    // On login also add 10 logcash credits (if user exists)
-    async function creditLoginBonus(user) {
-      if (!user) return;
+    // On login add 10 logcash bonus and ensure user doc
+    async function loginUser(email, password) {
+      const userCredential = await auth.signInWithEmailAndPassword(email, password);
+      const user = userCredential.user;
+      await ensureUserDoc(user);
       const userDocRef = db.collection('users').doc(user.uid);
-      // Atomically increment logcash by 10 and update lastLogin timestamp
       await userDocRef.update({
         logcash: firebase.firestore.FieldValue.increment(10),
         lastLogin: firebase.firestore.FieldValue.serverTimestamp()
       });
-    }
-
-    // Login user with Firebase
-    async function loginUser(email, password) {
-      const userCredential = await auth.signInWithEmailAndPassword(email, password);
-      await creditLoginBonus(userCredential.user);
-      return userCredential.user;
+      return user;
     }
 
     authSubmit.addEventListener('click', async () => {
@@ -688,17 +703,23 @@
       }
       setAuthLoading(true);
       try {
+        let userDoc;
         if(isLoginMode) {
-          await loginUser(email, password);
+          const user = await loginUser(email, password);
+          userDoc = await db.collection('users').doc(user.uid).get();
         } else {
-          await signupUser(email, password, name);
+          userDoc = await signupUser(email, password, name);
         }
+        currentUserDoc = userDoc;
+        currentUserData = userDoc.data();
+        await reloadUIWithUserData();
       } catch(err) {
         let msg = "Failed to authenticate.";
         if(err && err.code === "auth/user-not-found") msg = "User not found.";
         else if(err && err.code === "auth/wrong-password") msg = "Incorrect password.";
         else if(err && err.code === "auth/email-already-in-use") msg = "Email already in use.";
         else if(err && err.code === "auth/weak-password") msg = "Weak password.";
+
         authError.textContent = msg;
         setAuthLoading(false);
         return;
@@ -709,7 +730,6 @@
       auth.signOut();
     });
 
-    // On auth state change
     auth.onAuthStateChanged(async (user) => {
       if(user) {
         authPage.style.display = 'none';
@@ -717,27 +737,13 @@
         authError.textContent = "";
         setAuthLoading(false);
         try {
-          await loadUserData(user);
+          const userDoc = await ensureUserDoc(user);
+          currentUserDoc = userDoc;
+          currentUserData = userDoc.data();
+          await reloadUIWithUserData();
         } catch(e) {
           authError.textContent = "Failed to load user data.";
           console.error(e);
-          return;
-        }
-  
-        // Enable admin panel link only for johndoe@gmail.com
-        if(user.email === "johndoe@gmail.com") {
-          adminLink.style.display = "block";
-        } else {
-          adminLink.style.display = "none";
-        }
-
-        // Select admin panel tab by default if admin, else buy-styles
-        if(user.email === "johndoe@gmail.com") {
-          selectSidebarTab("admin-panel");
-          setActiveTab("admin-panel");
-        } else {
-          selectSidebarTab("buy-styles");
-          setActiveTab("buy-styles");
         }
       } else {
         authPage.style.display = 'flex';
@@ -754,42 +760,28 @@
       }
     });
 
-    // Load user data from Firestore and update UI
-    async function loadUserData(user) {
-      const userDocSnap = await db.collection('users').doc(user.uid).get();
-      if(!userDocSnap.exists) {
-        throw new Error("User data not found");
+    async function reloadUIWithUserData() {
+      if (!currentUserData) {
+        contentArea.innerHTML = `<h1>Error</h1><p>User data not loaded. Please try refreshing.</p>`;
+        return;
       }
-      currentUserDoc = userDocSnap;
-      const data = userDocSnap.data();
-
-      currentUserData = data;
-
-      profileName.textContent = data.name || user.displayName || user.email;
-      // Use user.photoURL if present else red default avatar
-      const photoURL = user.photoURL && user.photoURL.trim() !== "" ? user.photoURL :
+      profileName.textContent = currentUserData.name || auth.currentUser.displayName || auth.currentUser.email;
+      const photoURL = auth.currentUser.photoURL && auth.currentUser.photoURL.trim() ?
+        auth.currentUser.photoURL :
         `https://ui-avatars.com/api/?name=${encodeURIComponent(profileName.textContent)}&background=ff3333&color=fff&size=64`;
-
       profilePic.src = photoURL;
-      logcashBalance.textContent = data.logcash || 0;
+      logcashBalance.textContent = currentUserData.logcash || 0;
+      // Show admin panel tab link for the admin user only
+      if(auth.currentUser.email === "johndoe@gmail.com") {
+        adminLink.style.display = "block";
+        setActiveTab("admin-panel");
+        selectSidebarTab("admin-panel");
+      } else {
+        adminLink.style.display = "none";
+        setActiveTab("buy-styles");
+        selectSidebarTab("buy-styles");
+      }
     }
-
-    // Sidebar navigation setup
-    sidebarLinks.forEach(link => {
-      link.addEventListener('click', e => {
-        e.preventDefault();
-        if(link.classList.contains('active')) return;
-        sidebarLinks.forEach(l => {
-          l.classList.remove('active');
-          l.setAttribute('aria-selected', 'false');
-          l.tabIndex = -1;
-        });
-        link.classList.add('active');
-        link.setAttribute('aria-selected', 'true');
-        link.tabIndex = 0;
-        setActiveTab(link.getAttribute('data-tab'));
-      });
-    });
 
     function selectSidebarTab(tab) {
       sidebarLinks.forEach(link => {
@@ -807,13 +799,11 @@
     }
 
     function setActiveTab(tab) {
-      if(tab === "admin-panel" && auth.currentUser && auth.currentUser.email !== "johndoe@gmail.com") {
-        // If someone tries to manually switch, prevent access
+      if(tab === "admin-panel" && auth.currentUser.email !== "johndoe@gmail.com") {
         contentArea.innerHTML = `<h1>Access Denied</h1><p>You do not have permission to view this section.</p>`;
         return;
       }
       if(!currentUserData && tab !== "admin-panel") {
-        // User data missing, show error message except for admin panel
         contentArea.innerHTML = `<h1>Error</h1><p>User data not loaded. Please try refreshing.</p>`;
         return;
       }
@@ -1119,11 +1109,8 @@
           msg.style.color = "green";
           msg.textContent = `Gave ${amountToGive} LogCash to ${emailToGive}.`;
 
-          // Refresh admin panel and user data if affected
-          await loadUserData(auth.currentUser);
-          if(userDoc.id === currentUserDoc.id) {
-            logcashBalance.textContent = currentUserData.logcash;
-          }
+          // Refresh current user data if affected
+          await reloadUserDocIfNeeded(emailToGive);
           renderAdminPanel();
         } catch(err) {
           msg.style.color = "#e74c3c";
@@ -1134,6 +1121,17 @@
           btn.textContent = "Give LogCash";
         }
       };
+    }
+
+    async function reloadUserDocIfNeeded(email) {
+      if (auth.currentUser.email.toLowerCase() === email.toLowerCase()) {
+        // Reload current logged user data to update balance
+        const ref = db.collection('users').doc(auth.currentUser.uid);
+        const docSnap = await ref.get();
+        currentUserDoc = docSnap;
+        currentUserData = docSnap.data();
+        logcashBalance.textContent = currentUserData.logcash || 0;
+      }
     }
 
     // Escape HTML helper
