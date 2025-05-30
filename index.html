@@ -1,14 +1,11 @@
-
-You want to have an admin panel UI that integrates with Firebase. To do this in a single HTML file, I can add Firebase authentication (login/logout) and data fetching/storing for admin data (like users) using Firebase services: Firestore for user info and Firebase Auth for authentication.
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Firebase Admin Panel UI</title>
+<title>LogCash Shop - Firebase Auth & Dashboard</title>
 <style>
-  /* Reset & base */
+  /* Global Resets */
   * {
     box-sizing: border-box;
   }
@@ -17,198 +14,50 @@ You want to have an admin panel UI that integrates with Firebase. To do this in 
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: #f5f7fa;
     color: #333;
-    overflow: hidden;
   }
   a {
     color: inherit;
     text-decoration: none;
   }
-  /* Container layout */
-  .container {
-    display: flex;
+  button {
+    font-family: inherit;
+  }
+
+  /* Common container */
+  #app {
     height: 100vh;
-    width: 100vw;
-    overflow: hidden;
-  }
-  /* Sidebar */
-  .sidebar {
-    width: 250px;
-    background: #2f3e4d;
-    color: white;
     display: flex;
     flex-direction: column;
-    transition: width 0.3s ease;
   }
-  .sidebar.collapsed {
-    width: 75px;
-  }
-  .sidebar-header {
-    font-size: 24px;
-    font-weight: 700;
-    padding: 20px;
-    text-align: center;
-    border-bottom: 1px solid #3f4a5a;
-    user-select: none;
-  }
-  .sidebar-nav {
+
+  /* Login/signup page styles */
+  #auth-page {
     flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    margin-top: 10px;
-  }
-  .sidebar-nav a {
-    display: flex;
-    align-items: center;
-    padding: 15px 20px;
-    font-weight: 600;
-    font-size: 16px;
-    border-left: 4px solid transparent;
-    transition: background 0.3s, border-color 0.3s;
-    cursor: pointer;
-  }
-  .sidebar-nav a:hover {
-    background: #405368;
-  }
-  .sidebar-nav a.active {
-    background: #1e2a38;
-    border-left-color: #ff6699;
-  }
-  .sidebar-nav a svg {
-    width: 20px;
-    height: 20px;
-    fill: white;
-    margin-right: 15px;
-    flex-shrink: 0;
-  }
-  .sidebar.collapsed .sidebar-nav a span {
-    display: none;
-  }
-  .sidebar.collapsed .sidebar-nav a svg {
-    margin-right: 0;
-  }
-  .toggle-btn {
-    background: none;
-    border: none;
-    color: white;
-    font-size: 20px;
-    cursor: pointer;
-    padding: 15px;
-    border-top: 1px solid #3f4a5a;
-    user-select: none;
-  }
-  .sidebar.collapsed .toggle-btn {
-    text-align: center;
-  }
-  /* Main content */
-  .main {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    overflow-y: auto;
-    background: #fafafa;
-  }
-  /* Header */
-  .header {
-    height: 60px;
-    background: white;
-    border-bottom: 1px solid #ddd;
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    padding: 0 20px;
-    box-shadow: 0 1px 6px rgba(0,0,0,0.1);
-    user-select: none;
-  }
-  .profile {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-  }
-  .profile img {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    margin-right: 10px;
-    object-fit: cover;
-    box-shadow: 0 0 4px rgba(0,0,0,0.15);
-  }
-  .profile span {
-    font-weight: 600;
-    color: #333;
-  }
-  .logout-btn {
-    background: #ff4d6d;
-    color: white;
-    border: none;
-    padding: 8px 14px;
-    margin-left: 20px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: background 0.3s ease;
-  }
-  .logout-btn:hover {
-    background: #e63b5d;
-  }
-  /* Content area */
-  .content {
-    flex-grow: 1;
-    padding: 30px 40px;
-    overflow-y: auto;
-  }
-  h1 {
-    margin-bottom: 20px;
-    color: #2f3e4d;
-  }
-  p {
-    font-size: 16px;
-    line-height: 1.6;
-  }
-  /* Responsive */
-  @media (max-width: 768px) {
-    .sidebar {
-      position: fixed;
-      z-index: 999;
-      height: 100vh;
-      left: -250px;
-    }
-    .sidebar.collapsed {
-      left: 0;
-      width: 250px;
-    }
-    .container {
-      overflow-x: hidden;
-    }
-    .main {
-      margin-left: 0;
-    }
-  }
-  /* Login page style */
-  #login-page {
-    height: 100vh;
     background: linear-gradient(135deg, #667eea, #764ba2);
     display: flex;
     justify-content: center;
     align-items: center;
     color: white;
   }
-  #login-box {
+
+  #auth-box {
     background: rgba(255 255 255 / 0.15);
     padding: 40px 30px 30px 30px;
     border-radius: 12px;
-    width: 320px;
+    width: 360px;
     backdrop-filter: blur(6px);
     box-shadow: 0 8px 32px rgb(118 75 162 / 0.4);
     display: flex;
     flex-direction: column;
   }
-  #login-box h2 {
+
+  #auth-box h2 {
     margin-bottom: 25px;
     text-align: center;
     font-weight: 600;
   }
-  #login-box input {
-    background: rgba(255 255 255 / 0.25);
+  input {
+    background: rgba(255 255 255 / 0.30);
     border: none;
     border-radius: 8px;
     padding: 12px 14px;
@@ -217,14 +66,14 @@ You want to have an admin panel UI that integrates with Firebase. To do this in 
     color: white;
     transition: background 0.3s;
   }
-  #login-box input::placeholder {
+  input::placeholder {
     color: #ddd;
   }
-  #login-box input:focus {
-    background: rgba(255 255 255 / 0.4);
+  input:focus {
+    background: rgba(255 255 255 / 0.45);
     outline: none;
   }
-  #login-btn {
+  button.primary-btn {
     background: #ff6699;
     border: none;
     padding: 14px 0;
@@ -234,18 +83,27 @@ You want to have an admin panel UI that integrates with Firebase. To do this in 
     cursor: pointer;
     color: white;
     transition: background 0.3s ease;
+    margin-bottom: 15px;
   }
-  #login-btn:hover {
+  button.primary-btn:hover {
     background: #e05184;
   }
-  #login-error {
+  .error-msg {
     color: #ff4d6d;
     margin-bottom: 12px;
-    height: 20px;
     font-weight: 600;
     text-align: center;
   }
-  /* Spinner */
+  .toggle-auth {
+    text-align: center;
+    color: white;
+    font-size: 14px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .toggle-auth:hover {
+    text-decoration: underline;
+  }
   .spinner {
     border: 4px solid rgba(255, 255, 255, 0.3);
     border-top: 4px solid white;
@@ -262,54 +120,277 @@ You want to have an admin panel UI that integrates with Firebase. To do this in 
   @keyframes spin {
     to { transform: rotate(360deg); }
   }
+
+  /* Dashboard container */
+  #dashboard-page {
+    display: none;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  /* Topbar */
+  header#topbar {
+    background: #fff;
+    height: 60px;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+  }
+  #topbar .profile-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  #profile-pic {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 0 4px rgba(0,0,0,0.1);
+  }
+  #profile-name {
+    font-weight: 700;
+    color: #333;
+  }
+  #logcash-balance {
+    font-weight: 600;
+    background: linear-gradient(90deg, #ff6699, #764ba2);
+    -webkit-background-clip: text;
+    color: transparent;
+  }
+  button#logout-btn {
+    background: #ff4d6d;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    transition: background 0.3s ease;
+  }
+  button#logout-btn:hover {
+    background: #e63b5d;
+  }
+
+  /* Main dashboard layout */
+  #dashboard-main {
+    flex-grow: 1;
+    display: flex;
+    height: calc(100vh - 60px);
+    overflow: hidden;
+  }
+
+  /* Sidebar */
+  #sidebar {
+    width: 220px;
+    background: #2f3e4d;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    padding-top: 20px;
+  }
+  #sidebar nav a {
+    display: flex;
+    align-items: center;
+    padding: 14px 20px;
+    border-left: 4px solid transparent;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 15px;
+    user-select: none;
+    transition: background 0.3s ease, border-left-color 0.3s ease;
+  }
+  #sidebar nav a:hover {
+    background: #405368;
+  }
+  #sidebar nav a.active {
+    background: #1e2a38;
+    border-left-color: #ff6699;
+  }
+  #sidebar nav a svg {
+    width: 20px;
+    height: 20px;
+    fill: white;
+    margin-right: 12px;
+    flex-shrink: 0;
+  }
+
+  /* Content area */
+  main#content-area {
+    flex-grow: 1;
+    background: #fafafa;
+    padding: 30px 40px;
+    overflow-y: auto;
+  }
+  main#content-area h1 {
+    margin-bottom: 25px;
+    color: #2f3e4d;
+  }
+  main#content-area p {
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  /* Buy styles and titles containers */
+  .items-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit,minmax(160px,1fr));
+    gap: 20px;
+  }
+  .item-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 6px 15px rgb(0 0 0 / 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    cursor: pointer;
+    transition: box-shadow 0.25s ease;
+    user-select: none;
+  }
+  .item-card:hover:not(.owned):not(.disabled) {
+    box-shadow: 0 8px 20px rgb(118 75 162 / 0.5);
+  }
+  .item-card h3 {
+    margin: 0;
+    font-weight: 700;
+    font-size: 18px;
+    color: #764ba2;
+  }
+  .item-card .price {
+    font-weight: 600;
+    color: #ff6699;
+  }
+  .item-card.owned {
+    cursor: default;
+    color: #999;
+    box-shadow: inset 0 0 15px rgba(100,75,162,0.3);
+  }
+  .item-card.owned h3 {
+    color: #444;
+  }
+  .item-card.disabled {
+    color: #ccc;
+    cursor: not-allowed;
+  }
+  .item-card.disabled:hover {
+    box-shadow: none;
+  }
+
+  /* Buttons in items */
+  .item-card button.buy-btn {
+    margin-top: auto;
+    background: #764ba2;
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  .item-card button.buy-btn:hover:not(:disabled) {
+    background: #5a3478;
+  }
+  .item-card button.buy-btn:disabled {
+    background: #aaa;
+    cursor: not-allowed;
+  }
+
+  /* Leaderboard styles */
+  #leaderboard-list {
+    max-height: 600px;
+    overflow-y: auto;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 6px 15px rgb(0 0 0 / 0.1);
+  }
+  table.leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  table.leaderboard-table th, table.leaderboard-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #eee;
+    text-align: left;
+  }
+  table.leaderboard-table th {
+    background: #764ba2;
+    color: white;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+  table.leaderboard-table tr:nth-child(even) {
+    background: #fafafa;
+  }
+
+  /* Responsive */
+  @media (max-width: 840px) {
+    main#content-area {
+      padding: 20px;
+    }
+    #sidebar {
+      width: 60px;
+      font-size: 12px;
+    }
+    #sidebar nav a span {
+      display: none;
+    }
+    #sidebar nav a svg {
+      margin-right: 0;
+      margin-left: auto;
+      margin-right: auto;
+    }
+  }
 </style>
 </head>
 <body>
-  <!-- Login page -->
-  <div id="login-page" aria-label="Login to Admin Panel">
-    <div id="login-box" role="form" aria-describedby="login-error">
-      <h2>Admin Login</h2>
-      <div id="login-error" role="alert" aria-live="assertive"></div>
-      <input type="email" id="login-email" placeholder="Email" aria-label="Email" required autocomplete="username" />
-      <input type="password" id="login-password" placeholder="Password" aria-label="Password" required autocomplete="current-password" />
-      <button id="login-btn" aria-label="Log In">Log In</button>
-      <div class="spinner" id="loading-spinner" aria-hidden="true"></div>
-    </div>
-  </div>
-
-  <!-- Admin panel container -->
-  <div class="container" role="main" style="display:none;">
-    <nav class="sidebar" aria-label="Sidebar navigation" id="sidebar">
-      <div class="sidebar-header" tabindex="0">Admin Panel</div>
-      <div class="sidebar-nav" role="tablist">
-        <a href="#" class="active" role="tab" aria-selected="true" data-tab="dashboard" tabindex="0" aria-controls="dashboard-panel">
-          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8v-10h-8v10zm0-18v6h8V3h-8z"/></svg><span>Dashboard</span>
-        </a>
-        <a href="#" role="tab" aria-selected="false" data-tab="users" tabindex="-1" aria-controls="users-panel">
-          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2 0-6 1-6 3v2h12v-2c0-2-4-3-6-3zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 2.04 1.97 3.45v2h6v-2c0-2-4-3-6-3z"/></svg><span>Users</span>
-        </a>
-        <a href="#" role="tab" aria-selected="false" data-tab="reports" tabindex="-1" aria-controls="reports-panel">
-          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 13h2v-2H3v2zm0-6h2V5H3v2zm4 6h14v-2H7v2zm0 6h14v-2H7v2zm0-10h14V7H7v2zm0-6H3v2h4V3zm16 6v12H1V3h22v6z"/></svg><span>Reports</span>
-        </a>
-        <a href="#" role="tab" aria-selected="false" data-tab="settings" tabindex="-1" aria-controls="settings-panel">
-          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M19.14 12.94c.04-.31.07-.63.07-.94s-.03-.63-.07-.94l2.03-1.58a.502.502 0 0 0 .11-.61l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.007 7.007 0 0 0-1.6-.94l-.36-2.54a.49.49 0 0 0-.5-.42h-3.84a.49.49 0 0 0-.5.42l-.36 2.54c-.6.24-1.16.56-1.6.94l-2.39-.96a.5.5 0 0 0-.6.22L2.72 9.87c-.13.22-.1.5.11.61l2.03 1.58c-.04.31-.07.63-.07.94s.03.63.07.94L2.83 15.5a.502.502 0 0 0-.11.61l1.92 3.32a.5.5 0 0 0 .6.22l2.39-.96c.44.38 1 .7 1.6.94l.36 2.54c.05.29.28.42.5.42h3.84c.22 0 .45-.13.5-.42l.36-2.54c.6-.24 1.16-.56 1.6-.94l2.39.96a.5.5 0 0 0 .6-.22l1.92-3.32a.5.5 0 0 0-.11-.61l-2.03-1.58zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg><span>Settings</span>
-        </a>
+  <div id="app">
+    <!-- Authentication Page (login/signup) -->
+    <section id="auth-page" aria-label="Account signup and login">
+      <div id="auth-box" role="form" aria-describedby="auth-error">
+        <h2 id="auth-title">Login</h2>
+        <div id="auth-error" class="error-msg" role="alert" aria-live="assertive"></div>
+        <input type="email" id="auth-email" placeholder="Email" aria-label="Email" required autocomplete="username" />
+        <input type="password" id="auth-password" placeholder="Password" aria-label="Password" required autocomplete="current-password" />
+        <input type="text" id="auth-name" placeholder="Full Name (Signup only)" aria-label="Full Name" style="display:none;" autocomplete="name" />
+        <button id="auth-submit" class="primary-btn" aria-label="Submit Login or Signup">Login</button>
+        <div class="toggle-auth" id="auth-toggle-link" tabindex="0" role="button" aria-pressed="false">Don't have an account? Sign up</div>
+        <div class="spinner" id="auth-spinner" aria-hidden="true"></div>
       </div>
-      <button class="toggle-btn" aria-label="Toggle sidebar" id="toggle-sidebar">&#9776;</button>
-    </nav>
-    <main class="main" id="main-content" tabindex="0">
-      <header class="header">
-        <div class="profile" tabindex="0" aria-label="User profile">
+    </section>
+
+    <!-- Dashboard Page -->
+    <section id="dashboard-page" aria-label="User dashboard" style="display:none;">
+      <header id="topbar" role="banner">
+        <div class="profile-info" aria-label="User Profile Information">
           <img src="" alt="User Profile Picture" id="profile-pic" />
-          <span id="profile-name">Loading...</span>
-          <button class="logout-btn" aria-label="Logout" id="logout-btn">Logout</button>
+          <div>
+            <div id="profile-name"></div>
+            <div>LogCash: <span id="logcash-balance">0</span> 💰</div>
+          </div>
         </div>
+        <button id="logout-btn" aria-label="Sign out">Logout</button>
       </header>
-      <section class="content" id="content-area" tabindex="0" aria-live="polite" aria-atomic="true">
-        <h1>Loading...</h1>
-        <p>Please wait while we load data.</p>
-      </section>
-    </main>
+      <div id="dashboard-main">
+        <aside id="sidebar" aria-label="Dashboard navigation">
+          <nav role="navigation" aria-label="Dashboard tabs">
+            <a href="#" class="active" data-tab="buy-styles" tabindex="0" aria-selected="true" role="tab">Buy Styles</a>
+            <a href="#" data-tab="buy-titles" tabindex="-1" aria-selected="false" role="tab">Buy Titles</a>
+            <a href="#" data-tab="leaderboard" tabindex="-1" aria-selected="false" role="tab">Leaderboard</a>
+          </nav>
+        </aside>
+        <main id="content-area" tabindex="0" role="tabpanel" aria-live="polite" aria-atomic="true">
+          <h1>Loading dashboard...</h1>
+          <p>Please wait...</p>
+        </main>
+      </div>
+    </section>
   </div>
 
   <!-- Firebase SDKs -->
@@ -318,113 +399,246 @@ You want to have an admin panel UI that integrates with Firebase. To do this in 
   <script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-firestore-compat.js"></script>
 
   <script>
-    // TODO: Replace with your Firebase project's config
+    // ==== Your Firebase config here ====
     const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_AUTHDOMAIN.firebaseapp.com",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_PROJECT_ID.appspot.com",
-      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-      appId: "YOUR_APP_ID"
+      apiKey: "AIzaSyBjA2O3QDuKsAGLzq008VEDug69WDroulI",
+      authDomain: "supercoollogin999.firebaseapp.com",
+      projectId: "supercoollogin999",
+      storageBucket: "supercoollogin999.firebasestorage.app",
+      messagingSenderId: "472488806884",
+      appId: "1:472488806884:web:d904be3b09548dbbc51ff1"
     };
+    // ==================================
 
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    const loginPage = document.getElementById('login-page');
-    const loginBtn = document.getElementById('login-btn');
-    const loginError = document.getElementById('login-error');
-    const emailInput = document.getElementById('login-email');
-    const passwordInput = document.getElementById('login-password');
-    const loadingSpinner = document.getElementById('loading-spinner');
+    const authPage = document.getElementById('auth-page');
+    const dashboardPage = document.getElementById('dashboard-page');
 
-    const container = document.querySelector('.container');
-    const profileName = document.getElementById('profile-name');
+    const authTitle = document.getElementById('auth-title');
+    const authEmail = document.getElementById('auth-email');
+    const authPassword = document.getElementById('auth-password');
+    const authName = document.getElementById('auth-name');
+    const authSubmit = document.getElementById('auth-submit');
+    const authToggleLink = document.getElementById('auth-toggle-link');
+    const authError = document.getElementById('auth-error');
+    const authSpinner = document.getElementById('auth-spinner');
+
     const profilePic = document.getElementById('profile-pic');
+    const profileName = document.getElementById('profile-name');
+    const logcashBalance = document.getElementById('logcash-balance');
     const logoutBtn = document.getElementById('logout-btn');
-    const sidebar = document.getElementById('sidebar');
-    const toggleBtn = document.getElementById('toggle-sidebar');
-    const navLinks = document.querySelectorAll('.sidebar-nav a');
+    const sidebarLinks = document.querySelectorAll('#sidebar nav a');
     const contentArea = document.getElementById('content-area');
 
-    // Show loading spinner
-    function showLoading(show) {
-      if(show){
-        loadingSpinner.classList.add('active');
-        loginBtn.disabled = true;
-        emailInput.disabled = true;
-        passwordInput.disabled = true;
-        loginError.textContent = '';
+    // Purchase store data
+    const availableStyles = [
+      { id: "style1", name: "Purple Glow", price: 30, description: "A dazzling purple theme with glow."},
+      { id: "style2", name: "Dark Mode", price: 50, description: "Sleek dark theme for night owls."},
+      { id: "style3", name: "Pastel Dream", price: 40, description: "Soft pastel colors for calm vibes."}
+    ];
+    const availableTitles = [
+      { id: "title1", name: "The Conqueror", price: 60 },
+      { id: "title2", name: "Mastermind", price: 45 },
+      { id: "title3", name: "Legendary", price: 100 }
+    ];
+
+    let isLoginMode = true; // Track if we are in login or signup mode
+    let currentUserDoc = null; // Current logged user Firestore doc snapshot
+
+    // Toggle login/signup UI
+    function toggleAuthMode() {
+      isLoginMode = !isLoginMode;
+      authError.textContent = "";
+      if(isLoginMode) {
+        authTitle.textContent = "Login";
+        authSubmit.textContent = "Login";
+        authToggleLink.textContent = "Don't have an account? Sign up";
+        authName.style.display = "none";
+        authPassword.value = "";
+        authEmail.value = "";
       } else {
-        loadingSpinner.classList.remove('active');
-        loginBtn.disabled = false;
-        emailInput.disabled = false;
-        passwordInput.disabled = false;
+        authTitle.textContent = "Sign Up";
+        authSubmit.textContent = "Sign Up";
+        authToggleLink.textContent = "Already have an account? Login";
+        authName.style.display = "block";
+        authPassword.value = "";
+        authEmail.value = "";
+        authName.value = "";
       }
     }
 
-    // Show error in login form
-    function showLoginError(message){
-      loginError.textContent = message;
-    }
-
-    // Toggle sidebar collapse
-    toggleBtn.addEventListener('click', () => {
-      sidebar.classList.toggle('collapsed');
+    authToggleLink.addEventListener('click', toggleAuthMode);
+    authToggleLink.addEventListener('keypress', e => {
+      if(e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        toggleAuthMode();
+      }
     });
 
-    // Content for each tab
-    const tabContent = {
-      dashboard: `<h1>Dashboard</h1>
-      <p>Welcome to your admin panel! Use the sidebar to navigate through the sections.</p>
-      <div style="margin-top: 20px; display: flex; gap: 15px; flex-wrap: wrap;">
-        <div style="background:#764ba2;color:#fff;padding:20px;border-radius:10px;box-shadow:0 4px 10px rgba(118,75,162,0.3);font-weight:600;flex:1; min-width:140px; text-align:center;">
-          Total Users: <span id="total-users">Loading...</span>
-        </div>
-        <div style="background:#ff6699;color:#fff;padding:20px;border-radius:10px;box-shadow:0 4px 10px rgba(255,102,153,0.3);font-weight:600;flex:1; min-width:140px; text-align:center;">
-          Monthly Revenue: $21,400
-        </div>
-      </div>`,
-      users: `<h1>Users</h1>
-      <p>Manage your users here.</p>
-      <table style="width:100%;border-collapse: collapse;margin-top: 15px;">
-        <thead>
-          <tr style="background: #764ba2; color: white;">
-            <th style="padding: 10px; text-align: left;">Name</th>
-            <th style="padding: 10px; text-align: left;">Email</th>
-            <th style="padding: 10px; text-align: left;">Role</th>
-          </tr>
-        </thead>
-        <tbody id="users-table-body">
-          <tr><td colspan="3" style="text-align:center;padding:20px;color:#888;">Loading users...</td></tr>
-        </tbody>
-      </table>`,
-      reports: `<h1>Reports</h1>
-      <p>View analytics and reports.</p>
-      <ul style="margin-top:20px; list-style: disc inside;">
-        <li>Monthly Sales Report</li>
-        <li>User Activity Report</li>
-        <li>System Performance</li>
-      </ul>`,
-      settings: `<h1>Settings</h1>
-      <p>Adjust your application settings here.</p>
-      <form style="margin-top: 15px; max-width:400px;" id="settings-form">
-        <label for="email-notifications" style="display:block;margin-bottom:8px;font-weight:600;">Email Notifications</label>
-        <select id="email-notifications" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc;">
-          <option value="enabled">Enabled</option>
-          <option value="disabled">Disabled</option>
-        </select>
-        <button type="submit" style="margin-top: 15px; background:#764ba2; color:white; border:none; padding:10px 20px; border-radius:6px; cursor:pointer; font-weight:600;">Save Settings</button>
-      </form>
-      <p id="settings-msg" style="margin-top: 10px; font-weight: 600;"></p>`
-    };
+    // Show spinner and disable inputs
+    function setAuthLoading(loading) {
+      if(loading) {
+        authSpinner.classList.add('active');
+        authSubmit.disabled = true;
+        authEmail.disabled = true;
+        authPassword.disabled = true;
+        authName.disabled = true;
+        authToggleLink.style.pointerEvents = "none";
+      } else {
+        authSpinner.classList.remove('active');
+        authSubmit.disabled = false;
+        authEmail.disabled = false;
+        authPassword.disabled = false;
+        authName.disabled = false;
+        authToggleLink.style.pointerEvents = "auto";
+      }
+    }
 
-    // Handle navigation clicks
-    navLinks.forEach(link => {
-      link.addEventListener('click', (e) => {
+    // Simple email validation
+    function validateEmail(email) {
+      const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return re.test(email);
+    }
+
+    // Signup user in Firebase, add user doc in Firestore with logcash credits
+    async function signupUser(email, password, name) {
+      const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+      const user = userCredential.user;
+      // Update displayName
+      await user.updateProfile({ displayName: name });
+      // Create user document in Firestore
+      const userDocRef = db.collection('users').doc(user.uid);
+      await userDocRef.set({
+        email: email,
+        name: name,
+        logcash: 10, // Starting credits plus 10 logcash
+        ownedStyles: [],
+        ownedTitles: [],
+        currentStyle: null,
+        currentTitle: null,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      return user;
+    }
+
+    // On login also add 10 logcash credits (if user exists)
+    async function creditLoginBonus(user) {
+      if (!user) return;
+      const userDocRef = db.collection('users').doc(user.uid);
+      // Atomically increment logcash by 10 and update lastLogin timestamp
+      await userDocRef.update({
+        logcash: firebase.firestore.FieldValue.increment(10),
+        lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
+
+    // Login user with Firebase
+    async function loginUser(email, password) {
+      const userCredential = await auth.signInWithEmailAndPassword(email, password);
+      await creditLoginBonus(userCredential.user);
+      return userCredential.user;
+    }
+
+    authSubmit.addEventListener('click', async () => {
+      authError.textContent = "";
+      const email = authEmail.value.trim().toLowerCase();
+      const password = authPassword.value;
+      const name = authName.value.trim();
+
+      if(!validateEmail(email)) {
+        authError.textContent = "Please enter a valid email.";
+        return;
+      }
+      if(password.length < 6) {
+        authError.textContent = "Password must be at least 6 characters.";
+        return;
+      }
+      if(!isLoginMode && name.length < 2) {
+        authError.textContent = "Please enter your full name (min 2 chars).";
+        return;
+      }
+      setAuthLoading(true);
+      try {
+        if(isLoginMode) {
+          await loginUser(email, password);
+        } else {
+          await signupUser(email, password, name);
+        }
+      } catch(err) {
+        let msg = "Failed to authenticate.";
+        if(err.code === "auth/user-not-found") msg = "User not found.";
+        else if(err.code === "auth/wrong-password") msg = "Incorrect password.";
+        else if(err.code === "auth/email-already-in-use") msg = "Email already in use.";
+        else if(err.code === "auth/weak-password") msg = "Weak password.";
+        authError.textContent = msg;
+        setAuthLoading(false);
+        return;
+      }
+    });
+
+    logoutBtn.addEventListener('click', () => {
+      auth.signOut();
+    });
+
+    // On auth state change
+    auth.onAuthStateChanged(async (user) => {
+      if(user) {
+        // Show dashboard
+        authPage.style.display = 'none';
+        dashboardPage.style.display = 'flex';
+        authError.textContent = "";
+        setAuthLoading(false);
+        await loadUserData(user);
+        setupSidebarNavigation();
+        setActiveTab("buy-styles");
+      } else {
+        // Show auth form
+        authPage.style.display = 'flex';
+        dashboardPage.style.display = 'none';
+        authError.textContent = "";
+        setAuthLoading(false);
+        authEmail.value = "";
+        authPassword.value = "";
+        authName.value = "";
+        profilePic.src = "";
+        profileName.textContent = "";
+        logcashBalance.textContent = "0";
+      }
+    });
+
+    // Load user data from Firestore
+    async function loadUserData(user) {
+      try {
+        const userDoc = await db.collection('users').doc(user.uid).get();
+        if(!userDoc.exists) {
+          throw new Error("User data not found");
+        }
+        currentUserDoc = userDoc;
+        const data = userDoc.data();
+
+        profileName.textContent = data.name || user.displayName || user.email;
+        profilePic.src = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(profileName.textContent)}&background=764ba2&color=fff&size=64`;
+        logcashBalance.textContent = data.logcash || 0;
+
+        // Save cached user data for current session
+        currentUserData = data;
+
+      } catch(e) {
+        console.error("Failed to load user data", e);
+        authError.textContent = "Failed to load user data.";
+      }
+    }
+
+    // Sidebar navigation setup
+    sidebarLinks.forEach(link => {
+      link.addEventListener('click', e => {
         e.preventDefault();
-        navLinks.forEach(l => {
+        if(link.classList.contains('active')) return;
+        sidebarLinks.forEach(l => {
           l.classList.remove('active');
           l.setAttribute('aria-selected', 'false');
           l.tabIndex = -1;
@@ -432,163 +646,231 @@ You want to have an admin panel UI that integrates with Firebase. To do this in 
         link.classList.add('active');
         link.setAttribute('aria-selected', 'true');
         link.tabIndex = 0;
-        link.focus();
-        const tab = link.getAttribute('data-tab');
-        if (tab in tabContent) {
-          contentArea.innerHTML = tabContent[tab];
-          contentArea.focus();
-          if(tab === 'dashboard') {
-            loadTotalUsers();
-          } else if(tab === 'users') {
-            loadUsersList();
-          } else if(tab === 'settings') {
-            setupSettingsForm();
-          }
-        }
+        setActiveTab(link.getAttribute('data-tab'));
       });
     });
 
-    // Load total users count for dashboard
-    function loadTotalUsers(){
-      const el = document.getElementById('total-users');
-      if(!el) return;
-      db.collection('users').get().then(snapshot => {
-        el.textContent = snapshot.size;
-      }).catch(() => {
-        el.textContent = 'N/A';
+    function setActiveTab(tab) {
+      if(!currentUserDoc) return;
+
+      if(tab === "buy-styles") {
+        renderBuyStyles();
+      } else if(tab === "buy-titles") {
+        renderBuyTitles();
+      } else if(tab === "leaderboard") {
+        renderLeaderboard();
+      }
+    }
+
+    // Updated user data cache in page session
+    let currentUserData = null;
+
+    // Buy Styles tab
+    function renderBuyStyles() {
+      contentArea.innerHTML = `<h1>Buy UI Styles</h1>
+      <p>Purchase styles using your LogCash.</p>
+      <div class="items-grid" id="styles-grid"></div>`;
+
+      const grid = document.getElementById('styles-grid');
+      if(!grid) return;
+
+      const owned = currentUserData?.ownedStyles || [];
+      const logcash = currentUserData?.logcash || 0;
+
+      availableStyles.forEach(style => {
+        const isOwned = owned.includes(style.id);
+        const canBuy = logcash >= style.price && !isOwned;
+
+        const card = document.createElement('div');
+        card.className = "item-card";
+        if(isOwned) card.classList.add('owned');
+        if(!canBuy && !isOwned) card.classList.add('disabled');
+        card.tabIndex = 0;
+
+        card.innerHTML = `
+          <h3>${style.name}</h3>
+          <p>${style.description}</p>
+          <div class="price">${style.price} 💰</div>
+          ${isOwned ? `<button disabled>Owned</button>` : `<button class="buy-btn" ${canBuy ? '' : 'disabled'}>Buy</button>`}
+        `;
+
+        const buyBtn = card.querySelector('button.buy-btn');
+        if(buyBtn) {
+          buyBtn.addEventListener('click', () => buyStyle(style.id, style.price));
+        }
+        grid.appendChild(card);
       });
     }
 
-    // Load users list in users tab
-    function loadUsersList(){
-      const tbody = document.getElementById('users-table-body');
-      if(!tbody) return;
-      tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:20px;color:#888;">Loading users...</td></tr>';
+    // Buy Titles tab
+    function renderBuyTitles() {
+      contentArea.innerHTML = `<h1>Buy Titles</h1>
+      <p>Purchase titles using your LogCash.</p>
+      <div class="items-grid" id="titles-grid"></div>`;
 
-      db.collection('users').get().then(snapshot => {
-        if(snapshot.empty){
-          tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:20px;color:#888;">No users found.</td></tr>';
+      const grid = document.getElementById('titles-grid');
+      if(!grid) return;
+
+      const owned = currentUserData?.ownedTitles || [];
+      const logcash = currentUserData?.logcash || 0;
+
+      availableTitles.forEach(title => {
+        const isOwned = owned.includes(title.id);
+        const canBuy = logcash >= title.price && !isOwned;
+
+        const card = document.createElement('div');
+        card.className = "item-card";
+        if(isOwned) card.classList.add('owned');
+        if(!canBuy && !isOwned) card.classList.add('disabled');
+        card.tabIndex = 0;
+
+        card.innerHTML = `
+          <h3>${title.name}</h3>
+          <div class="price">${title.price} 💰</div>
+          ${isOwned ? `<button disabled>Owned</button>` : `<button class="buy-btn" ${canBuy ? '' : 'disabled'}>Buy</button>`}
+        `;
+
+        const buyBtn = card.querySelector('button.buy-btn');
+        if(buyBtn) {
+          buyBtn.addEventListener('click', () => buyTitle(title.id, title.price));
+        }
+        grid.appendChild(card);
+      });
+    }
+
+    // Buy style purchase logic
+    async function buyStyle(styleId, price) {
+      if(!currentUserDoc) return;
+      if(currentUserData.logcash < price) {
+        alert("You don't have enough LogCash!");
+        return;
+      }
+      // Update Firestore user doc atomically
+      const userDocRef = db.collection('users').doc(currentUserDoc.id);
+      try {
+        await db.runTransaction(async (transaction) => {
+          const userDoc = await transaction.get(userDocRef);
+          if(!userDoc.exists) throw "User doc missing";
+
+          const userData = userDoc.data();
+          const logcash = userData.logcash || 0;
+          const ownedStyles = userData.ownedStyles || [];
+
+          if(logcash < price) throw "Insufficient LogCash";
+          if(ownedStyles.includes(styleId)) throw "Style already owned";
+
+          transaction.update(userDocRef, {
+            logcash: logcash - price,
+            ownedStyles: [...ownedStyles, styleId],
+            currentStyle: styleId
+          });
+        });
+        alert("Style purchased and applied!");
+        // Update current balance and ownership locally
+        currentUserData.logcash -= price;
+        currentUserData.ownedStyles.push(styleId);
+        currentUserData.currentStyle = styleId;
+        logcashBalance.textContent = currentUserData.logcash;
+        renderBuyStyles();
+      } catch(e) {
+        alert("Purchase failed: "+e);
+      }
+    }
+
+    // Buy title purchase logic
+    async function buyTitle(titleId, price) {
+      if(!currentUserDoc) return;
+      if(currentUserData.logcash < price) {
+        alert("You don't have enough LogCash!");
+        return;
+      }
+      // Update Firestore user doc atomically
+      const userDocRef = db.collection('users').doc(currentUserDoc.id);
+      try {
+        await db.runTransaction(async (transaction) => {
+          const userDoc = await transaction.get(userDocRef);
+          if(!userDoc.exists) throw "User doc missing";
+
+          const userData = userDoc.data();
+          const logcash = userData.logcash || 0;
+          const ownedTitles = userData.ownedTitles || [];
+
+          if(logcash < price) throw "Insufficient LogCash";
+          if(ownedTitles.includes(titleId)) throw "Title already owned";
+
+          transaction.update(userDocRef, {
+            logcash: logcash - price,
+            ownedTitles: [...ownedTitles, titleId],
+            currentTitle: titleId
+          });
+        });
+        alert("Title purchased and applied!");
+        // Update current balance and ownership locally
+        currentUserData.logcash -= price;
+        currentUserData.ownedTitles.push(titleId);
+        currentUserData.currentTitle = titleId;
+        logcashBalance.textContent = currentUserData.logcash;
+        renderBuyTitles();
+      } catch(e) {
+        alert("Purchase failed: "+e);
+      }
+    }
+
+    // Leaderboard tab
+    async function renderLeaderboard() {
+      contentArea.innerHTML = `<h1>Leaderboard - Top 100 by LogCash</h1>
+      <div id="leaderboard-list" aria-live="polite" aria-atomic="true" tabindex="0">
+      Loading leaderboard...
+      </div>`;
+
+      const listEl = document.getElementById('leaderboard-list');
+      try {
+        const snapshot = await db.collection('users')
+          .orderBy('logcash', 'desc')
+          .limit(100)
+          .get();
+        if(snapshot.empty) {
+          listEl.textContent = "No users found.";
           return;
         }
-        let rows = '';
+
+        let table = document.createElement('table');
+        table.className = 'leaderboard-table';
+        table.innerHTML = `<thead><tr>
+          <th>Rank</th><th>Name</th><th>Email</th><th>LogCash</th>
+        </tr></thead>`;
+        let tbody = document.createElement('tbody');
+
+        let rank = 1;
         snapshot.forEach(doc => {
-          const data = doc.data();
-          rows += `<tr>
-            <td style="padding: 10px; border-bottom: 1px solid #ccc;">${escapeHtml(data.name || 'N/A')}</td>
-            <td style="padding: 10px; border-bottom: 1px solid #ccc;">${escapeHtml(data.email)}</td>
-            <td style="padding: 10px; border-bottom: 1px solid #ccc;">${escapeHtml(data.role || 'User')}</td>
-          </tr>`;
+          const u = doc.data();
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${rank}</td>
+            <td>${escapeHtml(u.name || '')}</td>
+            <td>${escapeHtml(u.email)}</td>
+            <td>${u.logcash || 0}</td>
+          `;
+          tbody.appendChild(tr);
+          rank++;
         });
-        tbody.innerHTML = rows;
-      }).catch(() => {
-        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:20px;color:#888;">Failed to load users.</td></tr>';
-      });
+        table.appendChild(tbody);
+        listEl.innerHTML = '';
+        listEl.appendChild(table);
+
+      } catch(e) {
+        listEl.textContent = "Failed to load leaderboard.";
+      }
     }
 
-    // Setup settings form
-    function setupSettingsForm(){
-      const form = document.getElementById('settings-form');
-      const msg = document.getElementById('settings-msg');
-      if(!form || !msg) return;
-      // Load saved settings from Firestore user doc or localStorage fallback
-      const currentUser = auth.currentUser;
-      msg.textContent = '';
-
-      db.collection('settings').doc('global').get().then(doc => {
-        if(doc.exists){
-          const data = doc.data();
-          const select = form.querySelector('#email-notifications');
-          if(select && data.emailNotifications){
-            select.value = data.emailNotifications;
-          }
-        }
-      }).catch(() => {
-        // Ignore
-      });
-      
-      form.onsubmit = e => {
-        e.preventDefault();
-        const val = form['email-notifications'].value;
-        db.collection('settings').doc('global').set({emailNotifications: val}).then(() => {
-          msg.style.color = 'green';
-          msg.textContent = 'Settings saved successfully.';
-          setTimeout(() => {msg.textContent='';}, 3000);
-        }).catch(() => {
-          msg.style.color = '#e74c3c';
-          msg.textContent = 'Failed to save settings.';
-        });
-      };
-    }
-
-    // Escape HTML to prevent injection
+    // Escape HTML helper
     function escapeHtml(text){
       if(!text) return '';
       return text.replace(/[&<>"']/g, function(m) {
         return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];
       });
     }
-
-    // Login button click handler
-    loginBtn.addEventListener('click', () => {
-      const email = emailInput.value.trim();
-      const password = passwordInput.value;
-      if(!email){
-        showLoginError('Email is required.');
-        return;
-      }
-      if(!password){
-        showLoginError('Password is required.');
-        return;
-      }
-      showLoading(true);
-      auth.signInWithEmailAndPassword(email, password)
-        .then(userCredential => {
-          showLoading(false);
-          loginError.textContent = '';
-          // Show admin panel
-        })
-        .catch(error => {
-          showLoading(false);
-          if(error.code === 'auth/user-not-found'){
-            showLoginError('No user found with this email.');
-          } else if(error.code === 'auth/wrong-password'){
-            showLoginError('Incorrect password.');
-          } else {
-            showLoginError('Login failed. Check credentials.');
-          }
-        });
-    });
-
-    // On auth state changed
-    auth.onAuthStateChanged(user => {
-      if(user){
-        loginPage.style.display = 'none';
-        container.style.display = 'flex';
-        profileName.textContent = user.displayName || user.email || 'Admin User';
-        profilePic.src = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(profileName.textContent)}&background=764ba2&color=fff&size=64`;
-        // Load initial tab content (dashboard)
-        navLinks.forEach(l => {
-          l.classList.remove('active');
-          l.setAttribute('aria-selected', 'false');
-          l.tabIndex = -1;
-        });
-        navLinks[0].classList.add('active');
-        navLinks[0].setAttribute('aria-selected', 'true');
-        navLinks[0].tabIndex = 0;
-        contentArea.innerHTML = tabContent.dashboard;
-        loadTotalUsers();
-      } else {
-        container.style.display = 'none';
-        loginPage.style.display = 'flex';
-        emailInput.focus();
-      }
-    });
-
-    // Logout button
-    logoutBtn.addEventListener('click', () => {
-      auth.signOut();
-    });
-
   </script>
 </body>
 </html>
+
