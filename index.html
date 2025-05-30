@@ -1,372 +1,309 @@
 <!DOCTYPE html>
-<html lang="en" >
+<html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>LogCash Shop - Professional Dark UI</title>
-<style>
-  /* Reset & base */
-  *, *::before, *::after {
-    box-sizing: border-box;
-  }
-  html, body {
-    margin: 0; padding: 0; height: 100%;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #121212, #1e1e1e);
-    color: #e0e0e0;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
-  #app {
-    max-width: 480px;
-    margin: 1.5rem auto;
-    background: #1c1c1c;
-    border-radius: 12px;
-    box-shadow:
-      0 8px 16px rgba(0,0,0,0.7),
-      inset 0 0 40px rgba(255,255,255,0.05);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
-  /* Tab headers */
-  .tab-header {
-    display: flex;
-    background: #282828;
-    border-bottom: 2px solid #333333;
-  }
-  .tab-header button {
-    flex: 1;
-    padding: 14px 0;
-    text-transform: uppercase;
-    font-weight: 700;
-    color: #aaa;
-    background: #282828;
-    border: none;
-    cursor: pointer;
-    transition: color 0.3s;
-    letter-spacing: 0.1em;
-    border-bottom: 4px solid transparent;
-  }
-  .tab-header button.active {
-    color: #1db954;
-    border-bottom-color: #1db954;
-  }
-  .tab-header button:hover:not(.active) {
-    color: #80c98d;
-  }
-
-  /* Content */
-  .content {
-    padding: 28px 32px;
-    overflow-y: auto;
-    min-height: 540px;
-  }
-  form {
-    display: none;
-    flex-direction: column;
-  }
-  form.active {
-    display: flex;
-  }
-  label {
-    margin-bottom: 8px;
-    font-weight: 600;
-    color: #b3b3b3;
-  }
-  input, select {
-    padding: 12px 14px;
-    margin-bottom: 20px;
-    border: 1px solid #333;
-    border-radius: 6px;
-    background: #242424;
-    color: #ddd;
-    font-size: 1rem;
-    transition: border-color 0.3s ease;
-  }
-  input::placeholder, select::placeholder {
-    color: #555;
-  }
-  input:focus, select:focus {
-    outline: none;
-    border-color: #1db954;
-    box-shadow: 0 0 10px #1db954aa;
-    background: #202020;
-  }
-  button.submit-btn {
-    padding: 14px 0;
-    border: none;
-    border-radius: 8px;
-    background: #1db954;
-    color: #121212;
-    font-weight: 700;
-    font-size: 1.1rem;
-    cursor: pointer;
-    transition: background 0.3s ease;
-  }
-  button.submit-btn:hover:not(:disabled) {
-    background: #17a344;
-  }
-  button.submit-btn:disabled {
-    background: #666;
-    color: #999;
-    cursor: not-allowed;
-  }
-  .message {
-    margin-bottom: 16px;
-    font-weight: 700;
-  }
-  .message.error {
-    color: #e03e3e;
-  }
-  .message.success {
-    color: #1db954;
-  }
-
-  /* Grid items */
-  .items-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit,minmax(160px,1fr));
-    gap: 24px;
-  }
-  .item-card {
-    background: #282828;
-    border-radius: 10px;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    color: #eee;
-    box-shadow: 0 2px 10px #00000066;
-    user-select: none;
-    height: 160px;
-  }
-  .item-card:hover:not(.owned):not(.disabled) {
-    box-shadow: 0 0 16px #1db954cc;
-    background: #1a1a1a;
-  }
-  .item-card h3 {
-    margin: 0;
-    font-weight: 800;
-    color: #1db954;
-  }
-  .price {
-    font-size: 1.2rem;
-    font-weight: 700;
-    color: #1db954;
-  }
-  button.buy-btn {
-    margin-top: auto;
-    background: #1db954;
-    color: #121212;
-    border: none;
-    padding: 10px 14px;
-    user-select: none;
-    font-weight: 700;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background 0.3s ease;
-  }
-  button.buy-btn:hover:not(:disabled) {
-    background: #17a344;
-  }
-  button.buy-btn:disabled {
-    background: #555;
-    cursor: not-allowed;
-    color: #999;
-  }
-
-  /* Leaderboard Styles */
-  #leaderboard-list {
-    background: #282828;
-    border-radius: 12px;
-    box-shadow: 0 2px 10px #00000099;
-    max-height: 600px;
-    overflow-y: auto;
-    color: #eee;
-  }
-  table.leaderboard-table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-  table.leaderboard-table th,
-  table.leaderboard-table td {
-    padding: 10px;
-    border-bottom: 1px solid #444;
-    text-align: left;
-  }
-  table.leaderboard-table th {
-    background: #1db954;
-    color: #121212;
-    position: sticky;
-    top: 0;
-    z-index: 2;
-  }
-  table.leaderboard-table tr:nth-child(even) {
-    background: #1e1e1e;
-  }
-  .title-label {
-    font-weight: 700;
-    padding: 4px 8px;
-    border-radius: 6px;
-    color: #121212;
-    font-size: 0.9em;
-  }
-  .title-rich {
-    background-color: gold;
-  }
-  .title-default {
-    background-color: #1db954;
-  }
-
-  /* Admin Panel Styles */
-  #admin-panel {
-    background: #282828;
-    padding: 24px;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px #0007;
-    max-width: 800px;
-    margin: auto;
-    color: #eee;
-  }
-  #admin-users-list {
-    max-height: 400px;
-    overflow-y: auto;
-    margin-bottom: 20px;
-  }
-  #admin-users-list table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-  #admin-users-list th, #admin-users-list td {
-    padding: 10px;
-    border-bottom: 1px solid #444;
-    text-align: left;
-  }
-  #admin-users-list th {
-    background: #1db954;
-    color: #121212;
-    position: sticky;
-    top: 0;
-  }
-  #admin-logcash-form {
-    display: flex;
-    gap: 12px;
-    align-items: center;
-  }
-  #admin-logcash-form input[type=email], 
-  #admin-logcash-form input[type=number] {
-    padding: 8px 10px;
-    border-radius: 6px;
-    border: none;
-    flex-grow: 1;
-    font-size: 1rem;
-  }
-  #admin-logcash-form button {
-    background: #1db954;
-    border-radius: 8px;
-    border: none;
-    padding: 10px 16px;
-    font-weight: bold;
-    cursor: pointer;
-    color: #121212;
-  }
-  #admin-logcash-form button:disabled {
-    background: #444;
-    cursor: not-allowed;
-  }
-  /* Responsive */
-  @media (max-width: 480px) {
-    #app {
-      max-width: 100vw;
-      height: 100vh;
-      border-radius: 0;
-      box-shadow: none;
-    }
-    .items-grid {
-      grid-template-columns: 1fr;
-    }
-    main#content-area {
-      padding: 20px;
-    }
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Auth Demo</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #121212;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #ffffff;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 400px;
+            padding: 2rem;
+            background-color: #1e1e1e;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        h2 {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            color: #4285f4;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #333;
+            border-radius: 5px;
+            background-color: #2d2d2d;
+            color: #ffffff;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #4285f4;
+        }
+        
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #4285f4;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #3367d6;
+        }
+        
+        .switch-form {
+            text-align: center;
+            margin-top: 1.5rem;
+            color: #aaa;
+        }
+        
+        .switch-form a {
+            color: #4285f4;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        
+        .switch-form a:hover {
+            text-decoration: underline;
+        }
+        
+        .error-message {
+            color: #ff4444;
+            margin-top: 0.5rem;
+            font-size: 14px;
+            text-align: center;
+        }
+        
+        .success-message {
+            color: #00C851;
+            margin-top: 0.5rem;
+            font-size: 14px;
+            text-align: center;
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
 </head>
 <body>
-<div id="app" role="main" aria-label="LogCash Shop Application">
-  <nav class="tab-header" role="tablist" aria-label="Authentication tabs">
-    <button id="login-tab" role="tab" aria-selected="true" aria-controls="login-form" tabindex="0" class="active">Login</button>
-    <button id="signup-tab" role="tab" aria-selected="false" aria-controls="signup-form" tabindex="-1">Sign Up</button>
-  </nav>
-  <div class="content" id="auth-content">
-    <form id="login-form" role="tabpanel" aria-labelledby="login-tab" class="active" tabindex="0">
-      <div class="message" id="login-msg" aria-live="polite"></div>
-      <label for="login-email">Email</label>
-      <input type="email" id="login-email" name="login-email" required autocomplete="username" />
-      <label for="login-password">Password</label>
-      <input type="password" id="login-password" name="login-password" required autocomplete="current-password" />
-      <button type="submit" class="submit-btn">Log In</button>
-    </form>
-    <form id="signup-form" role="tabpanel" aria-labelledby="signup-tab" tabindex="-1">
-      <div class="message" id="signup-msg" aria-live="polite"></div>
-      <label for="signup-name">Full Name</label>
-      <input type="text" id="signup-name" name="signup-name" required autocomplete="name" />
-      <label for="signup-email">Email</label>
-      <input type="email" id="signup-email" name="signup-email" required autocomplete="email" />
-      <label for="signup-password">Password</label>
-      <input type="password" id="signup-password" name="signup-password" required autocomplete="new-password" />
-      <label for="signup-password-confirm">Confirm Password</label>
-      <input type="password" id="signup-password-confirm" name="signup-password-confirm" required autocomplete="new-password" />
-      <button type="submit" class="submit-btn">Sign Up</button>
-    </form>
-  </div>
-  <section id="dashboard-page" aria-label="Dashboard" style="display:none; height: 100%;">
-    <nav class="tab-header" role="tablist" aria-label="Dashboard navigation" style="background-color: #4818a0;">
-      <button data-tab="shop" class="active" role="tab" aria-selected="true" tabindex="0" style="color:white;">Shop</button>
-      <button data-tab="leaderboard" role="tab" aria-selected="false" tabindex="-1" style="color:white;">Leaderboard</button>
-      <button data-tab="settings" role="tab" aria-selected="false" tabindex="-1" style="color:white;">Settings</button>
-      <button data-tab="trade" role="tab" aria-selected="false" tabindex="-1" style="color:white;">Trade</button>
-      <button data-tab="admin" role="tab" aria-selected="false" tabindex="-1" id="admin-link" style="color:white; display:none;">Admin</button>
-      <button id="logout-btn" style="margin-left:auto; background:#ff4d6d; border:none; color:white; border-radius: 6px; cursor:pointer; padding:6px 12px;">Logout</button>
-    </nav>
-    <main id="dashboard-content" style="padding: 24px; overflow-y: auto; height: calc(100% - 52px); color:#ddd; user-select:text;">
-    </main>
-  </section>
-</div>
+    <div class="container">
+        <!-- Login Form -->
+        <div id="loginContainer">
+            <h2>Login</h2>
+            <div id="loginErrorMessage" class="error-message hidden"></div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <input type="email" id="loginEmail" placeholder="Email" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" id="loginPassword" placeholder="Password" required>
+                </div>
+                <button type="submit">Login</button>
+            </form>
+            <div class="switch-form">
+                <p>Don't have an account? <a id="showSignup">Sign up</a></p>
+            </div>
+        </div>
+        
+        <!-- Signup Form -->
+        <div id="signupContainer" class="hidden">
+            <h2>Sign Up</h2>
+            <div id="signupErrorMessage" class="error-message hidden"></div>
+            <div id="signupSuccessMessage" class="success-message hidden"></div>
+            <form id="signupForm">
+                <div class="form-group">
+                    <input type="text" id="signupName" placeholder="Full Name">
+                </div>
+                <div class="form-group">
+                    <input type="email" id="signupEmail" placeholder="Email" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" id="signupPassword" placeholder="Password (min 6 characters)" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" id="signupConfirmPassword" placeholder="Confirm Password" required>
+                </div>
+                <button type="submit">Create Account</button>
+            </form>
+            <div class="switch-form">
+                <p>Already have an account? <a id="showLogin">Login</a></p>
+            </div>
+        </div>
+    </div>
 
-<script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-firestore-compat.js"></script>
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyBjA2O3QDuKsAGLzq008VEDug69WDroulI",
-    authDomain: "supercoollogin999.firebaseapp.com",
-    databaseURL: "https://supercoollogin999-default-rtdb.firebaseio.com",
-    projectId: "supercoollogin999",
-    storageBucket: "supercoollogin999.firebasestorage.app",
-    messagingSenderId: "472488806884",
-    appId: "1:472488806884:web:d904be3b09548dbbc51ff1",
-    measurementId: "G-03NQP912BX"
-  };
+    <!-- Add Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    
+    <script>
+        // Your Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBjA2O3QDuKsAGLzq008VEDug69WDroulI",
+            authDomain: "supercoollogin999.firebaseapp.com",
+            databaseURL: "https://supercoollogin999-default-rtdb.firebaseio.com",
+            projectId: "supercoollogin999",
+            storageBucket: "supercoollogin999.firebasestorage.app",
+            messagingSenderId: "472488806884",
+            appId: "1:472488806884:web:d904be3b09548dbbc51ff1",
+            measurementId: "G-03NQP912BX"
+        };
 
-  firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-  const db = firebase.firestore();
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
 
-  const authPage = document.getElementById("auth-page");
-  const dashboardPage = document.getElementById("dashboard-page");
-  const authTitle = document.getElementById("auth-title");
-  const authEmail = document.getElementById("auth-email");
-  const authPassword = document.getElementById("auth-password");
-  const authName = document.getElementById("auth-name");
-  const authSubmit = document.getElementById("auth-submit");
-  const authToggleLink = document.getElementById("auth-toggle-link");
-  const authError = document.getElementById("auth-error");
-  const authSpinner = document.getElementById("auth-spinner");
-  const profileName = document.getElementById("profile-name");
-  const userTitleLabel = document.getElementById("user-title");
-  const logcashBalance = document.getElementById("logcash-balance");
-  const logoutBtn = document.getElementById("logout-btn");
-  const sidebarLinks = document.querySelectorAll('#dashboard-page nav[aria-label="Dashboard navigation"] button');
-  const dashboardContent
+        // DOM elements
+        const loginContainer = document.getElementById('loginContainer');
+        const signupContainer = document.getElementById('signupContainer');
+        const loginForm = document.getElementById('loginForm');
+        const signupForm = document.getElementById('signupForm');
+        const loginErrorMessage = document.getElementById('loginErrorMessage');
+        const signupErrorMessage = document.getElementById('signupErrorMessage');
+        const signupSuccessMessage = document.getElementById('signupSuccessMessage');
+
+        // Switch between forms
+        document.getElementById('showSignup').addEventListener('click', () => {
+            loginContainer.classList.add('hidden');
+            signupContainer.classList.remove('hidden');
+            clearMessages();
+        });
+
+        document.getElementById('showLogin').addEventListener('click', () => {
+            signupContainer.classList.add('hidden');
+            loginContainer.classList.remove('hidden');
+            clearMessages();
+        });
+
+        // Clear error/success messages
+        function clearMessages() {
+            loginErrorMessage.classList.add('hidden');
+            signupErrorMessage.classList.add('hidden');
+            signupSuccessMessage.classList.add('hidden');
+        }
+
+        // Login form submission
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            clearMessages();
+            
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            auth.signInWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    // Signed in successfully
+                    const user = userCredential.user;
+                    showSuccess(loginErrorMessage, "Login successful! Redirecting...");
+                    // Redirect or do something with the logged in user
+                    console.log("Logged in user:", user);
+                })
+                .catch((error) => {
+                    showError(loginErrorMessage, getAuthErrorMessage(error));
+                });
+        });
+
+        // Signup form submission
+        signupForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            clearMessages();
+            
+            const email = document.getElementById('signupEmail').value;
+            const password = document.getElementById('signupPassword').value;
+            const confirmPassword = document.getElementById('signupConfirmPassword').value;
+
+            // Basic client-side validation
+            if (password !== confirmPassword) {
+                showError(signupErrorMessage, "Passwords don't match");
+                return;
+            }
+
+            if (password.length < 6) {
+                showError(signupErrorMessage, "Password must be at least 6 characters");
+                return;
+            }
+
+            auth.createUserWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    // Signed up successfully
+                    const user = userCredential.user;
+                    
+                    // You could update the user profile with the name here
+                    // const name = document.getElementById('signupName').value;
+                    // user.updateProfile({ displayName: name });
+                    
+                    showSuccess(signupSuccessMessage, "Account created successfully! You can now login.");
+                    signupForm.reset();
+                    
+                    // Auto-switch to login after successful signup
+                    setTimeout(() => {
+                        signupContainer.classList.add('hidden');
+                        loginContainer.classList.remove('hidden');
+                        signupSuccessMessage.classList.add('hidden');
+                    }, 3000);
+                })
+                .catch((error) => {
+                    showError(signupErrorMessage, getAuthErrorMessage(error));
+                });
+        });
+
+        // Helper functions
+        function showError(element, message) {
+            element.textContent = message;
+            element.classList.remove('hidden');
+        }
+
+        function showSuccess(element, message) {
+            element.textContent = message;
+            element.classList.remove('hidden');
+        }
+
+        function getAuthErrorMessage(error) {
+            switch (error.code) {
+                case 'auth/email-already-in-use':
+                    return 'This email is already in use.';
+                case 'auth/invalid-email':
+                    return 'Please enter a valid email address.';
+                case 'auth/weak-password':
+                    return 'Password should be at least 6 characters.';
+                case 'auth/user-not-found':
+                    return 'No account found with this email.';
+                case 'auth/wrong-password':
+                    return 'Incorrect password.';
+                default:
+                    return 'An error occurred. Please try again.';
+            }
+        }
+
+        // Check auth state (optional - if you want to redirect already logged in users)
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                // User is signed in
+                console.log("User is logged in:", user);
+                // You could redirect to another page here
+            } else {
+                // User is signed out
+                console.log("User is logged out");
+            }
+        });
+    </script>
+</body>
+</html>
