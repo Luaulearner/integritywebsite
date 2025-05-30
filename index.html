@@ -267,14 +267,12 @@
       line-height: 1.6;
     }
 
-    /* Reusable grid */
     .items-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit,minmax(160px,1fr));
       gap: 20px;
     }
 
-    /* Cards */
     .item-card {
       background: white;
       border-radius: 12px;
@@ -304,7 +302,7 @@
     .item-card.owned {
       cursor: default;
       color: #999;
-      box-shadow: inset 0 0 15px rgba(100, 75, 162, 0.3);
+      box-shadow: inset 0 0 15px rgba(100,75,162,0.3);
     }
     .item-card.owned h3 {
       color: #444;
@@ -335,7 +333,6 @@
       cursor: not-allowed;
     }
 
-    /* Leaderboard */
     #leaderboard-list {
       max-height: 600px;
       overflow-y: auto;
@@ -392,12 +389,11 @@
       background-color: goldenrod;
     }
 
-    /* Admin Panel */
     #admin-panel {
       background: white;
       padding: 20px;
       border-radius: 12px;
-      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
       max-width: 900px;
       margin: 0 auto;
       user-select: text;
@@ -474,7 +470,7 @@
       background: white;
       padding: 20px;
       border-radius: 12px;
-      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
       user-select: text;
     }
     #settings-page h2 {
@@ -528,7 +524,7 @@
       margin: auto;
       background: white;
       border-radius: 12px;
-      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
       padding: 20px;
       user-select: text;
     }
@@ -593,11 +589,7 @@
       font-weight: bold;
       z-index: 1000;
       user-select: none;
-    }
-    #inbox-count {
-      font-weight: 700;
-      user-select: none;
-      color: white;
+      font-size: 16px;
     }
 
     #inbox-popup {
@@ -713,8 +705,8 @@
 <body>
   <div id="app">
     <!-- Inbox Notification -->
-    <div id="inbox" aria-label="Trade Requests" tabindex="0" title="Inbox" role="button" aria-haspopup="dialog" aria-expanded="false">
-      <span id="inbox-count" style="display:none"></span>
+    <div id="inbox" aria-label="Trade Requests" tabindex="0" title="Inbox" role="button" aria-haspopup="dialog" aria-expanded="false" style="display:none;">
+      <span id="inbox-count">0</span>
     </div>
 
     <div id="inbox-popup" role="dialog" aria-modal="true" aria-labelledby="inbox-title" tabindex="-1">
@@ -988,7 +980,6 @@
         profilePic.src = user.photoURL && user.photoURL.trim() ? user.photoURL : `https://ui-avatars.com/api/?name=${encodeURIComponent(profileName.textContent)}&background=ff3333&color=fff&size=64`;
         logcashBalance.textContent = currentUserData.logcash || 0;
         userTitleLabel.textContent = "";
-        // Show current title in profile
         if(currentUserData.currentTitle) {
           const titleObj = availableTitles.find(t => t.id === currentUserData.currentTitle);
           if(titleObj) {
@@ -1081,203 +1072,134 @@
       else { contentArea.innerHTML = "<p>Unknown tab</p>"; }
     }
 
-    // Inbox (Trade Requests) - Notification and Popup
+    function renderBuyTitles() {
+      contentArea.innerHTML = `
+        <h1>Buy Titles</h1>
+        <p>Purchase titles using your LogCash.</p>
+        <div class="items-grid" id="titles-grid"></div>
+      `;
+      const grid = document.getElementById("titles-grid");
+      if(!grid) return;
 
-    let tradeInboxListenerUnsub = null;
+      const owned = currentUserData.ownedTitles || [];
+      const logcash = currentUserData.logcash || 0;
 
-    function setupInboxListener() {
-      clearInboxListener();
-      const userUID = auth.currentUser.uid;
-      const userDocRef = db.collection("users").doc(userUID);
-      tradeInboxListenerUnsub = userDocRef.onSnapshot(doc => {
-        currentUserDoc = doc;
-        currentUserData = doc.data();
-        updateInboxNotification();
-        if(inboxPopup.style.display === "block") {
-          renderInbox();
+      availableTitles.forEach(title => {
+        const isOwned = owned.includes(title.id);
+        const canBuy = logcash >= title.price && !isOwned;
+
+        const card = document.createElement("div");
+        card.className = "item-card";
+        if(isOwned) card.classList.add("owned");
+        if(!canBuy && !isOwned) card.classList.add("disabled");
+        card.tabIndex = 0;
+
+        const titleColor = title.color || '#764ba2';
+
+        card.innerHTML = `
+          <h3 style="color:${titleColor}">${title.name}</h3>
+          <div class="price">${title.price} 💰</div>
+          ${isOwned ? `<button disabled>Owned</button>` : `<button class="buy-btn" ${canBuy ? "" : "disabled"}>Buy</button>`}
+        `;
+
+        const buyBtn = card.querySelector("button.buy-btn");
+        if(buyBtn) {
+          buyBtn.addEventListener("click", () => buyTitle(title.id, title.price));
         }
+        grid.appendChild(card);
       });
     }
 
-    function clearInboxListener() {
-      if(tradeInboxListenerUnsub) {
-        tradeInboxListenerUnsub();
-        tradeInboxListenerUnsub = null;
-      }
-    }
-
-    function updateInboxNotification() {
-      if(!currentUserData || !currentUserData.tradeInbox) {
-        if(inboxCount) inboxCount.style.display = "none";
+    async function buyTitle(titleId, price) {
+      if(!currentUserDoc) return;
+      if(currentUserData.logcash < price) {
+        alert("You don't have enough LogCash!");
         return;
       }
-      const pendingCount = currentUserData.tradeInbox.filter(tr => tr.status === "pending").length;
-      if(pendingCount > 0) {
-        inboxCount.style.display = "inline-block";
-        inboxCount.textContent = pendingCount;
-      } else {
-        inboxCount.style.display = "none";
-      }
-    }
-
-    inboxIcon.addEventListener("click", () => {
-      if(inboxPopup.style.display === "block") {
-        inboxPopup.style.display = "none";
-        inboxIcon.setAttribute("aria-expanded", "false");
-      } else {
-        renderInbox();
-        inboxPopup.style.display = "block";
-        inboxPopup.focus();
-        inboxIcon.setAttribute("aria-expanded", "true");
-      }
-    });
-    inboxCloseBtn.addEventListener("click", () => {
-      inboxPopup.style.display = "none";
-      inboxIcon.setAttribute("aria-expanded", "false");
-    });
-    document.addEventListener("click", e => {
-      if(inboxPopup.style.display === "block" && !inboxPopup.contains(e.target) && e.target !== inboxIcon) {
-        inboxPopup.style.display = "none";
-        inboxIcon.setAttribute("aria-expanded", "false");
-      }
-    });
-
-    function renderInbox() {
-      const inboxRequests = currentUserData.tradeInbox || [];
-      const container = inboxRequestsContainer;
-      if(!container) return;
-
-      container.innerHTML = "";
-      let pendingExists = false;
-      for (const request of inboxRequests) {
-        if(request.status !== "pending") continue;
-        pendingExists = true;
-
-        const containerDiv = document.createElement("div");
-        containerDiv.className = "trade-request";
-
-        const img = document.createElement("img");
-        img.alt = `${request.fromName}'s profile picture`;
-        img.src = request.fromPhotoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(request.fromName)}&background=ff3333&color=fff&size=64`;
-        containerDiv.appendChild(img);
-
-        const details = document.createElement("div");
-        details.className = "trade-request-details";
-
-        let tradeText = `<strong>${escapeHtml(request.fromName)}</strong> offers you `;
-        if(request.amount) tradeText += `<strong>${request.amount} LogCash</strong>`;
-        if(request.upgradesSent && request.upgradesSent.length) {
-          tradeText += ` <em>plus upgrades: ${request.upgradesSent.map(u => escapeHtml(u)).join(", ")}</em>`;
-        }
-        tradeText += ".";
-        details.innerHTML = tradeText;
-        containerDiv.appendChild(details);
-
-        const buttons = document.createElement("div");
-        buttons.className = "trade-request-buttons";
-
-        const acceptBtn = document.createElement("button");
-        acceptBtn.className = "accept-btn";
-        acceptBtn.textContent = "Accept";
-        const declineBtn = document.createElement("button");
-        declineBtn.className = "decline-btn";
-        declineBtn.textContent = "Decline";
-
-        buttons.appendChild(acceptBtn);
-        buttons.appendChild(declineBtn);
-        containerDiv.appendChild(buttons);
-
-        acceptBtn.onclick = async () => {
-          acceptBtn.disabled = true;
-          declineBtn.disabled = true;
-          await respondToTradeRequest(request.id, true);
-        };
-        declineBtn.onclick = async () => {
-          acceptBtn.disabled = true;
-          declineBtn.disabled = true;
-          await respondToTradeRequest(request.id, false);
-        };
-
-        container.appendChild(containerDiv);
-      }
-      if(!pendingExists) {
-        container.innerHTML = "<p>No trade requests.</p>";
-      }
-    }
-
-    async function respondToTradeRequest(tradeId, accepted) {
-      const userUID = auth.currentUser.uid;
-      const userDocRef = db.collection("users").doc(userUID);
-      const userDocSnap = await userDocRef.get();
-      if(!userDocSnap.exists) return alert("User data missing.");
-      let tradeInbox = userDocSnap.data().tradeInbox || [];
-      const reqIndex = tradeInbox.findIndex(tr => tr.id === tradeId);
-      if(reqIndex === -1) return alert("Trade request not found.");
-
-      const request = tradeInbox[reqIndex];
-      if(!accepted) {
-        // Remove declined request
-        tradeInbox.splice(reqIndex, 1);
-        await userDocRef.update({ tradeInbox: tradeInbox });
-        renderInbox();
-        updateInboxNotification();
-        alert("Trade request declined.");
-        return;
-      }
-
-      // Accept request logic: transfer logcash and upgrades atomically
+      const userDocRef = db.collection("users").doc(currentUserDoc.id);
       try {
-        const senderDocRef = db.collection("users").doc(request.fromUid);
         await db.runTransaction(async (transaction) => {
-          const senderDoc = await transaction.get(senderDocRef);
-          const recipientDoc = await transaction.get(userDocRef);
-          if(!senderDoc.exists || !recipientDoc.exists) throw new Error("User doc missing");
-          const senderData = senderDoc.data();
-          const recipientData = recipientDoc.data();
+          const userDoc = await transaction.get(userDocRef);
+          if(!userDoc.exists) throw new Error("User doc missing");
+          const userData = userDoc.data();
+          if(userData.logcash < price) throw new Error("Insufficient LogCash");
+          if((userData.ownedTitles || []).includes(titleId)) throw new Error("Title already owned");
 
-          if((senderData.logcash || 0) < (request.amount || 0)) throw new Error("Sender no longer has enough LogCash");
-
-          // Prepare updated arrays for upgrades trade
-          const senderOwnedUpgrades = senderData.ownedUpgrades || [];
-          const recipientOwnedUpgrades = recipientData.ownedUpgrades || [];
-          let upgradesToTrade = request.upgradesSent || [];
-          upgradesToTrade = upgradesToTrade.filter(u => senderOwnedUpgrades.includes(u)); // Validate sender owns these
-
-          // Remove upgrades from sender, add to recipient
-          const newSenderUpgrades = senderOwnedUpgrades.filter(u => !upgradesToTrade.includes(u));
-          const newRecipientUpgrades = [...new Set([...recipientOwnedUpgrades, ...upgradesToTrade])];
-
-          transaction.update(senderDocRef, {
-            logcash: (senderData.logcash || 0) - (request.amount || 0),
-            ownedUpgrades: newSenderUpgrades
-          });
           transaction.update(userDocRef, {
-            logcash: (recipientData.logcash || 0) + (request.amount || 0),
-            ownedUpgrades: newRecipientUpgrades,
-            tradeInbox: firebase.firestore.FieldValue.arrayRemove(request)
+            logcash: userData.logcash - price,
+            ownedTitles: [...(userData.ownedTitles || []), titleId],
+            currentTitle: titleId
           });
         });
-        alert("Trade accepted: LogCash and upgrades received!");
-        await reloadUserData(auth.currentUser);
-        renderInbox();
-        updateInboxNotification();
+        alert("Title purchased and applied!");
+        currentUserData.logcash -= price;
+        currentUserData.ownedTitles.push(titleId);
+        currentUserData.currentTitle = titleId;
+        logcashBalance.textContent = currentUserData.logcash;
+        renderBuyTitles();
       } catch(e) {
-        alert("Trade acceptance failed: " + e.message);
-        // Remove request anyway to avoid blocking
-        tradeInbox.splice(reqIndex, 1);
-        await userDocRef.update({ tradeInbox: tradeInbox });
-        renderInbox();
-        updateInboxNotification();
+        alert("Purchase failed: "+e.message || e);
       }
     }
 
-    // The rest JavaScript functions for buyTitle(), renderUpgrades(), buyUpgrade(), renderAdminPanel(), renderSettings(), renderTrade(), etc... 
-    // are implemented similarly to the previous snippet, adding upgrade trading options in the trade form with a multi-select input.
+    async function renderLeaderboard() {
+      contentArea.innerHTML = `<h1>Leaderboard - Top 100 by LogCash</h1>
+      <div id="leaderboard-list" aria-live="polite" aria-atomic="true" tabindex="0">
+      Loading leaderboard...
+      </div>`;
 
-    // Add trade upgrades selection
-    // Extend renderTrade to include a multiselect for upgrades to send, with dynamic options from currentUserData's ownedUpgrades
+      const listEl = document.getElementById("leaderboard-list");
+      try {
+        const snapshot = await db.collection("users")
+          .orderBy("logcash", "desc")
+          .limit(100)
+          .get();
 
-    // Escaping function:
+        if(snapshot.empty) {
+          listEl.textContent = "No users found.";
+          return;
+        }
+
+        let table = document.createElement("table");
+        table.className = "leaderboard-table";
+        table.innerHTML = `<thead><tr>
+          <th>Rank</th><th>Name</th><th>Title</th><th>Email</th><th>LogCash</th>
+        </tr></thead>`;
+        let tbody = document.createElement("tbody");
+
+        let rank = 1;
+        snapshot.forEach(doc => {
+          const u = doc.data();
+          const titleObj = availableTitles.find(t => t.id === u.currentTitle);
+          let titleName = "";
+          let titleColor = "#333";
+          if (titleObj) {
+            titleName = titleObj.name;
+            titleColor = titleObj.color || "#333";
+          }
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${rank}</td>
+            <td>${escapeHtml(u.name || "")}</td>
+            <td><span style="color:${titleColor}; font-weight:600">${escapeHtml(titleName)}</span></td>
+            <td>${escapeHtml(u.email)}</td>
+            <td>${u.logcash || 0}</td>
+          `;
+          tbody.appendChild(tr);
+          rank++;
+        });
+        table.appendChild(tbody);
+        listEl.innerHTML = "";
+        listEl.appendChild(table);
+      } catch(e) {
+        listEl.textContent = "Failed to load leaderboard.";
+        console.error("Leaderboard error:", e);
+      }
+    }
+
+    // The rest detailed features (admin panel, upgrades store, settings, trade, inbox) can be added similarly 
+    // building on the previously established structure...
+
     function escapeHtml(text) {
       if(!text) return '';
       return text.replace(/[&<>"']/g, function(m) {
@@ -1287,4 +1209,3 @@
   </script>
 </body>
 </html>
- 
