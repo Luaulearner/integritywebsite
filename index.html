@@ -426,6 +426,113 @@
       min-height: 18px;
     }
 
+    /* Settings styles */
+    #settings-page {
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+      user-select: text;
+    }
+    #settings-page h2 {
+      color: #764ba2;
+      margin-bottom: 20px;
+      font-weight: 700;
+    }
+    #settings-form {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    #settings-form label {
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    #settings-form input[type="text"], #settings-form input[type="url"] {
+      padding: 10px 14px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 16px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    #settings-form button {
+      padding: 12px 20px;
+      font-size: 16px;
+      font-weight: 700;
+      border: none;
+      border-radius: 8px;
+      background: #764ba2;
+      color: white;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.3s ease;
+    }
+    #settings-form button:disabled {
+      background: #aaa;
+      cursor: not-allowed;
+    }
+    #settings-msg {
+      margin-top: 10px;
+      font-weight: 600;
+      min-height: 20px;
+    }
+
+    /* Trading styles */
+    #trade-page {
+      max-width: 700px;
+      margin: auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+      padding: 20px;
+      user-select: text;
+    }
+    #trade-page h2 {
+      color: #764ba2;
+      margin-bottom: 20px;
+      font-weight: 700;
+    }
+    #trade-form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      align-items: center;
+    }
+    #trade-form input[type="email"], #trade-form input[type="number"] {
+      padding: 10px 14px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      flex: 1 1 200px;
+      box-sizing: border-box;
+    }
+    #trade-form button {
+      padding: 12px 20px;
+      font-size: 16px;
+      font-weight: 700;
+      border: none;
+      border-radius: 8px;
+      background: #764ba2;
+      color: white;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.3s ease;
+      flex-shrink: 0;
+    }
+    #trade-form button:disabled {
+      background: #aaa;
+      cursor: not-allowed;
+    }
+    #trade-msg {
+      margin-top: 15px;
+      font-weight: 600;
+      min-height: 20px;
+    }
+
+    /* Responsive */
     @media (max-width: 840px) {
       main#content-area {
         padding: 20px;
@@ -463,7 +570,9 @@
         flex-direction: column;
         max-width: 100%;
       }
-      #admin-logcash-form input, #admin-logcash-form button {
+      #admin-logcash-form input, #admin-logcash-form button,
+      #trade-form input, #trade-form button
+      {
         width: 100%;
       }
     }
@@ -471,6 +580,7 @@
 </head>
 <body>
   <div id="app">
+    <!-- Login/Signup Page -->
     <section id="auth-page" aria-label="Account signup and login">
       <div id="auth-box" role="form" aria-describedby="auth-error">
         <h2 id="auth-title">Login</h2>
@@ -484,6 +594,7 @@
       </div>
     </section>
 
+    <!-- Dashboard Page -->
     <section id="dashboard-page" aria-label="User dashboard" style="display:none;">
       <header id="topbar" role="banner">
         <div class="profile-info" aria-label="User Profile Information">
@@ -498,9 +609,11 @@
       <div id="dashboard-main">
         <aside id="sidebar" aria-label="Dashboard navigation">
           <nav role="navigation" aria-label="Dashboard tabs">
-            <a href="#" class="active" data-tab="buy-styles" tabindex="0" aria-selected="true" role="tab">Buy Styles</a>
-            <a href="#" data-tab="buy-titles" tabindex="-1" aria-selected="false" role="tab">Buy Titles</a>
+            <a href="#" class="active" data-tab="buy-titles" tabindex="0" aria-selected="true" role="tab">Buy Titles</a>
+            <a href="#" data-tab="upgrades" tabindex="-1" aria-selected="false" role="tab">Upgrades</a>
             <a href="#" data-tab="leaderboard" tabindex="-1" aria-selected="false" role="tab">Leaderboard</a>
+            <a href="#" data-tab="settings" tabindex="-1" aria-selected="false" role="tab">Settings</a>
+            <a href="#" data-tab="trade" tabindex="-1" aria-selected="false" role="tab">Trade</a>
             <a href="#" data-tab="admin-panel" tabindex="-1" aria-selected="false" role="tab" id="admin-link" style="display:none;">Admin Panel</a>
           </nav>
         </aside>
@@ -512,6 +625,7 @@
     </section>
   </div>
 
+  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-firestore-compat.js"></script>
@@ -526,6 +640,7 @@
       appId: "1:472488806884:web:d904be3b09548dbbc51ff1",
       measurementId: "G-03NQP912BX"
     };
+
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
@@ -550,21 +665,18 @@
     const contentArea = document.getElementById('content-area');
     const adminLink = document.getElementById('admin-link');
 
-    const availableStyles = [
-      { id: "style1", name: "Purple Glow", price: 30, description: "A dazzling purple theme with glow."},
-      { id: "style2", name: "Dark Mode", price: 50, description: "Sleek dark theme for night owls."},
-      { id: "style3", name: "Pastel Dream", price: 40, description: "Soft pastel colors for calm vibes."},
-      { id: "style4", name: "Solar Flare", price: 60, description: "Warm sunset hues with bright waves."},
-      { id: "style5", name: "Cyber Matrix", price: 80, description: "Futuristic neon green and black."},
-      { id: "style6", name: "Frozen Frost", price: 45, description: "Cool blues and icy accents."}
-    ];
     const availableTitles = [
-      { id: "title1", name: "The Conqueror", price: 60 },
-      { id: "title2", name: "Mastermind", price: 45 },
-      { id: "title3", name: "Legendary", price: 100 },
-      { id: "title4", name: "Trailblazer", price: 75 },
-      { id: "title5", name: "Shadow Walker", price: 55 },
-      { id: "title6", name: "The Innovator", price: 80 }
+      { id: "title1", name: "The Conqueror", price: 60, color: "#764ba2" },
+      { id: "title2", name: "Mastermind", price: 45, color: "#764ba2" },
+      { id: "title3", name: "Legendary", price: 100, color: "#764ba2" },
+      { id: "title4", name: "Trailblazer", price: 75, color: "#764ba2" },
+      { id: "title5", name: "Shadow Walker", price: 55, color: "#764ba2" },
+      { id: "title6", name: "The Innovator", price: 80, color: "#764ba2" }
+    ];
+
+    const availableUpgrades = [
+      { id: "upgrade2x", name: "2x LogCash", price: 999, description: "Earn double LogCash when you log in." , effect: "2x"},
+      { id: "richTitle", name: "Rich", price: 1000, description: "A yellow title to show your riches.", color: "yellow" }
     ];
 
     let isLoginMode = true;
@@ -624,10 +736,10 @@
           email: user.email,
           name: user.displayName || "",
           logcash: 10,
-          ownedStyles: [],
           ownedTitles: [],
-          currentStyle: null,
+          ownedUpgrades: [],
           currentTitle: null,
+          currentUpgrade: null,
           createdAt: firebase.firestore.FieldValue.serverTimestamp(),
           lastLogin: firebase.firestore.FieldValue.serverTimestamp()
         });
@@ -635,14 +747,24 @@
         const updates = {};
         if (!doc.data().name && user.displayName) updates.name = user.displayName;
         updates.lastLogin = firebase.firestore.FieldValue.serverTimestamp();
-        if (Object.keys(updates).length) await userDocRef.update(updates);
+        if (Object.keys(updates).length) {
+          await userDocRef.update(updates);
+        }
       }
     }
 
     async function creditLoginBonus(user) {
+      if (!user) return;
       const userDocRef = db.collection('users').doc(user.uid);
+      // Check if user has 2x logcash upgrade
+      const snapshot = await userDocRef.get();
+      let data = snapshot.data();
+      let increment = 10;
+      if(data && data.ownedUpgrades && data.ownedUpgrades.includes("upgrade2x")) {
+        increment = 20; // double credits
+      }
       await userDocRef.update({
-        logcash: firebase.firestore.FieldValue.increment(10),
+        logcash: firebase.firestore.FieldValue.increment(increment),
         lastLogin: firebase.firestore.FieldValue.serverTimestamp()
       });
     }
@@ -679,19 +801,18 @@
           await signupUser(email, password, name);
         }
         await reloadUserAndShowDashboard();
-      } catch(err) {
-        console.error(err);
+      } catch(e) {
         let message = "Authentication failed.";
-        if(err.code === "auth/user-not-found") message = "User not found.";
-        else if(err.code === "auth/wrong-password") message = "Incorrect password.";
-        else if(err.code === "auth/email-already-in-use") message = "Email already in use.";
-        else if(err.code === "auth/weak-password") message = "Weak password.";
+        if(e.code === "auth/user-not-found") message = "User not found.";
+        else if(e.code === "auth/wrong-password") message = "Incorrect password.";
+        else if(e.code === "auth/email-already-in-use") message = "Email already in use.";
+        else if(e.code === "auth/weak-password") message = "Weak password.";
         authError.textContent = message;
         setLoading(false);
       }
     });
 
-    logoutBtn.addEventListener("click", () => { auth.signOut(); });
+    logoutBtn.addEventListener("click", () => auth.signOut());
 
     auth.onAuthStateChanged(async user => {
       if(user) {
@@ -706,23 +827,21 @@
       try {
         const user = auth.currentUser;
         if(!user) throw new Error("Not authenticated");
-        await ensureUserDoc(user);
-        const userDocSnap = await db.collection('users').doc(user.uid).get();
-        currentUserDoc = userDocSnap;
-        currentUserData = userDocSnap.data();
+        const userDoc = await db.collection('users').doc(user.uid).get();
+        currentUserDoc = userDoc;
+        currentUserData = userDoc.data();
         profileName.textContent = currentUserData.name || user.displayName || user.email;
-        profilePic.src = user.photoURL && user.photoURL.trim() !== "" ? 
-          user.photoURL : 
-          `https://ui-avatars.com/api/?name=${encodeURIComponent(profileName.textContent)}&background=ff3333&color=fff&size=64`;
+        profilePic.src = user.photoURL && user.photoURL.trim() ? user.photoURL : `https://ui-avatars.com/api/?name=${encodeURIComponent(profileName.textContent)}&background=ff3333&color=fff&size=64`;
         logcashBalance.textContent = currentUserData.logcash || 0;
         adminLink.style.display = user.email === "johndoe@gmail.com" ? "block" : "none";
         showDashboardPage();
-        selectSidebarTab(user.email === "johndoe@gmail.com" ? "admin-panel" : "buy-styles");
-        setActiveTab(user.email === "johndoe@gmail.com" ? "admin-panel" : "buy-styles");
-      } catch(err) {
+        // By default show buy-titles tab
+        selectSidebarTab("buy-titles");
+        setActiveTab("buy-titles");
+      } catch(e) {
         authError.textContent = "Failed to load user data.";
         showLoginPage();
-        console.error(err);
+        console.error(e);
       }
       setLoading(false);
     }
@@ -788,53 +907,19 @@
       }
       if(tab === "admin-panel") {
         renderAdminPanel();
-      } else if(tab === "buy-styles") {
-        renderBuyStyles();
       } else if(tab === "buy-titles") {
         renderBuyTitles();
       } else if(tab === "leaderboard") {
         renderLeaderboard();
+      } else if(tab === "settings") {
+        renderSettings();
+      } else if(tab === "trade") {
+        renderTrade();
+      } else if(tab === "upgrades") {
+        renderUpgrades();
       } else {
         contentArea.innerHTML = "<p>Unknown tab</p>";
       }
-    }
-
-    function renderBuyStyles() {
-      contentArea.innerHTML = `
-        <h1>Buy UI Styles</h1>
-        <p>Purchase styles using your LogCash.</p>
-        <div class="items-grid" id="styles-grid"></div>
-      `;
-
-      const grid = document.getElementById("styles-grid");
-      if(!grid) return;
-
-      const owned = currentUserData.ownedStyles || [];
-      const logcash = currentUserData.logcash || 0;
-
-      availableStyles.forEach(style => {
-        const isOwned = owned.includes(style.id);
-        const canBuy = logcash >= style.price && !isOwned;
-
-        const card = document.createElement("div");
-        card.className = "item-card";
-        if(isOwned) card.classList.add("owned");
-        if(!canBuy && !isOwned) card.classList.add("disabled");
-        card.tabIndex = 0;
-
-        card.innerHTML = `
-          <h3>${style.name}</h3>
-          <p>${style.description}</p>
-          <div class="price">${style.price} 💰</div>
-          ${isOwned ? `<button disabled>Owned</button>` : `<button class="buy-btn" ${canBuy ? "" : "disabled"}>Buy</button>`}
-        `;
-
-        const buyBtn = card.querySelector("button.buy-btn");
-        if(buyBtn) {
-          buyBtn.addEventListener("click", () => buyStyle(style.id, style.price));
-        }
-        grid.appendChild(card);
-      });
     }
 
     function renderBuyTitles() {
@@ -860,8 +945,10 @@
         if(!canBuy && !isOwned) card.classList.add("disabled");
         card.tabIndex = 0;
 
+        const titleColor = title.color || '#764ba2';
+
         card.innerHTML = `
-          <h3>${title.name}</h3>
+          <h3 style="color:${titleColor}">${title.name}</h3>
           <div class="price">${title.price} 💰</div>
           ${isOwned ? `<button disabled>Owned</button>` : `<button class="buy-btn" ${canBuy ? "" : "disabled"}>Buy</button>`}
         `;
@@ -874,38 +961,6 @@
       });
     }
 
-    async function buyStyle(styleId, price) {
-      if(!currentUserDoc) return;
-      if(currentUserData.logcash < price) {
-        alert("You don't have enough LogCash!");
-        return;
-      }
-      const userDocRef = db.collection("users").doc(currentUserDoc.id);
-      try {
-        await db.runTransaction(async transaction => {
-          const userDoc = await transaction.get(userDocRef);
-          if(!userDoc.exists) throw new Error("User doc missing");
-          const userData = userDoc.data();
-          if((userData.logcash || 0) < price) throw new Error("Insufficient LogCash");
-          if((userData.ownedStyles || []).includes(styleId)) throw new Error("Style already owned");
-
-          transaction.update(userDocRef, {
-            logcash: (userData.logcash || 0) - price,
-            ownedStyles: [...(userData.ownedStyles || []), styleId],
-            currentStyle: styleId
-          });
-        });
-        alert("Style purchased and applied!");
-        currentUserData.logcash -= price;
-        currentUserData.ownedStyles.push(styleId);
-        currentUserData.currentStyle = styleId;
-        logcashBalance.textContent = currentUserData.logcash;
-        renderBuyStyles();
-      } catch(e) {
-        alert("Purchase failed: "+e.message || e);
-      }
-    }
-
     async function buyTitle(titleId, price) {
       if(!currentUserDoc) return;
       if(currentUserData.logcash < price) {
@@ -914,7 +969,7 @@
       }
       const userDocRef = db.collection("users").doc(currentUserDoc.id);
       try {
-        await db.runTransaction(async transaction => {
+        await db.runTransaction(async (transaction) => {
           const userDoc = await transaction.get(userDocRef);
           if(!userDoc.exists) throw new Error("User doc missing");
           const userData = userDoc.data();
@@ -950,6 +1005,7 @@
           .orderBy("logcash", "desc")
           .limit(100)
           .get();
+
         if(snapshot.empty) {
           listEl.textContent = "No users found.";
           return;
@@ -958,17 +1014,25 @@
         let table = document.createElement("table");
         table.className = "leaderboard-table";
         table.innerHTML = `<thead><tr>
-          <th>Rank</th><th>Name</th><th>Email</th><th>LogCash</th>
+          <th>Rank</th><th>Name</th><th>Title</th><th>Email</th><th>LogCash</th>
         </tr></thead>`;
         let tbody = document.createElement("tbody");
 
         let rank = 1;
         snapshot.forEach(doc => {
           const u = doc.data();
+          const titleObj = availableTitles.find(t => t.id === u.currentTitle);
+          let titleName = "";
+          let titleColor = "#333";
+          if (titleObj) {
+            titleName = titleObj.name;
+            titleColor = titleObj.color || "#333";
+          }
           const tr = document.createElement("tr");
           tr.innerHTML = `
             <td>${rank}</td>
             <td>${escapeHtml(u.name || "")}</td>
+            <td><span style="color:${titleColor}; font-weight:600">${escapeHtml(titleName)}</span></td>
             <td>${escapeHtml(u.email)}</td>
             <td>${u.logcash || 0}</td>
           `;
@@ -991,7 +1055,7 @@
           <div id="admin-users-list">
             <p>Loading users...</p>
           </div>
-          <form id="admin-logcash-form" aria-label="Give LogCash to users">
+          <form id="admin-logcash-form" aria-label="Give LogCash to users" autocomplete="off">
             <input type="email" id="admin-email-input" placeholder="User email" aria-label="User email" required />
             <input type="number" id="admin-amount-input" placeholder="Amount (e.g. 10)" min="1" aria-label="LogCash amount" required />
             <button type="submit" id="admin-give-cash-btn">Give LogCash</button>
@@ -1080,8 +1144,7 @@
           msg.style.color = "green";
           msg.textContent = `Gave ${amountToGive} LogCash to ${emailToGive}.`;
 
-          // Refresh current user's logcash balance if applicable
-          if(auth.currentUser.email.toLowerCase() === emailToGive) {
+          if(auth.currentUser.email.toLowerCase() === emailToGive.toLowerCase()) {
             await reloadUserData(auth.currentUser);
           }
           renderAdminPanel();
@@ -1095,20 +1158,799 @@
       };
     }
 
-    async function reloadUserData(user) {
-      const userDocRef = db.collection('users').doc(user.uid);
-      const docSnap = await userDocRef.get();
-      if(!docSnap.exists) throw new Error("User doc missing");
+    function renderSettings() {
+      contentArea.innerHTML = `
+        <div id="settings-page" aria-label="Settings">
+          <h2>Settings</h2>
+          <form id="settings-form" autocomplete="off">
+            <label for="display-name">Change Name (Costs 500 LogCash)</label>
+            <input type="text" id="display-name" placeholder="Enter new display name" value="${escapeHtml(currentUserData.name || '')}" />
+            <label for="profile-pic-url">Change Profile Picture URL (Costs 500 LogCash)</label>
+            <input type="url" id="profile-pic-url" placeholder="Enter image URL" value="${escapeHtml(currentUserDoc.data().photoURL || '')}" />
+            <button type="submit" id="settings-save-btn">Save Settings</button>
+          </form>
+          <div id="settings-msg" role="alert"></div>
+        </div>
+      `;
 
-      currentUserDoc = docSnap;
-      currentUserData = docSnap.data();
+      const form = document.getElementById("settings-form");
+      const msg = document.getElementById("settings-msg");
+      const nameInput = document.getElementById("display-name");
+      const picInput = document.getElementById("profile-pic-url");
+      const saveBtn = document.getElementById("settings-save-btn");
 
-      profileName.textContent = currentUserData.name || user.displayName || user.email;
-      profilePic.src = user.photoURL && user.photoURL.trim() !== "" ? user.photoURL :
-        `https://ui-avatars.com/api/?name=${encodeURIComponent(profileName.textContent)}&background=ff3333&color=fff&size=64`;
-      logcashBalance.textContent = currentUserData.logcash || 0;
+      form.onsubmit = async e => {
+        e.preventDefault();
+        msg.textContent = "";
+        const newName = nameInput.value.trim();
+        const newPicUrl = picInput.value.trim();
+        if(!newName) {
+          msg.style.color = "red";
+          msg.textContent = "Name cannot be empty.";
+          return;
+        }
+        if(newName === currentUserData.name && newPicUrl === (currentUserDoc.data().photoURL || '')) {
+          msg.style.color = "red";
+          msg.textContent = "No changes detected.";
+          return;
+        }
+        if(currentUserData.logcash < 500) {
+          msg.style.color = "red";
+          msg.textContent = "You need at least 500 LogCash to update settings.";
+          return;
+        }
+        saveBtn.disabled = true;
+        try {
+          const userDocRef = db.collection("users").doc(currentUserDoc.id);
+          await db.runTransaction(async transaction => {
+            const doc = await transaction.get(userDocRef);
+            if(!doc.exists) throw new Error("User doc missing");
+            const logcash = doc.data().logcash || 0;
+            if(logcash < 500) throw new Error("Insufficient LogCash");
+            transaction.update(userDocRef, {
+              name: newName,
+              photoURL: newPicUrl || null,
+              logcash: logcash - 500
+            });
+          });
+          // Update Firebase Auth profile as well
+          await auth.currentUser.updateProfile({
+            displayName: newName,
+            photoURL: newPicUrl || null
+          });
+          msg.style.color = "green";
+          msg.textContent = "Settings saved. 500 LogCash deducted.";
+          // Refresh user data & UI
+          await reloadUserData(auth.currentUser);
+          // Refresh settings (to update values & button)
+          renderSettings();
+        } catch(e) {
+          msg.style.color = "red";
+          msg.textContent = "Failed to save settings: " + e.message;
+          console.error(e);
+          saveBtn.disabled = false;
+        }
+      };
     }
 
+    function renderTrade() {
+      contentArea.innerHTML = `
+        <div id="trade-page" aria-label="Trade LogCash">
+          <h2>Trade LogCash</h2>
+          <form id="trade-form" autocomplete="off">
+            <input type="email" id="trade-email-input" placeholder="Recipient's email" aria-label="Recipient email" required />
+            <input type="number" id="trade-amount-input" placeholder="Amount to send" min="1" aria-label="Amount to send" required />
+            <button type="submit" id="trade-send-btn">Send LogCash</button>
+          </form>
+          <div id="trade-msg" role="alert"></div>
+        </div>
+      `;
+
+      const form = document.getElementById("trade-form");
+      const emailInput = document.getElementById("trade-email-input");
+      const amountInput = document.getElementById("trade-amount-input");
+      const btn = document.getElementById("trade-send-btn");
+      const msg = document.getElementById("trade-msg");
+
+      form.onsubmit = async e => {
+        e.preventDefault();
+        msg.textContent = "";
+        const recipientEmail = emailInput.value.trim().toLowerCase();
+        const amount = Number(amountInput.value);
+        if(!validateEmail(recipientEmail)) {
+          msg.style.color = "red";
+          msg.textContent = "Please enter a valid recipient email.";
+          return;
+        }
+        if(amount < 1) {
+          msg.style.color = "red";
+          msg.textContent = "Please enter a valid amount greater than zero.";
+          return;
+        }
+        if(amount > currentUserData.logcash) {
+          msg.style.color = "red";
+          msg.textContent = "You do not have enough LogCash.";
+          return;
+        }
+        btn.disabled = true;
+        try {
+          const usersRef = db.collection("users");
+          const senderRef = usersRef.doc(currentUserDoc.id);
+          const recipientQuery = await usersRef.where("email", "==", recipientEmail).limit(1).get();
+          if(recipientQuery.empty) {
+            throw new Error("Recipient not found.");
+          }
+          const recipientDoc = recipientQuery.docs[0];
+          if(recipientDoc.id === currentUserDoc.id) {
+            throw new Error("Cannot send LogCash to yourself.");
+          }
+
+          // Perform atomic transaction to transfer logcash
+          await db.runTransaction(async transaction => {
+            const senderDoc = await transaction.get(senderRef);
+            const recipientSnapshot = await transaction.get(recipientDoc.ref);
+            const senderData = senderDoc.data();
+            const recipientData = recipientSnapshot.data();
+
+            if((senderData.logcash || 0) < amount) throw new Error("Insufficient LogCash.");
+
+            transaction.update(senderRef, {
+              logcash: senderData.logcash - amount
+            });
+            transaction.update(recipientDoc.ref, {
+              logcash: (recipientData.logcash || 0) + amount
+            });
+          });
+
+          msg.style.color = "green";
+          msg.textContent = `Successfully sent ${amount} LogCash to ${recipientEmail}.`;
+          await reloadUserData(auth.currentUser);
+          form.reset();
+        } catch(e) {
+          msg.style.color = "red";
+          msg.textContent = "Failed to send LogCash: " + e.message;
+          console.error(e);
+        }
+        btn.disabled = false;
+      };
+    }
+
+    async function renderUpgrades() {
+      contentArea.innerHTML = `
+        <h1>Upgrades Store</h1>
+        <p>Buy upgrades to enhance your experience.</p>
+        <div class="items-grid" id="upgrades-grid"></div>
+      `;
+      const grid = document.getElementById("upgrades-grid");
+      if(!grid) return;
+
+      const ownedUpgrades = currentUserData.ownedUpgrades || [];
+      const logcash = currentUserData.logcash || 0;
+
+      availableUpgrades.forEach(upgrade => {
+        const isOwned = ownedUpgrades.includes(upgrade.id);
+        const canBuy = logcash >= upgrade.price && !isOwned;
+
+        const card = document.createElement("div");
+        card.className = "item-card";
+        if(isOwned) card.classList.add("owned");
+        if(!canBuy && !isOwned) card.classList.add("disabled");
+        card.tabIndex = 0;
+
+        const titleColor = upgrade.color || "#764ba2";
+
+        card.innerHTML = `
+          <h3 style="color:${titleColor}">${upgrade.name}</h3>
+          <p>${upgrade.description || ""}</p>
+          <div class="price">${upgrade.price} 💰</div>
+          ${isOwned ? `<button disabled>Owned</button>` : `<button class="buy-btn" ${canBuy ? "" : "disabled"}>Buy</button>`}
+        `;
+
+        const buyBtn = card.querySelector("button.buy-btn");
+        if(buyBtn) {
+          buyBtn.addEventListener("click", () => buyUpgrade(upgrade.id, upgrade.price));
+        }
+        grid.appendChild(card);
+      });
+    }
+
+    async function buyUpgrade(upgradeId, price) {
+      if(!currentUserDoc) return;
+      if(currentUserData.logcash < price) {
+        alert("You don't have enough LogCash!");
+        return;
+      }
+      const userDocRef = db.collection("users").doc(currentUserDoc.id);
+      try {
+        await db.runTransaction(async (transaction) => {
+          const userDoc = await transaction.get(userDocRef);
+          if(!userDoc.exists) throw new Error("User doc missing");
+          const userData = userDoc.data();
+          const logcash = userData.logcash || 0;
+          const ownedUpgrades = userData.ownedUpgrades || [];
+
+          if(logcash < price) throw new Error("Insufficient LogCash");
+          if(ownedUpgrades.includes(upgradeId)) throw new Error("Upgrade already owned");
+
+          transaction.update(userDocRef, {
+            logcash: logcash - price,
+            ownedUpgrades: [...ownedUpgrades, upgradeId]
+          });
+          // If upgrade is the "richTitle", add it also to titles and currentTitle
+          if(upgradeId === "richTitle") {
+            const ownedTitles = userData.ownedTitles || [];
+            if(!ownedTitles.includes("titleRich")) {
+              transaction.update(userDocRef, {
+                ownedTitles: [...ownedTitles, "titleRich"],
+                currentTitle: "titleRich"
+              });
+            } else {
+              transaction.update(userDocRef, { currentTitle: "titleRich" });
+            }
+          }
+        });
+        alert("Upgrade purchased and applied!");
+        currentUserData.logcash -= price;
+        if(!currentUserData.ownedUpgrades) currentUserData.ownedUpgrades = [];
+        currentUserData.ownedUpgrades.push(upgradeId);
+        if(upgradeId === "richTitle") {
+          if(!currentUserData.ownedTitles) currentUserData.ownedTitles = [];
+          if(!currentUserData.ownedTitles.includes("titleRich")) {
+            currentUserData.ownedTitles.push("titleRich");
+          }
+          currentUserData.currentTitle = "titleRich";
+        }
+        logcashBalance.textContent = currentUserData.logcash;
+        renderUpgrades();
+      } catch(e) {
+        alert("Purchase failed: "+e.message || e);
+      }
+    }
+
+    async function renderAdminPanel() {
+      contentArea.innerHTML = `
+        <div id="admin-panel" tabindex="0" aria-label="Admin Panel">
+          <h2>Admin Panel - User Management</h2>
+          <div id="admin-users-list">
+            <p>Loading users...</p>
+          </div>
+          <form id="admin-logcash-form" aria-label="Give LogCash to users" autocomplete="off">
+            <input type="email" id="admin-email-input" placeholder="User email" aria-label="User email" required />
+            <input type="number" id="admin-amount-input" placeholder="Amount (e.g. 10)" min="1" aria-label="LogCash amount" required />
+            <button type="submit" id="admin-give-cash-btn">Give LogCash</button>
+          </form>
+          <div id="admin-logcash-msg" role="alert"></div>
+        </div>
+      `;
+
+      const usersListEl = document.getElementById("admin-users-list");
+      const form = document.getElementById("admin-logcash-form");
+      const emailInput = document.getElementById("admin-email-input");
+      const amountInput = document.getElementById("admin-amount-input");
+      const btn = document.getElementById("admin-give-cash-btn");
+      const msg = document.getElementById("admin-logcash-msg");
+
+      try {
+        const snapshot = await db.collection("users").orderBy("logcash", "desc").limit(500).get();
+        if(snapshot.empty) {
+          usersListEl.innerHTML = "<p>No users found.</p>";
+          return;
+        }
+
+        let table = document.createElement("table");
+        table.innerHTML = `
+          <thead><tr><th>Name</th><th>Email</th><th>LogCash</th></tr></thead>
+        `;
+        let tbody = document.createElement("tbody");
+
+        snapshot.forEach(doc => {
+          const u = doc.data();
+          const tr = document.createElement("tr");
+          const titleObj = availableTitles.find(t => t.id === u.currentTitle);
+          let titleName = "";
+          if (titleObj) {
+            titleName = titleObj.name;
+          }
+          tr.innerHTML = `
+            <td>${escapeHtml(u.name || "")} <br><small style="font-weight:600;color:#764ba2;">${escapeHtml(titleName)}</small></td>
+            <td>${escapeHtml(u.email)}</td>
+            <td>${u.logcash || 0}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+        table.appendChild(tbody);
+        usersListEl.innerHTML = "";
+        usersListEl.appendChild(table);
+      } catch(e) {
+        usersListEl.innerHTML = "<p>Failed to load users.</p>";
+        console.error("Admin panel load error:", e);
+      }
+
+      form.onsubmit = async (e) => {
+        e.preventDefault();
+        msg.textContent = "";
+        const emailToGive = emailInput.value.trim().toLowerCase();
+        const amountToGive = Number(amountInput.value);
+
+        if(!validateEmail(emailToGive)) {
+          msg.style.color = "#e74c3c";
+          msg.textContent = "Please enter a valid email.";
+          return;
+        }
+        if(!(amountToGive >= 1)) {
+          msg.style.color = "#e74c3c";
+          msg.textContent = "Please enter a valid amount greater or equal to 1.";
+          return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = "Giving...";
+
+        try {
+          const query = await db.collection("users").where("email", "==", emailToGive).limit(1).get();
+          if(query.empty) {
+            msg.style.color = "#e74c3c";
+            msg.textContent = "No user found with this email.";
+            btn.disabled = false;
+            btn.textContent = "Give LogCash";
+            return;
+          }
+          const userDoc = query.docs[0];
+          await db.runTransaction(async (transaction) => {
+            const freshDoc = await transaction.get(userDoc.ref);
+            if(!freshDoc.exists) throw new Error("User doc no longer exists.");
+            const currentCash = freshDoc.data().logcash || 0;
+            transaction.update(userDoc.ref, {
+              logcash: currentCash + amountToGive
+            });
+          });
+
+          msg.style.color = "green";
+          msg.textContent = `Gave ${amountToGive} LogCash to ${emailToGive}.`;
+
+          // Refresh current user's logcash balance if applicable
+          if(auth.currentUser.email.toLowerCase() === emailToGive.toLowerCase()) {
+            await reloadUserData(auth.currentUser);
+          }
+          renderAdminPanel();
+        } catch(e) {
+          msg.style.color = "#e74c3c";
+          msg.textContent = "Failed to give LogCash: " + e.message;
+          console.error(e);
+        }
+        btn.disabled = false;
+        btn.textContent = "Give LogCash";
+      };
+    }
+
+    function renderSettings() {
+      contentArea.innerHTML = `
+        <div id="settings-page" aria-label="Settings">
+          <h2>Settings</h2>
+          <form id="settings-form" autocomplete="off">
+            <label for="display-name">Change Name (Costs 500 LogCash)</label>
+            <input type="text" id="display-name" placeholder="Enter new display name" value="${escapeHtml(currentUserData.name || '')}" />
+            <label for="profile-pic-url">Change Profile Picture URL (Costs 500 LogCash)</label>
+            <input type="url" id="profile-pic-url" placeholder="Enter image URL" value="${escapeHtml(currentUserDoc.data().photoURL || '')}" />
+            <button type="submit" id="settings-save-btn">Save Settings</button>
+          </form>
+          <div id="settings-msg" role="alert"></div>
+        </div>
+      `;
+
+      const form = document.getElementById("settings-form");
+      const msg = document.getElementById("settings-msg");
+      const nameInput = document.getElementById("display-name");
+      const picInput = document.getElementById("profile-pic-url");
+      const saveBtn = document.getElementById("settings-save-btn");
+
+      form.onsubmit = async e => {
+        e.preventDefault();
+        msg.textContent = "";
+        const newName = nameInput.value.trim();
+        const newPicUrl = picInput.value.trim();
+        if(!newName) {
+          msg.style.color = "red";
+          msg.textContent = "Name cannot be empty.";
+          return;
+        }
+        if(newName === currentUserData.name && newPicUrl === (currentUserDoc.data().photoURL || "")) {
+          msg.style.color = "red";
+          msg.textContent = "No changes detected.";
+          return;
+        }
+        if(currentUserData.logcash < 500) {
+          msg.style.color = "red";
+          msg.textContent = "You need at least 500 LogCash to update settings.";
+          return;
+        }
+        saveBtn.disabled = true;
+        try {
+          const userDocRef = db.collection("users").doc(currentUserDoc.id);
+          await db.runTransaction(async transaction => {
+            const doc = await transaction.get(userDocRef);
+            if(!doc.exists) throw new Error("User doc missing");
+            const logcash = doc.data().logcash || 0;
+            if(logcash < 500) throw new Error("Insufficient LogCash");
+            transaction.update(userDocRef, {
+              name: newName,
+              photoURL: newPicUrl || null,
+              logcash: logcash - 500
+            });
+          });
+          await auth.currentUser.updateProfile({ displayName: newName, photoURL: newPicUrl || null });
+          msg.style.color = "green";
+          msg.textContent = "Settings saved. 500 LogCash deducted.";
+          await reloadUserData(auth.currentUser);
+          renderSettings();
+        } catch(e) {
+          msg.style.color = "red";
+          msg.textContent = "Failed to save settings: " + e.message;
+          console.error(e);
+          saveBtn.disabled = false;
+        }
+      };
+    }
+
+    function renderTrade() {
+      contentArea.innerHTML = `
+        <div id="trade-page" aria-label="Trade LogCash">
+          <h2>Trade LogCash</h2>
+          <form id="trade-form" autocomplete="off">
+            <input type="email" id="trade-email-input" placeholder="Recipient's email" aria-label="Recipient email" required />
+            <input type="number" id="trade-amount-input" placeholder="Amount to send" min="1" aria-label="Amount to send" required />
+            <button type="submit" id="trade-send-btn">Send LogCash</button>
+          </form>
+          <div id="trade-msg" role="alert"></div>
+        </div>
+      `;
+      const form = document.getElementById("trade-form");
+      const emailInput = document.getElementById("trade-email-input");
+      const amountInput = document.getElementById("trade-amount-input");
+      const btn = document.getElementById("trade-send-btn");
+      const msg = document.getElementById("trade-msg");
+
+      form.onsubmit = async e => {
+        e.preventDefault();
+        msg.textContent = "";
+        const recipientEmail = emailInput.value.trim().toLowerCase();
+        const amount = Number(amountInput.value);
+        if(!validateEmail(recipientEmail)) {
+          msg.style.color = "red";
+          msg.textContent = "Please enter a valid recipient email.";
+          return;
+        }
+        if(amount < 1) {
+          msg.style.color = "red";
+          msg.textContent = "Please enter a valid amount greater than zero.";
+          return;
+        }
+        if(amount > currentUserData.logcash) {
+          msg.style.color = "red";
+          msg.textContent = "You do not have enough LogCash.";
+          return;
+        }
+        btn.disabled = true;
+        try {
+          const usersRef = db.collection("users");
+          const senderRef = usersRef.doc(currentUserDoc.id);
+          const recipientQuery = await usersRef.where("email", "==", recipientEmail).limit(1).get();
+          if(recipientQuery.empty) {
+            throw new Error("Recipient not found.");
+          }
+          const recipientDoc = recipientQuery.docs[0];
+          if(recipientDoc.id === currentUserDoc.id) {
+            throw new Error("Cannot send LogCash to yourself.");
+          }
+          await db.runTransaction(async transaction => {
+            const senderDoc = await transaction.get(senderRef);
+            const recipientSnapshot = await transaction.get(recipientDoc.ref);
+            const senderData = senderDoc.data();
+            const recipientData = recipientSnapshot.data();
+            if((senderData.logcash || 0) < amount) throw new Error("Insufficient LogCash.");
+            transaction.update(senderRef, {
+              logcash: senderData.logcash - amount
+            });
+            transaction.update(recipientDoc.ref, {
+              logcash: (recipientData.logcash || 0) + amount
+            });
+          });
+          msg.style.color = "green";
+          msg.textContent = `Successfully sent ${amount} LogCash to ${recipientEmail}.`;
+          await reloadUserData(auth.currentUser);
+          form.reset();
+        } catch(e) {
+          msg.style.color = "red";
+          msg.textContent = "Failed to send LogCash: " + e.message;
+          console.error(e);
+        }
+        btn.disabled = false;
+      };
+    }
+
+    async function renderUpgrades() {
+      contentArea.innerHTML = `
+        <h1>Upgrades Store</h1>
+        <p>Buy upgrades to enhance your experience.</p>
+        <div class="items-grid" id="upgrades-grid"></div>
+      `;
+      const grid = document.getElementById("upgrades-grid");
+      if(!grid) return;
+
+      const ownedUpgrades = currentUserData.ownedUpgrades || [];
+      const logcash = currentUserData.logcash || 0;
+
+      const upgrades = [
+        { id: "upgrade2x", name: "2x LogCash", price: 999, description: "Earn double LogCash when you log in.", effect: "2x", color: "#764ba2" },
+        { id: "richTitle", name: "Rich", price: 1000, description: "A yellow title to show your riches.", color: "goldenrod" }
+      ];
+
+      upgrades.forEach(upgrade => {
+        const isOwned = ownedUpgrades.includes(upgrade.id);
+        const canBuy = logcash >= upgrade.price && !isOwned;
+
+        const card = document.createElement("div");
+        card.className = "item-card";
+        if(isOwned) card.classList.add("owned");
+        if(!canBuy && !isOwned) card.classList.add("disabled");
+        card.tabIndex = 0;
+
+        card.innerHTML = `
+          <h3 style="color:${upgrade.color}">${upgrade.name}</h3>
+          <p>${upgrade.description}</p>
+          <div class="price">${upgrade.price} 💰</div>
+          ${isOwned ? `<button disabled>Owned</button>` : `<button class="buy-btn" ${canBuy ? "" : "disabled"}>Buy</button>`}
+        `;
+
+        const buyBtn = card.querySelector("button.buy-btn");
+        if(buyBtn) {
+          buyBtn.addEventListener("click", () => buyUpgrade(upgrade.id, upgrade.price));
+        }
+        grid.appendChild(card);
+      });
+    }
+
+    async function buyUpgrade(upgradeId, price) {
+      if(!currentUserDoc) return;
+      if(currentUserData.logcash < price) {
+        alert("You don't have enough LogCash!");
+        return;
+      }
+      const userDocRef = db.collection("users").doc(currentUserDoc.id);
+      try {
+        await db.runTransaction(async transaction => {
+          const userDoc = await transaction.get(userDocRef);
+          if(!userDoc.exists) throw new Error("User doc missing");
+          const userData = userDoc.data();
+          const logcash = userData.logcash || 0;
+          const ownedUpgrades = userData.ownedUpgrades || [];
+          if(logcash < price) throw new Error("Insufficient LogCash");
+          if(ownedUpgrades.includes(upgradeId)) throw new Error("Upgrade already owned");
+
+          const updates = {
+            logcash: logcash - price,
+            ownedUpgrades: [...ownedUpgrades, upgradeId]
+          };
+
+          if(upgradeId === "richTitle") {
+            const ownedTitles = userData.ownedTitles || [];
+            if(!ownedTitles.includes("titleRich")) {
+              updates.ownedTitles = [...ownedTitles, "titleRich"];
+              updates.currentTitle = "titleRich";
+            } else {
+              updates.currentTitle = "titleRich";
+            }
+          }
+
+          transaction.update(userDocRef, updates);
+        });
+        alert("Upgrade purchased and applied!");
+        currentUserData.logcash -= price;
+        if(!currentUserData.ownedUpgrades) currentUserData.ownedUpgrades = [];
+        currentUserData.ownedUpgrades.push(upgradeId);
+        if(upgradeId === "richTitle") {
+          if(!currentUserData.ownedTitles) currentUserData.ownedTitles = [];
+          if(!currentUserData.ownedTitles.includes("titleRich")) {
+            currentUserData.ownedTitles.push("titleRich");
+          }
+          currentUserData.currentTitle = "titleRich";
+        }
+        logcashBalance.textContent = currentUserData.logcash;
+        renderUpgrades();
+      } catch(e) {
+        alert("Purchase failed: "+e.message || e);
+      }
+    }
+
+    // Admin Panel tab with LogCash give form
+    async function renderAdminPanel() {
+      contentArea.innerHTML = `
+        <div id="admin-panel" tabindex="0" aria-label="Admin Panel">
+          <h2>Admin Panel - User Management</h2>
+          <div id="admin-users-list">
+            <p>Loading users...</p>
+          </div>
+          <form id="admin-logcash-form" aria-label="Give LogCash to users" autocomplete="off">
+            <input type="email" id="admin-email-input" placeholder="User email" aria-label="User email" required />
+            <input type="number" id="admin-amount-input" placeholder="Amount (e.g. 10)" min="1" aria-label="LogCash amount" required />
+            <button type="submit" id="admin-give-cash-btn">Give LogCash</button>
+          </form>
+          <div id="admin-logcash-msg" role="alert"></div>
+        </div>
+      `;
+
+      const usersListEl = document.getElementById("admin-users-list");
+      const form = document.getElementById("admin-logcash-form");
+      const emailInput = document.getElementById("admin-email-input");
+      const amountInput = document.getElementById("admin-amount-input");
+      const btn = document.getElementById("admin-give-cash-btn");
+      const msg = document.getElementById("admin-logcash-msg");
+
+      try {
+        const snapshot = await db.collection("users").orderBy("logcash", "desc").limit(500).get();
+        if(snapshot.empty) {
+          usersListEl.innerHTML = "<p>No users found.</p>";
+          return;
+        }
+
+        let table = document.createElement("table");
+        table.innerHTML = `
+          <thead><tr><th>Name</th><th>Title</th><th>Email</th><th>LogCash</th></tr></thead>
+        `;
+        let tbody = document.createElement("tbody");
+
+        snapshot.forEach(doc => {
+          const u = doc.data();
+          const titleObj = availableTitles.find(t => t.id === u.currentTitle);
+          let titleName = "";
+          let titleColor = "#333";
+          if (titleObj) {
+            titleName = titleObj.name;
+            titleColor = titleObj.color || "#333";
+          }
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${escapeHtml(u.name || "")}</td>
+            <td><span style="color:${titleColor}; font-weight:600">${escapeHtml(titleName)}</span></td>
+            <td>${escapeHtml(u.email)}</td>
+            <td>${u.logcash || 0}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+        table.appendChild(tbody);
+        usersListEl.innerHTML = "";
+        usersListEl.appendChild(table);
+      } catch(e) {
+        usersListEl.innerHTML = "<p>Failed to load users.</p>";
+        console.error("Admin panel load error:", e);
+      }
+
+      form.onsubmit = async (e) => {
+        e.preventDefault();
+        msg.textContent = "";
+        const emailToGive = emailInput.value.trim().toLowerCase();
+        const amountToGive = Number(amountInput.value);
+
+        if(!validateEmail(emailToGive)) {
+          msg.style.color = "#e74c3c";
+          msg.textContent = "Please enter a valid email.";
+          return;
+        }
+        if(!(amountToGive >= 1)) {
+          msg.style.color = "#e74c3c";
+          msg.textContent = "Please enter a valid amount greater or equal to 1.";
+          return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = "Giving...";
+
+        try {
+          const query = await db.collection("users").where("email", "==", emailToGive).limit(1).get();
+          if(query.empty) {
+            msg.style.color = "#e74c3c";
+            msg.textContent = "No user found with this email.";
+            btn.disabled = false;
+            btn.textContent = "Give LogCash";
+            return;
+          }
+          const userDoc = query.docs[0];
+          await db.runTransaction(async (transaction) => {
+            const freshDoc = await transaction.get(userDoc.ref);
+            if(!freshDoc.exists) throw new Error("User doc no longer exists.");
+            const currentCash = freshDoc.data().logcash || 0;
+            transaction.update(userDoc.ref, {
+              logcash: currentCash + amountToGive
+            });
+          });
+
+          msg.style.color = "green";
+          msg.textContent = `Gave ${amountToGive} LogCash to ${emailToGive}.`;
+
+          if(auth.currentUser.email.toLowerCase() === emailToGive.toLowerCase()) {
+            await reloadUserData(auth.currentUser);
+          }
+          renderAdminPanel();
+        } catch(e) {
+          msg.style.color = "#e74c3c";
+          msg.textContent = "Failed to give LogCash: " + e.message;
+          console.error(e);
+        }
+        btn.disabled = false;
+        btn.textContent = "Give LogCash";
+      };
+    }
+
+    function renderSettings() {
+      contentArea.innerHTML = `
+        <div id="settings-page" aria-label="Settings">
+          <h2>Settings</h2>
+          <form id="settings-form" autocomplete="off">
+            <label for="display-name">Change Name (Costs 500 LogCash)</label>
+            <input type="text" id="display-name" placeholder="Enter new display name" value="${escapeHtml(currentUserData.name || '')}" />
+            <label for="profile-pic-url">Change Profile Picture URL (Costs 500 LogCash)</label>
+            <input type="url" id="profile-pic-url" placeholder="Enter image URL" value="${escapeHtml(currentUserDoc.data().photoURL || '')}" />
+            <button type="submit" id="settings-save-btn">Save Settings</button>
+          </form>
+          <div id="settings-msg" role="alert"></div>
+        </div>
+      `;
+
+      const form = document.getElementById("settings-form");
+      const msg = document.getElementById("settings-msg");
+      const nameInput = document.getElementById("display-name");
+      const picInput = document.getElementById("profile-pic-url");
+      const saveBtn = document.getElementById("settings-save-btn");
+
+      form.onsubmit = async e => {
+        e.preventDefault();
+        msg.textContent = "";
+        const newName = nameInput.value.trim();
+        const newPicUrl = picInput.value.trim();
+        if(!newName) {
+          msg.style.color = "red";
+          msg.textContent = "Name cannot be empty.";
+          return;
+        }
+        if(newName === currentUserData.name && newPicUrl === (currentUserDoc.data().photoURL || "")) {
+          msg.style.color = "red";
+          msg.textContent = "No changes detected.";
+          return;
+        }
+        if(currentUserData.logcash < 500) {
+          msg.style.color = "red";
+          msg.textContent = "You need at least 500 LogCash to update settings.";
+          return;
+        }
+        saveBtn.disabled = true;
+        try {
+          const userDocRef = db.collection("users").doc(currentUserDoc.id);
+          await db.runTransaction(async transaction => {
+            const doc = await transaction.get(userDocRef);
+            if(!doc.exists) throw new Error("User doc missing");
+            const logcash = doc.data().logcash || 0;
+            if(logcash < 500) throw new Error("Insufficient LogCash");
+            transaction.update(userDocRef, {
+              name: newName,
+              photoURL: newPicUrl || null,
+              logcash: logcash - 500
+            });
+          });
+          await auth.currentUser.updateProfile({ displayName: newName, photoURL: newPicUrl || null });
+          msg.style.color = "green";
+          msg.textContent = "Settings saved. 500 LogCash deducted.";
+          await reloadUserData(auth.currentUser);
+          renderSettings();
+        } catch(e) {
+          msg.style.color = "red";
+          msg.textContent = "Failed to save settings: " + e.message;
+          console.error(e);
+          saveBtn.disabled = false;
+        }
+      };
+    }
+
+    // Utility: escape HTML
     function escapeHtml(text){
       if(!text) return '';
       return text.replace(/[&<>"']/g, function(m) {
