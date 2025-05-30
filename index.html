@@ -1,1100 +1,274 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Trading Web - Dashboard & Login</title>
-
-<!-- Firebase SDKs -->
-<script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-database.js"></script>
-
-<!-- Chart.js for stock chart -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<style>
-  /* Reset */
-  * {
-    box-sizing: border-box;
-  }
-  body, html {
-    margin:0; padding:0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #121212, #1e1e3f);
-    color: #e0e0e0;
-    min-height: 100vh;
-    user-select:none;
-  }
-  /* Animated subtle background */
-  body {
-    background-image:
-      radial-gradient(circle at 50% 50%, rgba(0,229,255,0.05), transparent 70%),
-      repeating-radial-gradient(circle at 50% 50%, #002b3c 0, #001b26 80px);
-    animation: bgPulse 15s ease-in-out infinite alternate;
-  }
-  @keyframes bgPulse {
-    0% { background-position: 0% 50%; }
-    100% { background-position: 100% 50%; }
-  }
-  /* Containers for login and dashboard */
-  #wrapper {
-    max-width: 450px;
-    margin: 3rem auto 4rem;
-    background: rgba(24,34,58,0.9);
-    border-radius: 20px;
-    padding: 32px 36px 40px;
-    box-shadow:
-      0 0 18px rgba(0,229,255,0.25);
-  }
-  #dashboardWrapper {
-    max-width: 960px;
-    margin: 2rem auto 3rem;
-    background: rgba(24,34,58,0.9);
-    border-radius: 20px;
-    padding: 24px 28px 32px;
-    box-shadow: 0 0 18px rgba(0,229,255,0.25);
-    display: none;
-  }
-  h2, h3 {
-    margin: 0 0 20px;
-    font-weight: 900;
-    color: #00e5ff;
-    text-align: center;
-    letter-spacing: 1.3px;
-    user-select:none;
-  }
-  /* Login & Signup Forms */
-  form {
-    display: flex;
-    flex-direction: column;
-  }
-  input[type="text"], input[type="email"], input[type="password"], input[type="number"] {
-    background: rgba(0,229,255,0.15);
-    border: none;
-    border-radius: 14px;
-    padding: 14px 18px;
-    margin-bottom: 14px;
-    font-size: 1rem;
-    color: #00e5ff;
-    transition: background-color 0.3s ease, color 0.3s ease;
-  }
-  input::placeholder {
-    color: #8ecfffaa;
-  }
-  input:focus {
-    outline: none;
-    background: rgba(0,229,255,0.3);
-    color: white;
-  }
-  button {
-    background: #00a9c7;
-    border: none;
-    border-radius: 24px;
-    padding: 14px 0;
-    font-weight: 700;
-    font-size: 1.15rem;
-    color: #121212;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    user-select:none;
-  }
-  button:hover:enabled {
-    background: #0091b0;
-  }
-  button:disabled {
-    background: #555;
-    cursor: not-allowed;
-  }
-  #toggleSection {
-    margin-top: 12px;
-    font-size: 0.95rem;
-    text-align: center;
-    color: #88cfffaa;
-  }
-  #toggleSection button {
-    background: none;
-    border: none;
-    color: #00e5ff;
-    cursor: pointer;
-    font-weight: 700;
-    text-decoration: underline;
-    font-size: 1rem;
-    user-select:none;
-  }
-  #toggleSection button:hover {
-    color: #0091b0;
-  }
-  #authMsg {
-    margin-top: 14px;
-    font-weight: 700;
-    font-size: 1rem;
-    text-align: center;
-    min-height: 28px;
-  }
-  #authMsg.success {
-    color: #00ff66;
-  }
-  #authMsg.error {
-    color: #ff4747;
-  }
-
-  /* DASHBOARD LAYOUT */
-  #dashboardHeader {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-  }
-  #dashboardHeader > div {
-    font-weight: 700;
-    color: #00e5ff;
-  }
-  #logoutBtn {
-    background: #ff4444;
-    color: #200000;
-    border-radius: 18px;
-    padding: 10px 24px;
-    font-weight: 700;
-  }
-  #logoutBtn:hover {
-    background: #cc3333;
-  }
-  .section {
-    margin-bottom: 2rem;
-    background: rgba(0,29,54,0.7);
-    border-radius: 18px;
-    padding: 20px 28px;
-    box-shadow: inset 0 0 8px #00e6ff55;
-  }
-  .section h3 {
-    font-size: 1.6rem;
-    margin-bottom: 1rem;
-    text-align: left;
-  }
-  /* Stock Search */
-  #stockSearch {
-    display: flex;
-    gap: 12px;
-    max-width: 400px;
-    margin-bottom: 14px;
-  }
-  #symbolInput {
-    flex-grow: 1;
-    border-radius: 24px 0 0 24px;
-  }
-  #fetchBtn {
-    width: 130px;
-    border-radius: 0 24px 24px 0;
-  }
-  #stockInfo {
-    font-size: 1.1rem;
-    margin-bottom: 12px;
-  }
-  #stockInfo strong {
-    color: #00e5ff;
-  }
-  /* Chart */
-  #priceChart {
-    max-width: 100%;
-    border-radius: 18px;
-    box-shadow: 0 0 25px #00e5ff70;
-  }
-  /* Trading Form */
-  #tradeForm label {
-    font-weight: bold;
-    display: block;
-    margin-bottom: 6px;
-  }
-  #tradeForm input {
-    margin-bottom: 16px;
-    border-radius: 14px;
-  }
-  #buyBtn {
-    background: linear-gradient(135deg,#00e676 0,#00c853 100%);
-    color: #051b00;
-    border-radius: 24px;
-    padding: 12px 0;
-    font-weight: 900;
-    cursor: pointer;
-    margin-right: 10px;
-    flex: 1;
-    border: none;
-    transition: background-color 0.3s ease;
-  }
-  #buyBtn:hover {
-    background: #00d845;
-  }
-  #sellBtn {
-    background: linear-gradient(135deg,#ff3d00 0,#dd2c00 100%);
-    color: #320a00;
-    border-radius: 24px;
-    padding: 12px 0;
-    font-weight: 900;
-    cursor: pointer;
-    flex: 1;
-    border: none;
-    transition: background-color 0.3s ease;
-  }
-  #sellBtn:hover {
-    background: #ff2d00;
-  }
-  #tradeButtons {
-    display: flex;
-    gap: 10px;
-  }
-  #orderMsg {
-    margin-top: 10px;
-    font-weight: 700;
-    min-height: 24px;
-    user-select:none;
-  }
-
-  /* Chat Section */
-  #chatSection {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    max-width: 600px;
-  }
-  #chatInput {
-    border-radius: 24px;
-    padding: 14px 18px;
-    font-size: 1rem;
-    border: none;
-    background: rgba(0,229,255,0.15);
-    color: #00e5ff;
-    flex-grow: 1;
-    transition: background-color 0.3s ease;
-  }
-  #chatInput:focus {
-    outline: none;
-    background: rgba(0,229,255,0.3);
-    color: white;
-  }
-  #sendChatBtn {
-    background: #00a9c7;
-    border-radius: 24px;
-    padding: 14px 24px;
-    font-weight: 700;
-    cursor: pointer;
-    border: none;
-    color: #121212;
-  }
-  #sendChatBtn:hover {
-    background: #0091b0;
-  }
-  #chatControls {
-    display: flex;
-    gap: 12px;
-  }
-  #chatContainer {
-    height: 220px;
-    overflow-y: auto;
-    background: rgba(0,29,54,0.6);
-    border-radius: 18px;
-    padding: 15px;
-    font-size: 0.95rem;
-    color: #85d3f8;
-    box-shadow: inset 0 0 15px #00e5ff44;
-    user-select: text;
-  }
-  .message {
-    margin-bottom: 10px;
-    padding: 6px 12px;
-    border-radius: 14px;
-    background: rgba(0, 229, 255, 0.13);
-    box-shadow: inset 0 0 5px #00b8ff55;
-    word-wrap: break-word;
-  }
-  .message strong {
-    color: #00ff90;
-    text-shadow: 0 0 8px #00d37fbb;
-  }
-
-  /* Store Section */
-  #storeForm button {
-    width: 100%;
-  }
-  #storeMsg {
-    margin-top: 8px;
-    font-weight: 700;
-    min-height: 20px;
-  }
-
-  /* Leaderboard */
-  #leaderboard {
-    max-width: 600px;
-    background: rgba(0, 20, 40, 0.75);
-    border-radius: 18px;
-    padding: 20px 24px;
-    box-shadow: 0 0 20px rgba(0,229,255,0.15);
-    color: #68dfff;
-  }
-  .leaderboard-entry {
-    padding: 8px 0;
-    border-bottom: 1px solid rgba(0,229,255,0.15);
-  }
-  .leaderboard-entry:last-child {
-    border-bottom: none;
-  }
-
-  /* Admin Panel */
-  #adminPanel {
-    margin-top: 30px;
-    background: rgba(20,0,0,0.8);
-    padding: 22px 28px;
-    border-radius: 20px;
-    box-shadow: 0 0 30px 3px rgba(255,0,0,0.5);
-    color: #ff6666;
-    user-select:none;
-  }
-  #adminPanel h3 {
-    margin-top: 0;
-    font-weight: 900;
-    color: #ff4444;
-    margin-bottom: 20px;
-    text-align: center;
-  }
-  #adminPanel input {
-    width: 100%;
-    margin-bottom: 14px;
-    padding: 12px 14px;
-    border-radius: 14px;
-    border: none;
-    font-size: 1rem;
-    color: #ff9999;
-    background: #330000cc;
-    transition: background-color 0.3s ease;
-  }
-  #adminPanel input:focus {
-    outline: none;
-    background: #440000cc;
-  }
-  #adminPanel button {
-    width: 100%;
-    padding: 14px 0;
-    border-radius: 24px;
-    background: #ff4444;
-    border: none;
-    font-weight: 900;
-    font-size: 1.05rem;
-    cursor: pointer;
-    color: #320000;
-    margin-bottom: 10px;
-    transition: background-color 0.3s ease;
-  }
-  #adminPanel button:hover {
-    background: #cc3333;
-  }
-  #adminMsg {
-    min-height: 24px;
-    margin-top: 12px;
-    font-weight: 700;
-    text-align: center;
-  }
-
-  /* Responsive */
-  @media (max-width: 760px) {
-    #wrapper {
-      margin: 1.5rem 10px 2rem;
-      width: auto;
-      padding: 28px 30px 35px;
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Global Messaging Website with Firebase</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+    body {
+      margin: 0;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      font-family: 'Poppins', sans-serif;
+      color: #fafafa;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
     }
-    #dashboardWrapper {
-      margin: 1rem 16px 2rem;
-      padding: 20px 22px 26px;
-    }
-    #stockSearch {
+    .container {
+      background: rgba(0, 0, 0, 0.6);
+      width: 400px;
+      max-width: 95vw;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+      display: flex;
       flex-direction: column;
+      height: 600px;
     }
-    #symbolInput, #fetchBtn {
-      border-radius: 24px !important;
-      width: 100% !important;
-      margin: 6px 0 !important;
+    header {
+      padding: 20px;
+      text-align: center;
+      background: rgba(255,255,255,0.1);
+      border-top-left-radius: 12px;
+      border-top-right-radius: 12px;
     }
-    #tradeButtons {
+    header h1 {
+      margin: 0;
+      font-weight: 600;
+      font-size: 1.8rem;
+      letter-spacing: 1px;
+      user-select: none;
+    }
+    #messages {
+      flex-grow: 1;
+      padding: 15px;
+      overflow-y: auto;
+      user-select: text;
+      scrollbar-width: thin;
+      scrollbar-color: #764ba2 transparent;
+      background: rgba(255,255,255,0.05);
+      border-radius: 0 0 0 0;
+    }
+    #messages::-webkit-scrollbar {
+      width: 8px;
+    }
+    #messages::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    #messages::-webkit-scrollbar-thumb {
+      background-color: #764ba2;
+      border-radius: 4px;
+    }
+    .message {
+      margin-bottom: 12px;
+      padding: 10px 14px;
+      background: rgba(118, 75, 162, 0.3);
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(118, 75, 162, 0.4);
+      word-wrap: break-word;
+      font-size: 0.9rem;
+      border-left: 4px solid #ffcc00;
+      position: relative;
+      line-height: 1.3;
+    }
+    .message .meta {
+      font-weight: 600;
+      font-size: 0.75rem;
+      opacity: 0.8;
+      margin-bottom: 4px;
+      color: #ffcc00;
+      user-select: text;
+    }
+    .message .timestamp {
+      position: absolute;
+      bottom: 6px;
+      right: 10px;
+      font-size: 0.7rem;
+      opacity: 0.6;
+      color: #ffd966;
+      user-select: text;
+    }
+    form {
+      display: flex;
       flex-direction: column;
+      padding: 20px;
+      background: rgba(0,0,0,0.3);
+      border-bottom-left-radius: 12px;
+      border-bottom-right-radius: 12px;
+      gap: 8px;
     }
-    #buyBtn, #sellBtn {
-      margin-right: 0 !important;
-      margin-bottom: 10px !important;
-      width: 100% !important;
+    input[type="text"], textarea {
+      border: none;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 1rem;
+      font-family: 'Poppins', sans-serif;
+      resize: none;
     }
-    #chatControls {
-      flex-direction: column;
+    input[type="text"] {
+      background: #eee;
+      color: #333;
+      height: 40px;
     }
-    #sendChatBtn {
-      width: 100% !important;
+    textarea {
+      background: #ddd;
+      color: #111;
+      min-height: 70px;
+      max-height: 140px;
+      overflow-y: auto;
+    }
+    input[type="text"]:focus, textarea:focus {
+      outline: none;
+      box-shadow: 0 0 8px #ffcc00;
+    }
+    button {
+      background: #ffcc00;
+      border: none;
+      border-radius: 8px;
+      padding: 12px;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      color: #4F3A00;
+      user-select: none;
+    }
+    button:hover:not(:disabled) {
+      background: #e6b800;
+    }
+    button:disabled {
+      background: #8d7b00;
+      cursor: not-allowed;
+    }
+    .footer {
+      text-align: center;
       margin-top: 8px;
+      font-size: 0.75rem;
+      color: #ccc;
+      user-select: none;
     }
-  }
-</style>
+  </style>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 </head>
 <body>
-
-<!-- LOGIN / SIGNUP WRAPPER -->
-<div id="wrapper" role="main" aria-label="Login and Signup Section">
-  <h2 id="formTitle">Login</h2>
-  <!-- LOGIN FORM -->
-  <form id="loginForm" aria-label="Login form">
-    <input type="email" id="loginEmail" placeholder="Email" autocomplete="username" required />
-    <input type="password" id="loginPassword" placeholder="Password" autocomplete="current-password" required minlength="6" />
-    <button type="submit" id="loginBtn">Login</button>
-  </form>
-  <!-- SIGNUP FORM -->
-  <form id="signupForm" aria-label="Signup form" style="display:none;">
-    <input type="text" id="signupUsername" placeholder="Username" autocomplete="username" required minlength="3" maxlength="20" />
-    <input type="email" id="signupEmail" placeholder="Email" autocomplete="email" required />
-    <input type="password" id="signupPassword" placeholder="Password" autocomplete="new-password" required minlength="6" />
-    <button type="submit" id="signupBtn">Sign Up</button>
-  </form>
-  <!-- Toggle Link -->
-  <div id="toggleSection">
-    <span id="toggleText">No account?</span>
-    <button id="toggleBtn" aria-label="Toggle Login/Sign Up">Sign up!</button>
+  <div class="container" role="main" aria-label="Global Messaging Website with Firebase">
+    <header>
+      <h1>🌐 Global Messenger</h1>
+    </header>
+    <div id="messages" aria-live="polite" aria-relevant="additions"></div>
+    <form id="messageForm" aria-label="Send a message form">
+      <input type="text" id="username" name="username" placeholder="Your name" autocomplete="off" aria-label="Your name" required minlength="1" maxlength="32" />
+      <textarea id="message" name="message" placeholder="Your message" rows="3" aria-label="Your message" required maxlength="280"></textarea>
+      <button type="submit" id="sendBtn" disabled>Send</button>
+    </form>
+    <div class="footer">Messages are synced globally via Firebase Realtime Database</div>
   </div>
-  <!-- Message area -->
-  <div id="authMsg" role="alert" aria-live="assertive"></div>
-</div>
+  <script>
+    // Your Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyBjA2O3QDuKsAGLzq008VEDug69WDroulI",
+      authDomain: "supercoollogin999.firebaseapp.com",
+      databaseURL: "https://supercoollogin999-default-rtdb.firebaseio.com",
+      projectId: "supercoollogin999",
+      storageBucket: "supercoollogin999.firebasestorage.app",
+      messagingSenderId: "472488806884",
+      appId: "1:472488806884:web:d904be3b09548dbbc51ff1",
+      measurementId: "G-03NQP912BX"
+    };
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const messagesRef = db.ref('messages');
 
-<!-- DASHBOARD WRAPPER -->
-<div id="dashboardWrapper" role="main" aria-label="Dashboard Section" tabindex="0">
-  <div id="dashboardHeader">
-    <div>Welcome, <span id="currentUserDisplayName"></span></div>
-    <button id="logoutBtn" aria-label="Logout Button">Logout</button>
-  </div>
+    const messagesEl = document.getElementById('messages');
+    const form = document.getElementById('messageForm');
+    const usernameInput = document.getElementById('username');
+    const messageInput = document.getElementById('message');
+    const sendBtn = document.getElementById('sendBtn');
 
-  <!-- STOCK SEARCH -->
-  <section class="section" aria-label="Stock Search Section">
-    <h3>Stock Search</h3>
-    <div id="stockSearch" role="search">
-      <input type="text" id="symbolInput" placeholder="e.g. AAPL" maxlength="5" aria-label="Stock symbol input" />
-      <button id="fetchBtn" type="button" aria-label="Fetch stock data">Fetch</button>
-    </div>
-    <div id="stockInfo" aria-live="polite" style="display:none;"></div>
-    <canvas id="priceChart" aria-label="Stock price chart" role="img"></canvas>
-  </section>
-
-  <!-- TRADE SECTION -->
-  <section id="tradeSection" class="section" aria-label="Trade Section" style="display:none;">
-    <h3>Trade</h3>
-    <label for="tradeQuantity">Quantity</label>
-    <input type="number" id="tradeQuantity" min="1" value="1" />
-    <div id="tradeButtons">
-      <button id="buyBtn" aria-label="Buy shares">Buy</button>
-      <button id="sellBtn" aria-label="Sell shares">Sell</button>
-    </div>
-    <div id="orderMsg" aria-live="polite"></div>
-  </section>
-
-  <!-- CHAT SECTION -->
-  <section id="chatSection" class="section" aria-label="Global Chat Section">
-    <h3>Global Chat</h3>
-    <div id="chatControls" role="form">
-      <input type="text" id="chatInput" placeholder="Type a message..." aria-label="Chat message input" maxlength="200" />
-      <button id="sendChatBtn" aria-label="Send chat message">Send</button>
-    </div>
-    <div id="chatMsg" aria-live="assertive"></div>
-    <div id="chatContainer" tabindex="0"></div>
-  </section>
-
-  <!-- STORE -->
-  <section id="storeForm" class="section" aria-label="Store - Buy Upgrades">
-    <h3>Store</h3>
-    <p>Upgrade: <strong>2x AUC Multiplier</strong> - Cost: 1000 AUC</p>
-    <button id="buyMultiplierBtn" aria-label="Buy 2x AUC Multiplier">Buy Upgrade</button>
-    <div id="storeMsg" aria-live="polite"></div>
-  </section>
-
-  <!-- LEADERBOARD -->
-  <section id="leaderboard" class="section" aria-label="Leaderboard Section" tabindex="0">
-    <h3>Leaderboard</h3>
-    <div id="leaderboardList" aria-live="polite" aria-atomic="true"></div>
-  </section>
-
-  <!-- ADMIN PANEL -->
-  <section id="adminPanel" class="section" aria-label="Admin Control Panel" tabindex="0" style="display:none;">
-    <h3>Admin Panel</h3>
-    <label for="adminEmailInput">User Email:</label>
-    <input type="email" id="adminEmailInput" placeholder="Email for user control" aria-label="User email for admin" />
-    <button id="banUserBtn" aria-label="Ban user">Ban User</button>
-    <button id="unbanUserBtn" aria-label="Unban user">Unban User</button>
-    <button id="muteUserBtn" aria-label="Mute user">Mute User</button>
-    <hr style="margin: 20px 0;">
-    <label for="adminGiveAucEmail">Email to Give AUC:</label>
-    <input type="email" id="adminGiveAucEmail" placeholder="User email" aria-label="User email to give AUC" />
-    <label for="adminGiveAucAmount">Amount of AUC:</label>
-    <input type="number" id="adminGiveAucAmount" placeholder="Amount" min="1" aria-label="Amount of AUC to give" />
-    <button id="giveAucBtn" aria-label="Give AUC to user">Give AUC</button>
-    <div id="adminMsg" aria-live="polite" style="margin-top: 15px;"></div>
-  </section>
-</div>
-
-<script>
-  // Firebase config and init
-  const firebaseConfig = {
-    apiKey: "AIzaSyBjA2O3QDuKsAGLzq008VEDug69WDroulI",
-    authDomain: "supercoollogin999.firebaseapp.com",
-    databaseURL: "https://supercoollogin999-default-rtdb.firebaseio.com",
-    projectId: "supercoollogin999",
-    storageBucket: "supercoollogin999.firebasestorage.app",
-    messagingSenderId: "472488806884",
-    appId: "1:472488806884:web:d904be3b09548dbbc51ff1",
-    measurementId: "G-03NQP912BX"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-  const db = firebase.database();
-
-  // DOM Elements
-  const wrapper = document.getElementById('wrapper');
-  const dashboardWrapper = document.getElementById('dashboardWrapper');
-  const formTitle = document.getElementById('formTitle');
-  const toggleSection = document.getElementById('toggleSection');
-  const toggleText = document.getElementById('toggleText');
-  const toggleBtn = document.getElementById('toggleBtn');
-  const authMsg = document.getElementById('authMsg');
-  const loginForm = document.getElementById('loginForm');
-  const signupForm = document.getElementById('signupForm');
-  const settings = document.getElementById('settings');
-  const currentUserDisplayName = document.getElementById('currentUserDisplayName');
-  const logoutBtn = document.getElementById('logoutBtn');
-
-  const symbolInput = document.getElementById('symbolInput');
-  const fetchBtn = document.getElementById('fetchBtn');
-  const stockInfo = document.getElementById('stockInfo');
-  const priceChartCanvas = document.getElementById('priceChart');
-  let priceChart = null;
-
-  const tradeSection = document.getElementById('tradeSection');
-  const tradeQuantity = document.getElementById('tradeQuantity');
-  const buyBtn = document.getElementById('buyBtn');
-  const sellBtn = document.getElementById('sellBtn');
-  const orderMsg = document.getElementById('orderMsg');
-
-  const chatInput = document.getElementById('chatInput');
-  const sendChatBtn = document.getElementById('sendChatBtn');
-  const chatContainer = document.getElementById('chatContainer');
-  const chatMsg = document.getElementById('chatMsg');
-
-  const buyMultiplierBtn = document.getElementById('buyMultiplierBtn');
-  const storeMsg = document.getElementById('storeMsg');
-
-  const leaderboardList = document.getElementById('leaderboardList');
-
-  const adminPanel = document.getElementById('adminPanel');
-  const adminEmailInput = document.getElementById('adminEmailInput');
-  const banUserBtn = document.getElementById('banUserBtn');
-  const unbanUserBtn = document.getElementById('unbanUserBtn');
-  const muteUserBtn = document.getElementById('muteUserBtn');
-  const adminGiveAucEmail = document.getElementById('adminGiveAucEmail');
-  const adminGiveAucAmount = document.getElementById('adminGiveAucAmount');
-  const giveAucBtn = document.getElementById('giveAucBtn');
-  const adminMsg = document.getElementById('adminMsg');
-
-  // State
-  let currentUser = null;
-  let currentPrice = null;
-  let currentSymbol = null;
-  let aucMultiplier = 1;
-  let mutedUsers = [];
-
-  // Toggle login/signup UI
-  let showingLogin = true;
-  toggleBtn.addEventListener('click', () => {
-    showingLogin = !showingLogin;
-    authMsg.textContent = '';
-    if(showingLogin){
-      formTitle.textContent = 'Login';
-      loginForm.style.display = 'flex';
-      signupForm.style.display = 'none';
-      toggleText.textContent = 'No account?';
-      toggleBtn.textContent = 'Sign up!';
-    } else {
-      formTitle.textContent = 'Sign Up';
-      loginForm.style.display = 'none';
-      signupForm.style.display = 'flex';
-      toggleText.textContent = 'Already have an account?';
-      toggleBtn.textContent = 'Login';
+    // Enable send button only if both inputs have content
+    function validateForm() {
+      const valid = usernameInput.value.trim().length > 0 && messageInput.value.trim().length > 0;
+      sendBtn.disabled = !valid;
     }
-  });
 
-  // Helper: Display messages with color classes
-  function displayMessage(element, message, success=true){
-    element.textContent = message;
-    element.className = success ? 'success' : 'error';
-    setTimeout(() => {
-      element.textContent = '';
-      element.className = '';
-    }, 4500);
-  }
+    usernameInput.addEventListener('input', validateForm);
+    messageInput.addEventListener('input', validateForm);
 
-  // LOGIN FORM submit
-  loginForm.addEventListener('submit', async e => {
-    e.preventDefault();
-    authMsg.textContent = '';
-    const email = loginForm.loginEmail.value.trim();
-    const password = loginForm.loginPassword.value;
-    if(!email || !password){
-      displayMessage(authMsg, 'Please enter email and password.', false);
-      return;
-    }
-    try {
-      let userCredential = await auth.signInWithEmailAndPassword(email, password);
-      setupUser(userCredential.user);
-    } catch(e) {
-      displayMessage(authMsg, e.message, false);
-    }
-  });
-
-  // SIGNUP FORM submit
-  signupForm.addEventListener('submit', async e => {
-    e.preventDefault();
-    authMsg.textContent = '';
-    const username = signupForm.signupUsername.value.trim();
-    const email = signupForm.signupEmail.value.trim();
-    const password = signupForm.signupPassword.value;
-    if(!username || !email || !password){
-      displayMessage(authMsg, 'All fields required.', false);
-      return;
-    }
-    if(username.length < 3){
-      displayMessage(authMsg, 'Username must be at least 3 characters.', false);
-      return;
-    }
-    try {
-      let userCredential = await auth.createUserWithEmailAndPassword(email, password);
-      await userCredential.user.updateProfile({displayName: username});
-      // Initialize AUC for user and store username
-      await db.ref('users/' + userCredential.user.uid).set({
-        email: email,
-        username: username,
-        auc: 0,
-        multiplier: 1,
-        banned: false,
-        muted: false
-      });
-      setupUser(userCredential.user);
-      displayMessage(authMsg, 'Signup successful! Logged in.', true);
-    } catch(e) {
-      displayMessage(authMsg, e.message, false);
-    }
-  });
-
-  // On auth state changed - toggle UI accordingly
-  auth.onAuthStateChanged(async user => {
-    if(user){
-      currentUser = user;
-      setupUser(user);
-    } else {
-      currentUser = null;
-      wrapper.style.display = 'block';
-      dashboardWrapper.style.display = 'none';
-      authMsg.textContent = '';
-      showingLogin = true;
-      formTitle.textContent = 'Login';
-      loginForm.style.display = 'flex';
-      signupForm.style.display = 'none';
-      toggleSection.style.display = 'flex';
-    }
-  });
-
-  // Setup after login or signup
-  async function setupUser(user){
-    wrapper.style.display = 'none';
-    dashboardWrapper.style.display = 'block';
-    toggleSection.style.display = 'none';
-    currentUserDisplayName.textContent = user.displayName || user.email || 'User';
-
-    // Load user info from db
-    let userRef = db.ref('users/' + user.uid);
-    userRef.on('value', snapshot => {
-      let data = snapshot.val();
-      if(!data) return;
-      if(data.banned){
-        alert('Your account is banned.');
-        auth.signOut();
-        return;
-      }
-      aucMultiplier = (data.multiplier || 1);
-      mutedUsers = [];
-      if(data.muted) mutedUsers.push(user.uid);
-    });
-
-    loadLeaderboard();
-    setupChatListener();
-  }
-
-  // LOGOUT
-  logoutBtn.addEventListener('click', () => auth.signOut());
-
-  // STOCK DATA - Use Alpha Vantage API demo key
-  const API_KEY = 'demo';
-  const BASE_API = 'https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&interval=5min&apikey=' + API_KEY;
-
-  fetchBtn.addEventListener('click', () => {
-    let symbol = symbolInput.value.trim().toUpperCase();
-    if(!symbol){
-      stockInfo.style.display = 'none';
-      displayMessage(orderMsg, 'Enter stock symbol.', false);
-      return;
-    }
-    fetchStockData(symbol);
-  });
-
-  async function fetchStockData(symbol) {
-    stockInfo.style.display = 'none';
-    orderMsg.textContent = '';
-    currentSymbol = symbol;
-    try {
-      fetchBtn.disabled = true;
-      const res = await fetch(`${BASE_API}&symbol=${symbol}`);
-      const data = await res.json();
-      if(data.Note) throw new Error('API limit reached, try later.');
-      if(data['Error Message']) throw new Error('Invalid symbol.');
-
-      let timeSeries = data['Time Series (5min)'];
-      if(!timeSeries) throw new Error('No time series data.');
-      let times = Object.keys(timeSeries).sort();
-      let latestTime = times[times.length-1];
-      let latestData = timeSeries[latestTime];
-      currentPrice = parseFloat(latestData['4. close']);
-
-      stockInfo.innerHTML = `
-        <strong>Name: </strong>${symbol}<br>
-        <strong>Price: $</strong>${currentPrice.toFixed(2)}<br>
-        <strong>Last Update: </strong>${new Date(latestTime + " UTC").toLocaleString()}
-      `;
-      stockInfo.style.display = 'block';
-      setupChart(timeSeries);
-
-      tradeSection.style.display = 'block';
-      orderMsg.textContent = '';
-    } catch(err) {
-      displayMessage(orderMsg, err.message, false);
-      tradeSection.style.display = 'none';
-      stockInfo.style.display = 'none';
-      currentPrice = null;
-    } finally {
-      fetchBtn.disabled = false;
-    }
-  }
-
-  function setupChart(timeSeries){
-    let times = Object.keys(timeSeries).sort();
-    let labels = times.slice(-20).map(t => new Date(t + " UTC").toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}));
-    let prices = times.slice(-20).map(t => parseFloat(timeSeries[t]['4. close']));
-    if(priceChart){
-      priceChart.data.labels = labels;
-      priceChart.data.datasets[0].data = prices;
-      priceChart.update();
-    } else {
-      let ctx = priceChartCanvas.getContext('2d');
-      priceChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels,
-          datasets: [{
-            label: `Price $ ${currentSymbol}`,
-            data: prices,
-            borderColor: '#00e5ff',
-            backgroundColor: 'rgba(0,229,255,0.2)',
-            pointRadius: 3,
-            tension: 0.25
-          }]
-        },
-        options: {
-          responsive: true,
-          scales: {
-            y: {beginAtZero: false, ticks:{color:'#00e5ff'}},
-            x: {ticks:{color:'#00e5ff'}}
-          },
-          plugins: {
-            legend: {labels:{color:'#00e5ff',font:{weight:'bold'}}}
-          }
-        }
-      });
-    }
-  }
-
-  // TRADE BUTTONS
-  buyBtn.addEventListener('click', () => handleTrade('buy'));
-  sellBtn.addEventListener('click', () => handleTrade('sell'));
-
-  async function handleTrade(type){
-    orderMsg.textContent = '';
-    const qty = parseInt(tradeQuantity.value);
-    if(!currentPrice) {
-      displayMessage(orderMsg, 'Fetch stock info first.', false);
-      return;
-    }
-    if(isNaN(qty) || qty < 1){
-      displayMessage(orderMsg, 'Enter valid quantity.', false);
-      return;
-    }
-    try {
-      // Simulate trade success
-      displayMessage(orderMsg, `${type === 'buy' ? 'Bought' : 'Sold'} ${qty} shares of ${currentSymbol} at $${currentPrice.toFixed(2)} each.`, true);
-    } catch(e){
-      displayMessage(orderMsg, 'Trade failed.', false);
-    }
-  }
-
-  // GLOBAL CHAT & AUC SYSTEM
-  sendChatBtn.addEventListener('click', sendChatMessage);
-  chatInput.addEventListener('keyup', e => { if(e.key === 'Enter') sendChatMessage(); });
-
-  async function sendChatMessage(){
-    chatMsg.textContent = '';
-    if(!currentUser) return;
-    const text = chatInput.value.trim();
-    if(!text) return;
-    // Check if muted
-    let userData = await db.ref('users/' + currentUser.uid).once('value');
-    let udata = userData.val();
-    if(udata.muted) {
-      chatMsg.textContent = 'You are muted and cannot chat.';
-      return;
-    }
-    // Push chat message
-    let timestamp = Date.now();
-    await db.ref('chat').push({
-      uid: currentUser.uid,
-      username: currentUser.displayName || 'User',
-      text,
-      timestamp
-    });
-    chatInput.value = '';
-    // Give user AUC
-    let currentAuc = udata.auc || 0;
-    let multiplier = udata.multiplier || 1;
-    await db.ref('users/' + currentUser.uid + '/auc').set(currentAuc + (1 * multiplier));
-    loadLeaderboard();
-  }
-
-  // Listen for chat messages
-  function setupChatListener(){
-    db.ref('chat').limitToLast(50).off();
-    chatContainer.innerHTML = '';
-    db.ref('chat').limitToLast(50).on('child_added', data => {
-      const msg = data.val();
-      if(!msg) return;
-      let div = document.createElement('div');
-      div.className = 'message';
-      div.innerHTML = `<strong>${msg.username}:</strong> ${msg.text}`;
-      chatContainer.appendChild(div);
-      chatContainer.scrollTop = chatContainer.scrollHeight;
-    });
-  }
-
-  // STORE UPGRADE - 2x AUC multiplier
-  buyMultiplierBtn.addEventListener('click', async () => {
-    if(!currentUser) return;
-    let userRef = db.ref('users/' + currentUser.uid);
-    let userSnap = await userRef.once('value');
-    let userData = userSnap.val() || {};
-    let auc = userData.auc || 0;
-    if(auc < 1000){
-      storeMsg.textContent = 'Not enough AUC to buy upgrade.';
-      storeMsg.style.color = '#ff4444';
-      return;
-    }
-    if(userData.multiplier >= 2){
-      storeMsg.textContent = 'You already have this upgrade.';
-      storeMsg.style.color = '#00ff66';
-      return;
-    }
-    // Deduct cost and upgrade multiplier
-    await userRef.update({
-      auc: auc - 1000,
-      multiplier: 2
-    });
-    aucMultiplier = 2;
-    storeMsg.textContent = 'Upgrade bought! You now earn 2x AUC.';
-    storeMsg.style.color = '#00ff66';
-    loadLeaderboard();
-  });
-
-  // LEADERBOARD
-  async function loadLeaderboard(){
-    leaderboardList.innerHTML = 'Loading...';
-    let usersSnap = await db.ref('users').orderByChild('auc').limitToLast(10).once('value');
-    const users = [];
-    usersSnap.forEach(child => {
-      users.push({...child.val(), uid:child.key});
-    });
-    users.sort((a,b) => b.auc - a.auc);
-    leaderboardList.innerHTML = '';
-    if(users.length === 0){
-      leaderboardList.textContent = 'No users yet.';
-      return;
-    }
-    users.forEach(user=>{
+    function createMessageElement(msg) {
       const div = document.createElement('div');
-      div.className = 'leaderboard-entry';
-      div.innerHTML = `
-        <strong>${user.username || 'User'}</strong> - ${user.email}<br>
-        <em>Title:</em> ${user.multiplier && user.multiplier > 1 ? 'AUC Booster' : 'Trader'} | <em>AUC:</em> ${user.auc || 0}
-      `;
-      leaderboardList.appendChild(div);
-    });
-  }
+      div.className = 'message';
 
-  // ADMIN PANEL - visible only to johndoe@gmail.com
-  function checkAdmin() {
-    if(currentUser && currentUser.email === 'johndoe@gmail.com'){
-      adminPanel.style.display = 'block';
-    } else {
-      adminPanel.style.display = 'none';
-    }
-  }
+      const meta = document.createElement('div');
+      meta.className = 'meta';
+      meta.textContent = msg.username || "Anonymous";
 
-  // Admin actions
-  banUserBtn.onclick = async () => adminAction('ban');
-  unbanUserBtn.onclick = async () => adminAction('unban');
-  muteUserBtn.onclick = async () => adminAction('mute');
-  giveAucBtn.onclick = async () => {
-    adminMsg.textContent = '';
-    const email = adminGiveAucEmail.value.trim().toLowerCase();
-    const amount = parseInt(adminGiveAucAmount.value);
-    if(!email || !amount || amount < 1) {
-      adminMsg.style.color = '#ff4444';
-      adminMsg.textContent = 'Enter valid email and amount.';
-      return;
+      const text = document.createElement('div');
+      text.textContent = msg.text;
+
+      const ts = document.createElement('div');
+      ts.className = 'timestamp';
+      let d = new Date(msg.timestamp);
+      if (isNaN(d.getTime())) {
+        d = new Date(); // fallback to current date
+      }
+      ts.textContent = d.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+
+      div.appendChild(meta);
+      div.appendChild(text);
+      div.appendChild(ts);
+
+      return div;
     }
-    try {
-      const allUsers = await db.ref('users').once('value');
-      let targetUid = null;
-      allUsers.forEach(child => {
-        const val = child.val();
-        if(val.email && val.email.toLowerCase() === email){
-          targetUid = child.key;
-        }
+
+    // Render all messages, clearing existing
+    function renderMessages(messages) {
+      messagesEl.innerHTML = "";
+      messages.forEach(msg => {
+        messagesEl.appendChild(createMessageElement(msg));
       });
-      if(!targetUid){
-        adminMsg.style.color = '#ff4444';
-        adminMsg.textContent = 'User not found.';
-        return;
-      }
-      const userRef = db.ref('users/' + targetUid);
-      const userSnap = await userRef.once('value');
-      const userData = userSnap.val() || {};
-      const newAuc = (userData.auc||0) + amount;
-      await userRef.update({auc: newAuc});
-      adminMsg.style.color = '#00ff66';
-      adminMsg.textContent = `Gave ${amount} AUC to ${email}.`;
-      loadLeaderboard();
-    } catch(e){
-      adminMsg.style.color = '#ff4444';
-      adminMsg.textContent = 'Error: ' + e.message;
+      messagesEl.scrollTop = messagesEl.scrollHeight;
     }
-  };
 
-  async function adminAction(action){
-    adminMsg.textContent = '';
-    const email = adminEmailInput.value.trim().toLowerCase();
-    if(!email) {
-      adminMsg.style.color = '#ff4444';
-      adminMsg.textContent = 'Enter user email.';
-      return;
-    }
-    try {
-      const allUsers = await db.ref('users').once('value');
-      let targetUid = null;
-      allUsers.forEach(child => {
-        const val = child.val();
-        if(val.email && val.email.toLowerCase() === email){
-          targetUid = child.key;
+    // Listen for messages added in realtime
+    let messages = [];
+    messagesRef.limitToLast(100).on('value', snapshot => {
+      const data = snapshot.val();
+      messages = [];
+      for (const key in data) {
+        if (data.hasOwnProperty(key)) {
+          messages.push(data[key]);
         }
-      });
-      if(!targetUid){
-        adminMsg.style.color = '#ff4444';
-        adminMsg.textContent = 'User not found.';
-        return;
       }
-      const userRef = db.ref('users/' + targetUid);
-      if(action === 'ban'){
-        await userRef.update({banned:true});
-        adminMsg.style.color = '#00ff66';
-        adminMsg.textContent = `${email} banned.`;
-      }
-      else if(action === 'unban'){
-        await userRef.update({banned:false});
-        adminMsg.style.color = '#00ff66';
-        adminMsg.textContent = `${email} unbanned.`;
-      }
-      else if(action === 'mute'){
-        await userRef.update({muted:true});
-        adminMsg.style.color = '#00ff66';
-        adminMsg.textContent = `${email} muted in chat.`;
-      }
-      loadLeaderboard();
-    } catch(e){
-      adminMsg.style.color = '#ff4444';
-      adminMsg.textContent = 'Error: ' + e.message;
-    }
-  }
-
-  // Initialize chat listener
-  function setupChatListener(){
-    chatContainer.innerHTML = '';
-    db.ref('chat').limitToLast(100).off();
-    db.ref('chat').limitToLast(100).on('child_added', snap => {
-      const msg = snap.val();
-      if(!msg) return;
-      let msgDiv = document.createElement('div');
-      msgDiv.className = 'message';
-      msgDiv.innerHTML = `<strong>${msg.username}:</strong> ${msg.text}`;
-      chatContainer.appendChild(msgDiv);
-      chatContainer.scrollTop = chatContainer.scrollHeight;
+      // Sort messages by timestamp ascending
+      messages.sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
+      renderMessages(messages);
     });
-  }
 
-  // Check if current user is banned or muted periodically
-  async function periodicUserCheck(){
-    if(!currentUser) return;
-    let snapshot = await db.ref('users/' + currentUser.uid).once('value');
-    let data = snapshot.val();
-    if(data?.banned) {
-      alert('Your account is banned.');
-      await auth.signOut();
-      return;
-    }
-    if(data?.muted) {
-      chatMsg.textContent = 'You are muted in chat.';
-      chatMsg.style.color = '#ff4444';
-    } else {
-      chatMsg.textContent = '';
-    }
-  }
-  setInterval(periodicUserCheck, 35000); // Every 35s
+    // On form submit, push message to database
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      if(sendBtn.disabled) return;
 
-  // PAGE INITIALIZATION
-  checkAdmin();
+      const newMsg = {
+        username: usernameInput.value.trim().substring(0,32),
+        text: messageInput.value.trim().substring(0,280),
+        timestamp: new Date().toISOString()
+      };
 
-  // Once logged in, load chat and leaderboard
-  auth.onAuthStateChanged(user => {
-    if(user) {
-      setupChatListener();
-      loadLeaderboard();
-      checkAdmin();
-    }
-  });
+      messagesRef.push(newMsg).then(() => {
+        messageInput.value = "";
+        validateForm();
+      }).catch((error) => {
+        alert("Error sending message: " + error.message);
+      });
+    });
 
-  // setupAdmin on page load too
-  function checkAdmin(){
-    if(currentUser && currentUser.email === 'johndoe@gmail.com'){
-      adminPanel.style.display = 'block';
-    } else {
-      adminPanel.style.display = 'none';
-    }
-  }
-  auth.onAuthStateChanged(user => {
-    currentUser = user;
-    checkAdmin();
-  });
-</script>
+    validateForm();
+  </script>
 </body>
 </html>
 
