@@ -1,216 +1,594 @@
-<!DOCTYPE html><html lang="en">
+
+You want to have an admin panel UI that integrates with Firebase. To do this in a single HTML file, I can add Firebase authentication (login/logout) and data fetching/storing for admin data (like users) using Firebase services: Firestore for user info and Firebase Auth for authentication.
+
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>LogCash UI</title>
-  <style>
-    /* General styles */
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(270deg, #0d001f, #330066, #660099, #330066);
-      background-size: 800% 800%;
-      animation: bgAnim 20s ease infinite;
-      color: white;
-      margin: 0;
-      padding: 0;
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Firebase Admin Panel UI</title>
+<style>
+  /* Reset & base */
+  * {
+    box-sizing: border-box;
+  }
+  body, html {
+    margin: 0; padding: 0; height: 100%;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f5f7fa;
+    color: #333;
+    overflow: hidden;
+  }
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+  /* Container layout */
+  .container {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+  }
+  /* Sidebar */
+  .sidebar {
+    width: 250px;
+    background: #2f3e4d;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    transition: width 0.3s ease;
+  }
+  .sidebar.collapsed {
+    width: 75px;
+  }
+  .sidebar-header {
+    font-size: 24px;
+    font-weight: 700;
+    padding: 20px;
+    text-align: center;
+    border-bottom: 1px solid #3f4a5a;
+    user-select: none;
+  }
+  .sidebar-nav {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    margin-top: 10px;
+  }
+  .sidebar-nav a {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    font-weight: 600;
+    font-size: 16px;
+    border-left: 4px solid transparent;
+    transition: background 0.3s, border-color 0.3s;
+    cursor: pointer;
+  }
+  .sidebar-nav a:hover {
+    background: #405368;
+  }
+  .sidebar-nav a.active {
+    background: #1e2a38;
+    border-left-color: #ff6699;
+  }
+  .sidebar-nav a svg {
+    width: 20px;
+    height: 20px;
+    fill: white;
+    margin-right: 15px;
+    flex-shrink: 0;
+  }
+  .sidebar.collapsed .sidebar-nav a span {
+    display: none;
+  }
+  .sidebar.collapsed .sidebar-nav a svg {
+    margin-right: 0;
+  }
+  .toggle-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 15px;
+    border-top: 1px solid #3f4a5a;
+    user-select: none;
+  }
+  .sidebar.collapsed .toggle-btn {
+    text-align: center;
+  }
+  /* Main content */
+  .main {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    background: #fafafa;
+  }
+  /* Header */
+  .header {
+    height: 60px;
+    background: white;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 0 20px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.1);
+    user-select: none;
+  }
+  .profile {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+  }
+  .profile img {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    margin-right: 10px;
+    object-fit: cover;
+    box-shadow: 0 0 4px rgba(0,0,0,0.15);
+  }
+  .profile span {
+    font-weight: 600;
+    color: #333;
+  }
+  .logout-btn {
+    background: #ff4d6d;
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    margin-left: 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.3s ease;
+  }
+  .logout-btn:hover {
+    background: #e63b5d;
+  }
+  /* Content area */
+  .content {
+    flex-grow: 1;
+    padding: 30px 40px;
+    overflow-y: auto;
+  }
+  h1 {
+    margin-bottom: 20px;
+    color: #2f3e4d;
+  }
+  p {
+    font-size: 16px;
+    line-height: 1.6;
+  }
+  /* Responsive */
+  @media (max-width: 768px) {
+    .sidebar {
+      position: fixed;
+      z-index: 999;
+      height: 100vh;
+      left: -250px;
     }
-    @keyframes bgAnim {
-      0%{background-position:0% 50%}
-      50%{background-position:100% 50%}
-      100%{background-position:0% 50%}
+    .sidebar.collapsed {
+      left: 0;
+      width: 250px;
     }
     .container {
-      max-width: 500px;
-      margin: 2rem auto;
-      padding: 2rem;
-      background-color: rgba(0, 0, 0, 0.6);
-      border-radius: 20px;
-      box-shadow: 0 0 15px #bb33ffaa;
+      overflow-x: hidden;
     }
-    input, button {
-      width: 100%;
-      padding: 12px;
-      margin: 10px 0;
-      border-radius: 10px;
-      border: none;
+    .main {
+      margin-left: 0;
     }
-    button {
-      cursor: pointer;
-      background-color: #bb33ff;
-      color: white;
-      font-weight: bold;
-    }
-    #dashboard, #adminPanel, #leaderboard, #shop {
-      display: none;
-    }
-    #notification {
-      position: fixed;
-      top: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #333;
-      padding: 10px 20px;
-      border-radius: 10px;
-      display: none;
-    }
-  </style>
+  }
+  /* Login page style */
+  #login-page {
+    height: 100vh;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+  }
+  #login-box {
+    background: rgba(255 255 255 / 0.15);
+    padding: 40px 30px 30px 30px;
+    border-radius: 12px;
+    width: 320px;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 8px 32px rgb(118 75 162 / 0.4);
+    display: flex;
+    flex-direction: column;
+  }
+  #login-box h2 {
+    margin-bottom: 25px;
+    text-align: center;
+    font-weight: 600;
+  }
+  #login-box input {
+    background: rgba(255 255 255 / 0.25);
+    border: none;
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 18px;
+    font-size: 16px;
+    color: white;
+    transition: background 0.3s;
+  }
+  #login-box input::placeholder {
+    color: #ddd;
+  }
+  #login-box input:focus {
+    background: rgba(255 255 255 / 0.4);
+    outline: none;
+  }
+  #login-btn {
+    background: #ff6699;
+    border: none;
+    padding: 14px 0;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 18px;
+    cursor: pointer;
+    color: white;
+    transition: background 0.3s ease;
+  }
+  #login-btn:hover {
+    background: #e05184;
+  }
+  #login-error {
+    color: #ff4d6d;
+    margin-bottom: 12px;
+    height: 20px;
+    font-weight: 600;
+    text-align: center;
+  }
+  /* Spinner */
+  .spinner {
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-top: 4px solid white;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    margin: 0 auto 18px auto;
+    animation: spin 1s linear infinite;
+    display: none;
+  }
+  .spinner.active {
+    display: block;
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+</style>
 </head>
 <body>
-  <div id="notification"></div>  <div class="container" id="authUI">
-    <h2>LogCash Login</h2>
-    <input type="email" id="email" placeholder="Email" />
-    <input type="password" id="password" placeholder="Password" />
-    <button id="signupBtn">Sign Up</button>
-    <button id="loginBtn">Log In</button>
-  </div>  <div class="container" id="dashboard">
-    <h2>Welcome <span id="userEmail"></span></h2>
-    <p>LogCash: <span id="logcash">0</span></p>
-    <div id="shop">
-      <h3>Shop</h3>
-      <p>Styles/Titles coming soon...</p>
+  <!-- Login page -->
+  <div id="login-page" aria-label="Login to Admin Panel">
+    <div id="login-box" role="form" aria-describedby="login-error">
+      <h2>Admin Login</h2>
+      <div id="login-error" role="alert" aria-live="assertive"></div>
+      <input type="email" id="login-email" placeholder="Email" aria-label="Email" required autocomplete="username" />
+      <input type="password" id="login-password" placeholder="Password" aria-label="Password" required autocomplete="current-password" />
+      <button id="login-btn" aria-label="Log In">Log In</button>
+      <div class="spinner" id="loading-spinner" aria-hidden="true"></div>
     </div>
-    <div id="leaderboard">
-      <h3>Leaderboard</h3>
-      <ul id="leaderboardList"></ul>
-    </div>
-    <div id="adminPanel">
-      <h3>Admin Panel</h3>
-      <input type="text" id="banInput" placeholder="Email or Username to ban" />
-      <button id="banBtn">Ban User</button>
-      <input type="text" id="addCashEmail" placeholder="Email to add LogCash" />
-      <input type="number" id="cashAmount" placeholder="Amount" />
-      <button id="addCashBtn">Add LogCash</button>
-    </div>
-  </div>  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
-    import {
-      getAuth,
-      createUserWithEmailAndPassword,
-      signInWithEmailAndPassword,
-      onAuthStateChanged,
-    } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
-    import {
-      getDatabase,
-      ref,
-      set,
-      get,
-      update,
-      child
-    } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-database.js";
+  </div>
 
+  <!-- Admin panel container -->
+  <div class="container" role="main" style="display:none;">
+    <nav class="sidebar" aria-label="Sidebar navigation" id="sidebar">
+      <div class="sidebar-header" tabindex="0">Admin Panel</div>
+      <div class="sidebar-nav" role="tablist">
+        <a href="#" class="active" role="tab" aria-selected="true" data-tab="dashboard" tabindex="0" aria-controls="dashboard-panel">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8v-10h-8v10zm0-18v6h8V3h-8z"/></svg><span>Dashboard</span>
+        </a>
+        <a href="#" role="tab" aria-selected="false" data-tab="users" tabindex="-1" aria-controls="users-panel">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2 0-6 1-6 3v2h12v-2c0-2-4-3-6-3zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 2.04 1.97 3.45v2h6v-2c0-2-4-3-6-3z"/></svg><span>Users</span>
+        </a>
+        <a href="#" role="tab" aria-selected="false" data-tab="reports" tabindex="-1" aria-controls="reports-panel">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 13h2v-2H3v2zm0-6h2V5H3v2zm4 6h14v-2H7v2zm0 6h14v-2H7v2zm0-10h14V7H7v2zm0-6H3v2h4V3zm16 6v12H1V3h22v6z"/></svg><span>Reports</span>
+        </a>
+        <a href="#" role="tab" aria-selected="false" data-tab="settings" tabindex="-1" aria-controls="settings-panel">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M19.14 12.94c.04-.31.07-.63.07-.94s-.03-.63-.07-.94l2.03-1.58a.502.502 0 0 0 .11-.61l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.007 7.007 0 0 0-1.6-.94l-.36-2.54a.49.49 0 0 0-.5-.42h-3.84a.49.49 0 0 0-.5.42l-.36 2.54c-.6.24-1.16.56-1.6.94l-2.39-.96a.5.5 0 0 0-.6.22L2.72 9.87c-.13.22-.1.5.11.61l2.03 1.58c-.04.31-.07.63-.07.94s.03.63.07.94L2.83 15.5a.502.502 0 0 0-.11.61l1.92 3.32a.5.5 0 0 0 .6.22l2.39-.96c.44.38 1 .7 1.6.94l.36 2.54c.05.29.28.42.5.42h3.84c.22 0 .45-.13.5-.42l.36-2.54c.6-.24 1.16-.56 1.6-.94l2.39.96a.5.5 0 0 0 .6-.22l1.92-3.32a.5.5 0 0 0-.11-.61l-2.03-1.58zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg><span>Settings</span>
+        </a>
+      </div>
+      <button class="toggle-btn" aria-label="Toggle sidebar" id="toggle-sidebar">&#9776;</button>
+    </nav>
+    <main class="main" id="main-content" tabindex="0">
+      <header class="header">
+        <div class="profile" tabindex="0" aria-label="User profile">
+          <img src="" alt="User Profile Picture" id="profile-pic" />
+          <span id="profile-name">Loading...</span>
+          <button class="logout-btn" aria-label="Logout" id="logout-btn">Logout</button>
+        </div>
+      </header>
+      <section class="content" id="content-area" tabindex="0" aria-live="polite" aria-atomic="true">
+        <h1>Loading...</h1>
+        <p>Please wait while we load data.</p>
+      </section>
+    </main>
+  </div>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-firestore-compat.js"></script>
+
+  <script>
+    // TODO: Replace with your Firebase project's config
     const firebaseConfig = {
-      apiKey: "AIzaSyBjA2O3QDuKsAGLzq008VEDug69WDroulI",
-      authDomain: "supercoollogin999.firebaseapp.com",
-      databaseURL: "https://supercoollogin999-default-rtdb.firebaseio.com",
-      projectId: "supercoollogin999",
-      storageBucket: "supercoollogin999.appspot.com",
-      messagingSenderId: "472488806884",
-      appId: "1:472488806884:web:885f97531677a384c51ff1",
-      measurementId: "G-FSD3TZLK82"
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTHDOMAIN.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: "YOUR_APP_ID"
     };
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getDatabase(app);
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 
-    const emailInput = document.getElementById("email");
-    const passwordInput = document.getElementById("password");
-    const signupBtn = document.getElementById("signupBtn");
-    const loginBtn = document.getElementById("loginBtn");
-    const dashboard = document.getElementById("dashboard");
-    const authUI = document.getElementById("authUI");
-    const logcashDisplay = document.getElementById("logcash");
-    const userEmail = document.getElementById("userEmail");
-    const notification = document.getElementById("notification");
-    const adminPanel = document.getElementById("adminPanel");
-    const leaderboardList = document.getElementById("leaderboardList");
-    const shop = document.getElementById("shop");
+    const loginPage = document.getElementById('login-page');
+    const loginBtn = document.getElementById('login-btn');
+    const loginError = document.getElementById('login-error');
+    const emailInput = document.getElementById('login-email');
+    const passwordInput = document.getElementById('login-password');
+    const loadingSpinner = document.getElementById('loading-spinner');
 
-    const bannedRef = ref(db, 'banned');
+    const container = document.querySelector('.container');
+    const profileName = document.getElementById('profile-name');
+    const profilePic = document.getElementById('profile-pic');
+    const logoutBtn = document.getElementById('logout-btn');
+    const sidebar = document.getElementById('sidebar');
+    const toggleBtn = document.getElementById('toggle-sidebar');
+    const navLinks = document.querySelectorAll('.sidebar-nav a');
+    const contentArea = document.getElementById('content-area');
 
-    function notify(msg) {
-      notification.innerText = msg;
-      notification.style.display = 'block';
-      setTimeout(() => notification.style.display = 'none', 3000);
+    // Show loading spinner
+    function showLoading(show) {
+      if(show){
+        loadingSpinner.classList.add('active');
+        loginBtn.disabled = true;
+        emailInput.disabled = true;
+        passwordInput.disabled = true;
+        loginError.textContent = '';
+      } else {
+        loadingSpinner.classList.remove('active');
+        loginBtn.disabled = false;
+        emailInput.disabled = false;
+        passwordInput.disabled = false;
+      }
     }
 
-    signupBtn.onclick = () => {
-      const email = emailInput.value;
-      const pass = passwordInput.value;
-      createUserWithEmailAndPassword(auth, email, pass)
-        .then((cred) => {
-          set(ref(db, 'users/' + cred.user.uid), {
-            email,
-            logcash: 0,
-            style: 'Default',
-            title: 'Newbie'
-          });
-        })
-        .catch(err => notify(err.message));
+    // Show error in login form
+    function showLoginError(message){
+      loginError.textContent = message;
+    }
+
+    // Toggle sidebar collapse
+    toggleBtn.addEventListener('click', () => {
+      sidebar.classList.toggle('collapsed');
+    });
+
+    // Content for each tab
+    const tabContent = {
+      dashboard: `<h1>Dashboard</h1>
+      <p>Welcome to your admin panel! Use the sidebar to navigate through the sections.</p>
+      <div style="margin-top: 20px; display: flex; gap: 15px; flex-wrap: wrap;">
+        <div style="background:#764ba2;color:#fff;padding:20px;border-radius:10px;box-shadow:0 4px 10px rgba(118,75,162,0.3);font-weight:600;flex:1; min-width:140px; text-align:center;">
+          Total Users: <span id="total-users">Loading...</span>
+        </div>
+        <div style="background:#ff6699;color:#fff;padding:20px;border-radius:10px;box-shadow:0 4px 10px rgba(255,102,153,0.3);font-weight:600;flex:1; min-width:140px; text-align:center;">
+          Monthly Revenue: $21,400
+        </div>
+      </div>`,
+      users: `<h1>Users</h1>
+      <p>Manage your users here.</p>
+      <table style="width:100%;border-collapse: collapse;margin-top: 15px;">
+        <thead>
+          <tr style="background: #764ba2; color: white;">
+            <th style="padding: 10px; text-align: left;">Name</th>
+            <th style="padding: 10px; text-align: left;">Email</th>
+            <th style="padding: 10px; text-align: left;">Role</th>
+          </tr>
+        </thead>
+        <tbody id="users-table-body">
+          <tr><td colspan="3" style="text-align:center;padding:20px;color:#888;">Loading users...</td></tr>
+        </tbody>
+      </table>`,
+      reports: `<h1>Reports</h1>
+      <p>View analytics and reports.</p>
+      <ul style="margin-top:20px; list-style: disc inside;">
+        <li>Monthly Sales Report</li>
+        <li>User Activity Report</li>
+        <li>System Performance</li>
+      </ul>`,
+      settings: `<h1>Settings</h1>
+      <p>Adjust your application settings here.</p>
+      <form style="margin-top: 15px; max-width:400px;" id="settings-form">
+        <label for="email-notifications" style="display:block;margin-bottom:8px;font-weight:600;">Email Notifications</label>
+        <select id="email-notifications" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc;">
+          <option value="enabled">Enabled</option>
+          <option value="disabled">Disabled</option>
+        </select>
+        <button type="submit" style="margin-top: 15px; background:#764ba2; color:white; border:none; padding:10px 20px; border-radius:6px; cursor:pointer; font-weight:600;">Save Settings</button>
+      </form>
+      <p id="settings-msg" style="margin-top: 10px; font-weight: 600;"></p>`
     };
 
-    loginBtn.onclick = () => {
-      const email = emailInput.value;
-      const pass = passwordInput.value;
-      signInWithEmailAndPassword(auth, email, pass)
-        .catch(err => notify(err.message));
-    };
+    // Handle navigation clicks
+    navLinks.forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        navLinks.forEach(l => {
+          l.classList.remove('active');
+          l.setAttribute('aria-selected', 'false');
+          l.tabIndex = -1;
+        });
+        link.classList.add('active');
+        link.setAttribute('aria-selected', 'true');
+        link.tabIndex = 0;
+        link.focus();
+        const tab = link.getAttribute('data-tab');
+        if (tab in tabContent) {
+          contentArea.innerHTML = tabContent[tab];
+          contentArea.focus();
+          if(tab === 'dashboard') {
+            loadTotalUsers();
+          } else if(tab === 'users') {
+            loadUsersList();
+          } else if(tab === 'settings') {
+            setupSettingsForm();
+          }
+        }
+      });
+    });
 
-    onAuthStateChanged(auth, async user => {
-      if (user) {
-        const snapshot = await get(child(ref(db), 'users/' + user.uid));
-        const data = snapshot.val();
-        if (!data) return;
+    // Load total users count for dashboard
+    function loadTotalUsers(){
+      const el = document.getElementById('total-users');
+      if(!el) return;
+      db.collection('users').get().then(snapshot => {
+        el.textContent = snapshot.size;
+      }).catch(() => {
+        el.textContent = 'N/A';
+      });
+    }
 
-        // Check banned list
-        const bannedSnap = await get(bannedRef);
-        const bannedData = bannedSnap.val() || {};
-        if (bannedData[user.email] || bannedData[data.username]) {
-          notify("You are banned.");
+    // Load users list in users tab
+    function loadUsersList(){
+      const tbody = document.getElementById('users-table-body');
+      if(!tbody) return;
+      tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:20px;color:#888;">Loading users...</td></tr>';
+
+      db.collection('users').get().then(snapshot => {
+        if(snapshot.empty){
+          tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:20px;color:#888;">No users found.</td></tr>';
           return;
         }
-
-        authUI.style.display = "none";
-        dashboard.style.display = "block";
-        userEmail.innerText = user.email;
-        logcashDisplay.innerText = data.logcash;
-
-        if (user.email === "ppggyar@gmail.com") {
-          adminPanel.style.display = "block";
-        }
-
-        // Leaderboard
-        const allUsers = await get(child(ref(db), 'users'));
-        leaderboardList.innerHTML = "";
-        Object.values(allUsers.val()).forEach(u => {
-          leaderboardList.innerHTML += `<li>${u.email} - ${u.logcash} LogCash - Title: ${u.title}, Style: ${u.style}</li>`;
+        let rows = '';
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          rows += `<tr>
+            <td style="padding: 10px; border-bottom: 1px solid #ccc;">${escapeHtml(data.name || 'N/A')}</td>
+            <td style="padding: 10px; border-bottom: 1px solid #ccc;">${escapeHtml(data.email)}</td>
+            <td style="padding: 10px; border-bottom: 1px solid #ccc;">${escapeHtml(data.role || 'User')}</td>
+          </tr>`;
         });
+        tbody.innerHTML = rows;
+      }).catch(() => {
+        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:20px;color:#888;">Failed to load users.</td></tr>';
+      });
+    }
+
+    // Setup settings form
+    function setupSettingsForm(){
+      const form = document.getElementById('settings-form');
+      const msg = document.getElementById('settings-msg');
+      if(!form || !msg) return;
+      // Load saved settings from Firestore user doc or localStorage fallback
+      const currentUser = auth.currentUser;
+      msg.textContent = '';
+
+      db.collection('settings').doc('global').get().then(doc => {
+        if(doc.exists){
+          const data = doc.data();
+          const select = form.querySelector('#email-notifications');
+          if(select && data.emailNotifications){
+            select.value = data.emailNotifications;
+          }
+        }
+      }).catch(() => {
+        // Ignore
+      });
+      
+      form.onsubmit = e => {
+        e.preventDefault();
+        const val = form['email-notifications'].value;
+        db.collection('settings').doc('global').set({emailNotifications: val}).then(() => {
+          msg.style.color = 'green';
+          msg.textContent = 'Settings saved successfully.';
+          setTimeout(() => {msg.textContent='';}, 3000);
+        }).catch(() => {
+          msg.style.color = '#e74c3c';
+          msg.textContent = 'Failed to save settings.';
+        });
+      };
+    }
+
+    // Escape HTML to prevent injection
+    function escapeHtml(text){
+      if(!text) return '';
+      return text.replace(/[&<>"']/g, function(m) {
+        return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];
+      });
+    }
+
+    // Login button click handler
+    loginBtn.addEventListener('click', () => {
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
+      if(!email){
+        showLoginError('Email is required.');
+        return;
+      }
+      if(!password){
+        showLoginError('Password is required.');
+        return;
+      }
+      showLoading(true);
+      auth.signInWithEmailAndPassword(email, password)
+        .then(userCredential => {
+          showLoading(false);
+          loginError.textContent = '';
+          // Show admin panel
+        })
+        .catch(error => {
+          showLoading(false);
+          if(error.code === 'auth/user-not-found'){
+            showLoginError('No user found with this email.');
+          } else if(error.code === 'auth/wrong-password'){
+            showLoginError('Incorrect password.');
+          } else {
+            showLoginError('Login failed. Check credentials.');
+          }
+        });
+    });
+
+    // On auth state changed
+    auth.onAuthStateChanged(user => {
+      if(user){
+        loginPage.style.display = 'none';
+        container.style.display = 'flex';
+        profileName.textContent = user.displayName || user.email || 'Admin User';
+        profilePic.src = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(profileName.textContent)}&background=764ba2&color=fff&size=64`;
+        // Load initial tab content (dashboard)
+        navLinks.forEach(l => {
+          l.classList.remove('active');
+          l.setAttribute('aria-selected', 'false');
+          l.tabIndex = -1;
+        });
+        navLinks[0].classList.add('active');
+        navLinks[0].setAttribute('aria-selected', 'true');
+        navLinks[0].tabIndex = 0;
+        contentArea.innerHTML = tabContent.dashboard;
+        loadTotalUsers();
       } else {
-        dashboard.style.display = "none";
-        authUI.style.display = "block";
+        container.style.display = 'none';
+        loginPage.style.display = 'flex';
+        emailInput.focus();
       }
     });
 
-    // Admin controls
-    document.getElementById("banBtn").onclick = async () => {
-      const banVal = document.getElementById("banInput").value;
-      if (!banVal) return;
-      await update(bannedRef, { [banVal]: true });
-      notify("User banned.");
-    };
+    // Logout button
+    logoutBtn.addEventListener('click', () => {
+      auth.signOut();
+    });
 
-    document.getElementById("addCashBtn").onclick = async () => {
-      const email = document.getElementById("addCashEmail").value;
-      const amount = parseInt(document.getElementById("cashAmount").value);
-      const usersSnap = await get(child(ref(db), 'users'));
-      const users = usersSnap.val();
-      for (const uid in users) {
-        if (users[uid].email === email) {
-          const current = users[uid].logcash || 0;
-          await update(ref(db, 'users/' + uid), { logcash: current + amount });
-          notify("LogCash added.");
-        }
-      }
-    };
-  </script></body>
+  </script>
+</body>
 </html>
