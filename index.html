@@ -193,7 +193,6 @@
       min-height: calc(100vh - 60px);
       overflow: hidden;
       flex-wrap: nowrap;
-      /* Support scrolling on small widths */
       overflow-x: auto;
     }
 
@@ -352,12 +351,11 @@
 
     /* Admin Panel styles */
     #admin-panel {
-      display: none;
       background: #fff;
       padding: 20px;
       border-radius: 12px;
       box-shadow: 0 6px 15px rgba(0,0,0,0.1);
-      max-width: 800px;
+      max-width: 900px;
       margin: 0 auto;
     }
     #admin-panel h2 {
@@ -369,6 +367,7 @@
       overflow-y: auto;
       border: 1px solid #ccc;
       border-radius: 8px;
+      margin-bottom: 20px;
     }
     #admin-users-list table {
       width: 100%;
@@ -384,6 +383,38 @@
       color: white;
       position: sticky;
       top: 0;
+    }
+    #admin-logcash-form {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      max-width: 500px;
+    }
+    #admin-logcash-form input[type="email"], #admin-logcash-form input[type="number"] {
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      flex-grow: 1;
+      font-size: 14px;
+    }
+    #admin-logcash-form button {
+      padding: 9px 15px;
+      background: #764ba2;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    #admin-logcash-form button:disabled {
+      background: #aaa;
+      cursor: not-allowed;
+    }
+    #admin-logcash-msg {
+      margin-top: 10px;
+      font-weight: 600;
     }
 
     /* Responsive */
@@ -419,6 +450,13 @@
       }
       main#content-area {
         min-height: auto;
+      }
+      #admin-logcash-form {
+        flex-direction: column;
+        max-width: 100%;
+      }
+      #admin-logcash-form input, #admin-logcash-form button {
+        width: 100%;
       }
     }
   </style>
@@ -511,16 +549,22 @@
     const contentArea = document.getElementById('content-area');
     const adminLink = document.getElementById('admin-link');
 
-    // Purchase store data
+    // Purchase store data with more styles and titles
     const availableStyles = [
       { id: "style1", name: "Purple Glow", price: 30, description: "A dazzling purple theme with glow."},
       { id: "style2", name: "Dark Mode", price: 50, description: "Sleek dark theme for night owls."},
-      { id: "style3", name: "Pastel Dream", price: 40, description: "Soft pastel colors for calm vibes."}
+      { id: "style3", name: "Pastel Dream", price: 40, description: "Soft pastel colors for calm vibes."},
+      { id: "style4", name: "Solar Flare", price: 60, description: "Warm sunset hues with bright waves."},
+      { id: "style5", name: "Cyber Matrix", price: 80, description: "Futuristic neon green and black."},
+      { id: "style6", name: "Frozen Frost", price: 45, description: "Cool blues and icy accents."}
     ];
     const availableTitles = [
       { id: "title1", name: "The Conqueror", price: 60 },
       { id: "title2", name: "Mastermind", price: 45 },
-      { id: "title3", name: "Legendary", price: 100 }
+      { id: "title3", name: "Legendary", price: 100 },
+      { id: "title4", name: "Trailblazer", price: 75 },
+      { id: "title5", name: "Shadow Walker", price: 55 },
+      { id: "title6", name: "The Innovator", price: 80 }
     ];
 
     let isLoginMode = true; // Track if we are in login or signup mode
@@ -670,8 +714,14 @@
         dashboardPage.style.display = 'flex';
         authError.textContent = "";
         setAuthLoading(false);
-        await loadUserData(user);
-
+        try {
+          await loadUserData(user);
+        } catch(e) {
+          authError.textContent = "Failed to load user data.";
+          console.error(e);
+          return;
+        }
+  
         // Enable admin panel link only for johndoe@gmail.com
         if(user.email === "johndoe@gmail.com") {
           adminLink.style.display = "block";
@@ -700,28 +750,22 @@
 
     // Load user data from Firestore and update UI
     async function loadUserData(user) {
-      try {
-        const userDocSnap = await db.collection('users').doc(user.uid).get();
-        if(!userDocSnap.exists) {
-          throw new Error("User data not found");
-        }
-        currentUserDoc = userDocSnap;
-        const data = userDocSnap.data();
-
-        currentUserData = data;
-
-        profileName.textContent = data.name || user.displayName || user.email;
-        // Use user.photoURL if present else red default avatar
-        const photoURL = user.photoURL && user.photoURL.trim() !== "" ? user.photoURL :
-          `https://ui-avatars.com/api/?name=${encodeURIComponent(profileName.textContent)}&background=ff3333&color=fff&size=64`;
-
-        profilePic.src = photoURL;
-        logcashBalance.textContent = data.logcash || 0;
-      } catch(e) {
-        console.error("Failed to load user data", e);
-        authError.textContent = "Failed to load user data.";
-        currentUserData = null;
+      const userDocSnap = await db.collection('users').doc(user.uid).get();
+      if(!userDocSnap.exists) {
+        throw new Error("User data not found");
       }
+      currentUserDoc = userDocSnap;
+      const data = userDocSnap.data();
+
+      currentUserData = data;
+
+      profileName.textContent = data.name || user.displayName || user.email;
+      // Use user.photoURL if present else red default avatar
+      const photoURL = user.photoURL && user.photoURL.trim() !== "" ? user.photoURL :
+        `https://ui-avatars.com/api/?name=${encodeURIComponent(profileName.textContent)}&background=ff3333&color=fff&size=64`;
+
+      profilePic.src = photoURL;
+      logcashBalance.textContent = data.logcash || 0;
     }
 
     // Sidebar navigation setup
@@ -919,7 +963,6 @@
 
       const listEl = document.getElementById('leaderboard-list');
       try {
-        // Fixed: scrolling entire users collection with correct query
         const snapshot = await db.collection('users')
           .orderBy('logcash', 'desc')
           .limit(100)
@@ -967,9 +1010,21 @@
         <div id="admin-users-list">
           <p>Loading users...</p>
         </div>
+        <form id="admin-logcash-form" aria-label="Give LogCash to users">
+          <input type="email" id="admin-email-input" placeholder="User email" aria-label="User email" required />
+          <input type="number" id="admin-amount-input" placeholder="Amount (e.g. 10)" min="1" aria-label="LogCash amount" required />
+          <button type="submit" id="admin-give-cash-btn">Give LogCash</button>
+        </form>
+        <div id="admin-logcash-msg" role="alert"></div>
       </div>`;
 
       const usersListEl = document.getElementById('admin-users-list');
+      const form = document.getElementById('admin-logcash-form');
+      const emailInput = document.getElementById('admin-email-input');
+      const amountInput = document.getElementById('admin-amount-input');
+      const btn = document.getElementById('admin-give-cash-btn');
+      const msg = document.getElementById('admin-logcash-msg');
+
       try {
         const snapshot = await db.collection('users').orderBy('logcash', 'desc').limit(500).get();
         if(snapshot.empty) {
@@ -979,7 +1034,7 @@
 
         let table = document.createElement('table');
         table.innerHTML = `
-          <thead><tr><th>Name</th><th>Email</th><th>LogCash</th><th>Actions</th></tr></thead>
+          <thead><tr><th>Name</th><th>Email</th><th>LogCash</th></tr></thead>
         `;
         let tbody = document.createElement('tbody');
 
@@ -990,44 +1045,74 @@
             <td>${escapeHtml(u.name || '')}</td>
             <td>${escapeHtml(u.email)}</td>
             <td>${u.logcash || 0}</td>
-            <td><button data-uid="${doc.id}" class="admin-add-cash-btn">+10 LogCash</button></td>
           `;
           tbody.appendChild(tr);
         });
         table.appendChild(tbody);
         usersListEl.innerHTML = '';
         usersListEl.appendChild(table);
-
-        // Attach event listeners to buttons
-        usersListEl.querySelectorAll('.admin-add-cash-btn').forEach(btn => {
-          btn.addEventListener('click', async () => {
-            const uid = btn.getAttribute('data-uid');
-            if(!uid) return;
-            btn.disabled = true;
-            btn.textContent = "Adding...";
-            try {
-              const userRef = db.collection('users').doc(uid);
-              await db.runTransaction(async (transaction) => {
-                const userDoc = await transaction.get(userRef);
-                if(!userDoc.exists) throw "User does not exist";
-                const currentCash = userDoc.data().logcash || 0;
-                transaction.update(userRef, {
-                  logcash: currentCash + 10
-                });
-              });
-              alert('Added 10 LogCash to user!');
-              renderAdminPanel();
-            } catch(e) {
-              alert('Failed to add LogCash: ' + e);
-              btn.disabled = false;
-              btn.textContent = "+10 LogCash";
-            }
-          });
-        });
       } catch(e) {
         usersListEl.innerHTML = "<p>Failed to load users.</p>";
         console.error("Admin panel load error:", e);
       }
+
+      form.onsubmit = async (e) => {
+        e.preventDefault();
+        msg.textContent = "";
+        const emailToGive = emailInput.value.trim().toLowerCase();
+        const amountToGive = Number(amountInput.value);
+
+        if(!validateEmail(emailToGive)) {
+          msg.style.color = "#e74c3c";
+          msg.textContent = "Please enter a valid email.";
+          return;
+        }
+        if(!(amountToGive >= 1)) {
+          msg.style.color = "#e74c3c";
+          msg.textContent = "Please enter a valid amount greater or equal to 1.";
+          return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = "Giving...";
+        try {
+          // Find user doc by email
+          const query = await db.collection('users').where('email', '==', emailToGive).limit(1).get();
+          if(query.empty) {
+            msg.style.color = "#e74c3c";
+            msg.textContent = "No user found with this email.";
+            btn.disabled = false;
+            btn.textContent = "Give LogCash";
+            return;
+          }
+          const userDoc = query.docs[0];
+          await db.runTransaction(async (transaction) => {
+            const freshDoc = await transaction.get(userDoc.ref);
+            if(!freshDoc.exists) throw "User doc no longer exists";
+            const currentCash = freshDoc.data().logcash || 0;
+            transaction.update(userDoc.ref, {
+              logcash: currentCash + amountToGive
+            });
+          });
+
+          msg.style.color = "green";
+          msg.textContent = `Gave ${amountToGive} LogCash to ${emailToGive}.`;
+
+          // Refresh admin panel and user data if affected
+          await loadUserData(auth.currentUser);
+          if(userDoc.id === currentUserDoc.id) {
+            logcashBalance.textContent = currentUserData.logcash;
+          }
+          renderAdminPanel();
+        } catch(err) {
+          msg.style.color = "#e74c3c";
+          msg.textContent = "Failed to give LogCash: " + err;
+          console.error(err);
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Give LogCash";
+        }
+      };
     }
 
     // Escape HTML helper
@@ -1040,4 +1125,3 @@
   </script>
 </body>
 </html>
-
