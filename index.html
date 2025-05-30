@@ -1,122 +1,1042 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en" >
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Login to Roblox</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>LogCash Shop - Firebase Auth & Dashboard</title>
   <style>
-    body {
-      margin: 0;
+    /* Global Resets */
+    * {
+      box-sizing: border-box;
+    }
+    body, html {
+      margin: 0; padding: 0; height: 100%;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #1c1c1c;
+      background: #f5f7fa;
+      color: #333;
+      min-height: 100vh;
+      overflow-y: auto;
+    }
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+    button {
+      font-family: inherit;
+    }
+
+    /* Common container */
+    #app {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Login/signup page styles */
+    #auth-page {
+      flex-grow: 1;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      display: flex;
+      justify-content: center;
+      align-items: center;
       color: white;
-    }header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background-color: #111;
-  padding: 0.5rem 1rem;
-}
+      padding: 20px;
+      box-sizing: border-box;
+    }
 
-header img {
-  height: 32px;
-}
+    #auth-box {
+      background: rgba(255 255 255 / 0.15);
+      padding: 40px 30px 30px 30px;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 400px;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 8px 32px rgb(118 75 162 / 0.4);
+      display: flex;
+      flex-direction: column;
+    }
 
-nav {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-}
+    #auth-box h2 {
+      margin-bottom: 25px;
+      text-align: center;
+      font-weight: 600;
+    }
+    input {
+      background: rgba(255 255 255 / 0.30);
+      border: none;
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 18px;
+      font-size: 16px;
+      color: white;
+      transition: background 0.3s;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    input::placeholder {
+      color: #ddd;
+    }
+    input:focus {
+      background: rgba(255 255 255 / 0.45);
+      outline: none;
+    }
+    button.primary-btn {
+      background: #ff6699;
+      border: none;
+      padding: 14px 0;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 18px;
+      cursor: pointer;
+      color: white;
+      transition: background 0.3s ease;
+      margin-bottom: 15px;
+      width: 100%;
+    }
+    button.primary-btn:hover {
+      background: #e05184;
+    }
+    .error-msg {
+      color: #ff4d6d;
+      margin-bottom: 12px;
+      font-weight: 600;
+      text-align: center;
+      min-height: 24px;
+    }
+    .toggle-auth {
+      text-align: center;
+      color: white;
+      font-size: 14px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .toggle-auth:hover {
+      text-decoration: underline;
+    }
+    .spinner {
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      border-top: 4px solid white;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      margin: 0 auto 18px auto;
+      animation: spin 1s linear infinite;
+      display: none;
+    }
+    .spinner.active {
+      display: block;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
 
-nav a {
-  color: white;
-  text-decoration: none;
-  font-size: 0.9rem;
-}
+    /* Dashboard container */
+    #dashboard-page {
+      display: none;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    /* Topbar */
+    header#topbar {
+      background: #fff;
+      height: 60px;
+      border-bottom: 1px solid #ddd;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 20px;
+      flex-shrink: 0;
+    }
+    #topbar .profile-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    #profile-pic {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+      box-shadow: 0 0 4px rgba(0,0,0,0.1);
+    }
+    #profile-name {
+      font-weight: 700;
+      color: #333;
+    }
+    #logcash-balance {
+      font-weight: 600;
+      background: linear-gradient(90deg, #ff6699, #764ba2);
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+    button#logout-btn {
+      background: #ff4d6d;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      transition: background 0.3s ease;
+    }
+    button#logout-btn:hover {
+      background: #e63b5d;
+    }
 
-.main-content {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 80vh;
-}
+    /* Main dashboard layout */
+    #dashboard-main {
+      flex-grow: 1;
+      display: flex;
+      height: auto;
+      min-height: calc(100vh - 60px);
+      overflow: hidden;
+      flex-wrap: nowrap;
+      /* Support scrolling on small widths */
+      overflow-x: auto;
+    }
 
-.login-box {
-  background-color: #2e2e2e;
-  padding: 2rem;
-  border-radius: 0.5rem;
-  width: 300px;
-  text-align: center;
-}
+    /* Sidebar */
+    #sidebar {
+      width: 220px;
+      background: #2f3e4d;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      padding-top: 20px;
+      flex-shrink: 0;
+      min-height: 0;
+    }
+    #sidebar nav a {
+      display: flex;
+      align-items: center;
+      padding: 14px 20px;
+      border-left: 4px solid transparent;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 15px;
+      user-select: none;
+      transition: background 0.3s ease, border-left-color 0.3s ease;
+      white-space: nowrap;
+    }
+    #sidebar nav a:hover {
+      background: #405368;
+    }
+    #sidebar nav a.active {
+      background: #1e2a38;
+      border-left-color: #ff6699;
+    }
+    #sidebar nav a svg {
+      width: 20px;
+      height: 20px;
+      fill: white;
+      margin-right: 12px;
+      flex-shrink: 0;
+    }
 
-.login-box h2 {
-  margin-bottom: 1rem;
-}
+    /* Content area */
+    main#content-area {
+      flex-grow: 1;
+      background: #fafafa;
+      padding: 30px 40px;
+      overflow-y: auto;
+      min-height: 0;
+      box-sizing: border-box;
+      min-width: 0;
+    }
+    main#content-area h1 {
+      margin-bottom: 25px;
+      color: #2f3e4d;
+    }
+    main#content-area p {
+      font-size: 16px;
+      line-height: 1.6;
+    }
 
-.login-box input[type="text"],
-.login-box input[type="password"] {
-  width: 100%;
-  padding: 0.5rem;
-  margin: 0.5rem 0;
-  border: none;
-  border-radius: 0.3rem;
-}
+    /* Buy styles and titles containers */
+    .items-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit,minmax(160px,1fr));
+      gap: 20px;
+    }
+    .item-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 6px 15px rgb(0 0 0 / 0.1);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      cursor: pointer;
+      transition: box-shadow 0.25s ease;
+      user-select: none;
+      min-height: 140px;
+    }
+    .item-card:hover:not(.owned):not(.disabled) {
+      box-shadow: 0 8px 20px rgb(118 75 162 / 0.5);
+    }
+    .item-card h3 {
+      margin: 0;
+      font-weight: 700;
+      font-size: 18px;
+      color: #764ba2;
+    }
+    .item-card .price {
+      font-weight: 600;
+      color: #ff6699;
+    }
+    .item-card.owned {
+      cursor: default;
+      color: #999;
+      box-shadow: inset 0 0 15px rgba(100,75,162,0.3);
+    }
+    .item-card.owned h3 {
+      color: #444;
+    }
+    .item-card.disabled {
+      color: #ccc;
+      cursor: not-allowed;
+    }
+    .item-card.disabled:hover {
+      box-shadow: none;
+    }
 
-.login-box button {
-  width: 100%;
-  padding: 0.5rem;
-  background-color: #0f62fe;
-  border: none;
-  color: white;
-  border-radius: 0.3rem;
-  cursor: pointer;
-}
+    /* Buttons in items */
+    .item-card button.buy-btn {
+      margin-top: auto;
+      background: #764ba2;
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    .item-card button.buy-btn:hover:not(:disabled) {
+      background: #5a3478;
+    }
+    .item-card button.buy-btn:disabled {
+      background: #aaa;
+      cursor: not-allowed;
+    }
 
-.login-box a {
-  display: block;
-  margin-top: 0.5rem;
-  color: #bbb;
-  text-decoration: none;
-  font-size: 0.85rem;
-}
+    /* Leaderboard styles */
+    #leaderboard-list {
+      max-height: 600px;
+      overflow-y: auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 6px 15px rgb(0 0 0 / 0.1);
+    }
+    table.leaderboard-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    table.leaderboard-table th, table.leaderboard-table td {
+      padding: 12px 15px;
+      border-bottom: 1px solid #eee;
+      text-align: left;
+    }
+    table.leaderboard-table th {
+      background: #764ba2;
+      color: white;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+    table.leaderboard-table tr:nth-child(even) {
+      background: #fafafa;
+    }
 
-footer {
-  background-color: #111;
-  color: #aaa;
-  font-size: 0.75rem;
-  text-align: center;
-  padding: 1rem;
-}
+    /* Admin Panel styles */
+    #admin-panel {
+      display: none;
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    #admin-panel h2 {
+      color: #764ba2;
+      margin-bottom: 20px;
+    }
+    #admin-users-list {
+      max-height: 400px;
+      overflow-y: auto;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    #admin-users-list table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    #admin-users-list th, #admin-users-list td {
+      padding: 10px;
+      border-bottom: 1px solid #eee;
+      text-align: left;
+    }
+    #admin-users-list th {
+      background: #764ba2;
+      color: white;
+      position: sticky;
+      top: 0;
+    }
 
+    /* Responsive */
+    @media (max-width: 840px) {
+      main#content-area {
+        padding: 20px;
+      }
+      #sidebar {
+        width: 60px;
+        font-size: 12px;
+      }
+      #sidebar nav a span {
+        display: none;
+      }
+      #sidebar nav a svg {
+        margin-right: 0;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      #dashboard-main {
+        flex-wrap: wrap;
+      }
+      #sidebar {
+        flex: 0 0 100%;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        padding: 10px 0;
+      }
+      #sidebar nav a {
+        padding: 8px 14px;
+        font-size: 14px;
+      }
+      main#content-area {
+        min-height: auto;
+      }
+    }
   </style>
 </head>
 <body>
-  <header>
-    <img src="https://upload.wikimedia.org/wikipedia/commons/3/3a/Roblox_Studio_Logo.png" alt="Roblox" />
-    <nav>
-      <a href="#">Charts</a>
-      <a href="#">Marketplace</a>
-      <a href="#">Create</a>
-      <a href="#">Robux</a>
-      <button style="padding: 0.3rem 0.8rem; background-color: #0f62fe; color: white; border: none; border-radius: 0.25rem;">Sign Up</button>
-    </nav>
-  </header>  <div class="main-content">
-    <div class="login-box">
-      <h2>Login to Roblox</h2>
-      <input type="text" placeholder="Username/Email/Phone" />
-      <input type="password" placeholder="Password" />
-      <button>Log In</button>
-      <a href="#">Forgot Password or Username?</a>
-      <button style="margin-top: 0.5rem; background-color: #444;">Email Me a One-Time Code</button>
-      <button style="margin-top: 0.5rem; background-color: #444;">Use Another Device</button>
-      <a href="#">Don't have an account? <strong>Sign Up</strong></a>
-    </div>
-  </div>  <footer>
-    <p>About Us | Jobs | Blog | Parents | Gift Cards | Help</p>
-    <p>Terms | Accessibility | Privacy | Your Privacy Choices</p>
-    <p>
-      &copy;2025 Roblox Corporation. Roblox, the Roblox logo and Powering Imagination are among our registered and
-      unregistered trademarks in the U.S. and other countries.
-    </p>
-  </footer>
+  <div id="app">
+    <!-- Authentication Page (login/signup) -->
+    <section id="auth-page" aria-label="Account signup and login">
+      <div id="auth-box" role="form" aria-describedby="auth-error">
+        <h2 id="auth-title">Login</h2>
+        <div id="auth-error" class="error-msg" role="alert" aria-live="assertive"></div>
+        <input type="email" id="auth-email" placeholder="Email" aria-label="Email" required autocomplete="username" />
+        <input type="password" id="auth-password" placeholder="Password" aria-label="Password" required autocomplete="current-password" />
+        <input type="text" id="auth-name" placeholder="Full Name (Signup only)" aria-label="Full Name" style="display:none;" autocomplete="name" />
+        <button id="auth-submit" class="primary-btn" aria-label="Submit Login or Signup">Login</button>
+        <div class="toggle-auth" id="auth-toggle-link" tabindex="0" role="button" aria-pressed="false">Don't have an account? Sign up</div>
+        <div class="spinner" id="auth-spinner" aria-hidden="true"></div>
+      </div>
+    </section>
+
+    <!-- Dashboard Page -->
+    <section id="dashboard-page" aria-label="User dashboard" style="display:none;">
+      <header id="topbar" role="banner">
+        <div class="profile-info" aria-label="User Profile Information">
+          <img src="" alt="User Profile Picture" id="profile-pic" />
+          <div>
+            <div id="profile-name"></div>
+            <div>LogCash: <span id="logcash-balance">0</span> 💰</div>
+          </div>
+        </div>
+        <button id="logout-btn" aria-label="Sign out">Logout</button>
+      </header>
+      <div id="dashboard-main">
+        <aside id="sidebar" aria-label="Dashboard navigation">
+          <nav role="navigation" aria-label="Dashboard tabs">
+            <a href="#" class="active" data-tab="buy-styles" tabindex="0" aria-selected="true" role="tab">Buy Styles</a>
+            <a href="#" data-tab="buy-titles" tabindex="-1" aria-selected="false" role="tab">Buy Titles</a>
+            <a href="#" data-tab="leaderboard" tabindex="-1" aria-selected="false" role="tab">Leaderboard</a>
+            <a href="#" data-tab="admin-panel" tabindex="-1" aria-selected="false" role="tab" id="admin-link" style="display:none;">Admin Panel</a>
+          </nav>
+        </aside>
+        <main id="content-area" tabindex="0" role="tabpanel" aria-live="polite" aria-atomic="true">
+          <h1>Loading dashboard...</h1>
+          <p>Please wait...</p>
+        </main>
+      </div>
+    </section>
+  </div>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-firestore-compat.js"></script>
+
+  <script>
+    // ==== Your Firebase config here ====
+    const firebaseConfig = {
+      apiKey: "AIzaSyBjA2O3QDuKsAGLzq008VEDug69WDroulI",
+      authDomain: "supercoollogin999.firebaseapp.com",
+      databaseURL: "https://supercoollogin999-default-rtdb.firebaseio.com",
+      projectId: "supercoollogin999",
+      storageBucket: "supercoollogin999.firebasestorage.app",
+      messagingSenderId: "472488806884",
+      appId: "1:472488806884:web:d904be3b09548dbbc51ff1",
+      measurementId: "G-03NQP912BX"
+    };
+    // ==================================
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    const authPage = document.getElementById('auth-page');
+    const dashboardPage = document.getElementById('dashboard-page');
+
+    const authTitle = document.getElementById('auth-title');
+    const authEmail = document.getElementById('auth-email');
+    const authPassword = document.getElementById('auth-password');
+    const authName = document.getElementById('auth-name');
+    const authSubmit = document.getElementById('auth-submit');
+    const authToggleLink = document.getElementById('auth-toggle-link');
+    const authError = document.getElementById('auth-error');
+    const authSpinner = document.getElementById('auth-spinner');
+
+    const profilePic = document.getElementById('profile-pic');
+    const profileName = document.getElementById('profile-name');
+    const logcashBalance = document.getElementById('logcash-balance');
+    const logoutBtn = document.getElementById('logout-btn');
+    const sidebarLinks = document.querySelectorAll('#sidebar nav a');
+    const contentArea = document.getElementById('content-area');
+    const adminLink = document.getElementById('admin-link');
+
+    // Purchase store data
+    const availableStyles = [
+      { id: "style1", name: "Purple Glow", price: 30, description: "A dazzling purple theme with glow."},
+      { id: "style2", name: "Dark Mode", price: 50, description: "Sleek dark theme for night owls."},
+      { id: "style3", name: "Pastel Dream", price: 40, description: "Soft pastel colors for calm vibes."}
+    ];
+    const availableTitles = [
+      { id: "title1", name: "The Conqueror", price: 60 },
+      { id: "title2", name: "Mastermind", price: 45 },
+      { id: "title3", name: "Legendary", price: 100 }
+    ];
+
+    let isLoginMode = true; // Track if we are in login or signup mode
+    let currentUserDoc = null; // Current logged user Firestore doc snapshot
+    let currentUserData = null; // Cached user data in memory
+
+    // Toggle login/signup UI
+    function toggleAuthMode() {
+      isLoginMode = !isLoginMode;
+      authError.textContent = "";
+      if(isLoginMode) {
+        authTitle.textContent = "Login";
+        authSubmit.textContent = "Login";
+        authToggleLink.textContent = "Don't have an account? Sign up";
+        authName.style.display = "none";
+        authPassword.value = "";
+        authEmail.value = "";
+      } else {
+        authTitle.textContent = "Sign Up";
+        authSubmit.textContent = "Sign Up";
+        authToggleLink.textContent = "Already have an account? Login";
+        authName.style.display = "block";
+        authPassword.value = "";
+        authEmail.value = "";
+        authName.value = "";
+      }
+    }
+
+    authToggleLink.addEventListener('click', toggleAuthMode);
+    authToggleLink.addEventListener('keypress', e => {
+      if(e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        toggleAuthMode();
+      }
+    });
+
+    // Show spinner and disable inputs
+    function setAuthLoading(loading) {
+      if(loading) {
+        authSpinner.classList.add('active');
+        authSubmit.disabled = true;
+        authEmail.disabled = true;
+        authPassword.disabled = true;
+        authName.disabled = true;
+        authToggleLink.style.pointerEvents = "none";
+      } else {
+        authSpinner.classList.remove('active');
+        authSubmit.disabled = false;
+        authEmail.disabled = false;
+        authPassword.disabled = false;
+        authName.disabled = false;
+        authToggleLink.style.pointerEvents = "auto";
+      }
+    }
+
+    // Simple email validation
+    function validateEmail(email) {
+      const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return re.test(email);
+    }
+
+    // Signup user in Firebase, add user doc in Firestore with logcash credits
+    async function signupUser(email, password, name) {
+      const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+      const user = userCredential.user;
+      // Update displayName
+      await user.updateProfile({ displayName: name });
+      // Create user document in Firestore
+      const userDocRef = db.collection('users').doc(user.uid);
+      await userDocRef.set({
+        email: email,
+        name: name,
+        logcash: 10, // Starting credits plus 10 logcash
+        ownedStyles: [],
+        ownedTitles: [],
+        currentStyle: null,
+        currentTitle: null,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      return user;
+    }
+
+    // On login also add 10 logcash credits (if user exists)
+    async function creditLoginBonus(user) {
+      if (!user) return;
+      const userDocRef = db.collection('users').doc(user.uid);
+      // Atomically increment logcash by 10 and update lastLogin timestamp
+      await userDocRef.update({
+        logcash: firebase.firestore.FieldValue.increment(10),
+        lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
+
+    // Login user with Firebase
+    async function loginUser(email, password) {
+      const userCredential = await auth.signInWithEmailAndPassword(email, password);
+      await creditLoginBonus(userCredential.user);
+      return userCredential.user;
+    }
+
+    authSubmit.addEventListener('click', async () => {
+      authError.textContent = "";
+      const email = authEmail.value.trim().toLowerCase();
+      const password = authPassword.value;
+      const name = authName.value.trim();
+
+      if(!validateEmail(email)) {
+        authError.textContent = "Please enter a valid email.";
+        return;
+      }
+      if(password.length < 6) {
+        authError.textContent = "Password must be at least 6 characters.";
+        return;
+      }
+      if(!isLoginMode && name.length < 2) {
+        authError.textContent = "Please enter your full name (min 2 chars).";
+        return;
+      }
+      setAuthLoading(true);
+      try {
+        if(isLoginMode) {
+          await loginUser(email, password);
+        } else {
+          await signupUser(email, password, name);
+        }
+      } catch(err) {
+        let msg = "Failed to authenticate.";
+        if(err && err.code === "auth/user-not-found") msg = "User not found.";
+        else if(err && err.code === "auth/wrong-password") msg = "Incorrect password.";
+        else if(err && err.code === "auth/email-already-in-use") msg = "Email already in use.";
+        else if(err && err.code === "auth/weak-password") msg = "Weak password.";
+        authError.textContent = msg;
+        setAuthLoading(false);
+        return;
+      }
+    });
+
+    logoutBtn.addEventListener('click', () => {
+      auth.signOut();
+    });
+
+    // On auth state change
+    auth.onAuthStateChanged(async (user) => {
+      if(user) {
+        authPage.style.display = 'none';
+        dashboardPage.style.display = 'flex';
+        authError.textContent = "";
+        setAuthLoading(false);
+        await loadUserData(user);
+  
+        const activeTabLink = document.querySelector('#sidebar nav a.active');
+        const activeTab = activeTabLink ? activeTabLink.getAttribute('data-tab') : 'buy-styles';
+        setActiveTab(activeTab);
+  
+        // Show admin link if email matches
+        if(user.email === "johndoe@gmail.com") {
+          adminLink.style.display = "block";
+        } else {
+          adminLink.style.display = "none";
+        }
+      } else {
+        authPage.style.display = 'flex';
+        dashboardPage.style.display = 'none';
+        authError.textContent = "";
+        setAuthLoading(false);
+        authEmail.value = "";
+        authPassword.value = "";
+        authName.value = "";
+        profilePic.src = "";
+        profileName.textContent = "";
+        logcashBalance.textContent = "0";
+        adminLink.style.display = "none";
+      }
+    });
+
+    // Load user data from Firestore and update UI
+    async function loadUserData(user) {
+      try {
+        const userDocSnap = await db.collection('users').doc(user.uid).get();
+        if(!userDocSnap.exists) {
+          throw new Error("User data not found");
+        }
+        currentUserDoc = userDocSnap;
+        const data = userDocSnap.data();
+
+        currentUserData = data;
+
+        profileName.textContent = data.name || user.displayName || user.email;
+        // Use user.photoURL if present else red default avatar
+        const photoURL = user.photoURL && user.photoURL.trim() !== "" ? user.photoURL :
+          `https://ui-avatars.com/api/?name=${encodeURIComponent(profileName.textContent)}&background=ff3333&color=fff&size=64`;
+
+        profilePic.src = photoURL;
+        logcashBalance.textContent = data.logcash || 0;
+      } catch(e) {
+        console.error("Failed to load user data", e);
+        authError.textContent = "Failed to load user data.";
+        currentUserData = null;
+      }
+    }
+
+    // Sidebar navigation setup
+    sidebarLinks.forEach(link => {
+      link.addEventListener('click', e => {
+        e.preventDefault();
+        if(link.classList.contains('active')) return;
+        sidebarLinks.forEach(l => {
+          l.classList.remove('active');
+          l.setAttribute('aria-selected', 'false');
+          l.tabIndex = -1;
+        });
+        link.classList.add('active');
+        link.setAttribute('aria-selected', 'true');
+        link.tabIndex = 0;
+        setActiveTab(link.getAttribute('data-tab'));
+      });
+    });
+
+    function setActiveTab(tab) {
+      if(tab === "admin-panel" && auth.currentUser && auth.currentUser.email !== "johndoe@gmail.com") {
+        // If someone tries to manually switch, prevent access
+        contentArea.innerHTML = `<h1>Access Denied</h1><p>You do not have permission to view this section.</p>`;
+        return;
+      }
+      if(!currentUserData && tab !== "admin-panel") {
+        // User data missing, show error message except for admin panel
+        contentArea.innerHTML = `<h1>Error</h1><p>User data not loaded. Please try refreshing.</p>`;
+        return;
+      }
+      if(tab === "admin-panel") {
+        renderAdminPanel();
+      } else if(tab === "buy-styles") {
+        renderBuyStyles();
+      } else if(tab === "buy-titles") {
+        renderBuyTitles();
+      } else if(tab === "leaderboard") {
+        renderLeaderboard();
+      }
+    }
+
+    // Buy Styles tab
+    function renderBuyStyles() {
+      contentArea.innerHTML = `<h1>Buy UI Styles</h1>
+      <p>Purchase styles using your LogCash.</p>
+      <div class="items-grid" id="styles-grid"></div>`;
+
+      const grid = document.getElementById('styles-grid');
+      if(!grid) return;
+
+      const owned = currentUserData.ownedStyles || [];
+      const logcash = currentUserData.logcash || 0;
+
+      availableStyles.forEach(style => {
+        const isOwned = owned.includes(style.id);
+        const canBuy = logcash >= style.price && !isOwned;
+
+        const card = document.createElement('div');
+        card.className = "item-card";
+        if(isOwned) card.classList.add('owned');
+        if(!canBuy && !isOwned) card.classList.add('disabled');
+        card.tabIndex = 0;
+
+        card.innerHTML = `
+          <h3>${style.name}</h3>
+          <p>${style.description}</p>
+          <div class="price">${style.price} 💰</div>
+          ${isOwned ? `<button disabled>Owned</button>` : `<button class="buy-btn" ${canBuy ? '' : 'disabled'}>Buy</button>`}
+        `;
+
+        const buyBtn = card.querySelector('button.buy-btn');
+        if(buyBtn) {
+          buyBtn.addEventListener('click', () => buyStyle(style.id, style.price));
+        }
+        grid.appendChild(card);
+      });
+    }
+
+    // Buy Titles tab
+    function renderBuyTitles() {
+      contentArea.innerHTML = `<h1>Buy Titles</h1>
+      <p>Purchase titles using your LogCash.</p>
+      <div class="items-grid" id="titles-grid"></div>`;
+
+      const grid = document.getElementById('titles-grid');
+      if(!grid) return;
+
+      const owned = currentUserData.ownedTitles || [];
+      const logcash = currentUserData.logcash || 0;
+
+      availableTitles.forEach(title => {
+        const isOwned = owned.includes(title.id);
+        const canBuy = logcash >= title.price && !isOwned;
+
+        const card = document.createElement('div');
+        card.className = "item-card";
+        if(isOwned) card.classList.add('owned');
+        if(!canBuy && !isOwned) card.classList.add('disabled');
+        card.tabIndex = 0;
+
+        card.innerHTML = `
+          <h3>${title.name}</h3>
+          <div class="price">${title.price} 💰</div>
+          ${isOwned ? `<button disabled>Owned</button>` : `<button class="buy-btn" ${canBuy ? '' : 'disabled'}>Buy</button>`}
+        `;
+
+        const buyBtn = card.querySelector('button.buy-btn');
+        if(buyBtn) {
+          buyBtn.addEventListener('click', () => buyTitle(title.id, title.price));
+        }
+        grid.appendChild(card);
+      });
+    }
+
+    // Buy style purchase logic
+    async function buyStyle(styleId, price) {
+      if(!currentUserDoc) return;
+      if(currentUserData.logcash < price) {
+        alert("You don't have enough LogCash!");
+        return;
+      }
+      const userDocRef = db.collection('users').doc(currentUserDoc.id);
+      try {
+        await db.runTransaction(async (transaction) => {
+          const userDoc = await transaction.get(userDocRef);
+          if(!userDoc.exists) throw "User doc missing";
+
+          const userData = userDoc.data();
+          const logcash = userData.logcash || 0;
+          const ownedStyles = userData.ownedStyles || [];
+
+          if(logcash < price) throw "Insufficient LogCash";
+          if(ownedStyles.includes(styleId)) throw "Style already owned";
+
+          transaction.update(userDocRef, {
+            logcash: logcash - price,
+            ownedStyles: [...ownedStyles, styleId],
+            currentStyle: styleId
+          });
+        });
+        alert("Style purchased and applied!");
+        currentUserData.logcash -= price;
+        currentUserData.ownedStyles.push(styleId);
+        currentUserData.currentStyle = styleId;
+        logcashBalance.textContent = currentUserData.logcash;
+        renderBuyStyles();
+      } catch(e) {
+        alert("Purchase failed: "+e);
+      }
+    }
+
+    // Buy title purchase logic
+    async function buyTitle(titleId, price) {
+      if(!currentUserDoc) return;
+      if(currentUserData.logcash < price) {
+        alert("You don't have enough LogCash!");
+        return;
+      }
+      const userDocRef = db.collection('users').doc(currentUserDoc.id);
+      try {
+        await db.runTransaction(async (transaction) => {
+          const userDoc = await transaction.get(userDocRef);
+          if(!userDoc.exists) throw "User doc missing";
+
+          const userData = userDoc.data();
+          const logcash = userData.logcash || 0;
+          const ownedTitles = userData.ownedTitles || [];
+
+          if(logcash < price) throw "Insufficient LogCash";
+          if(ownedTitles.includes(titleId)) throw "Title already owned";
+
+          transaction.update(userDocRef, {
+            logcash: logcash - price,
+            ownedTitles: [...ownedTitles, titleId],
+            currentTitle: titleId
+          });
+        });
+        alert("Title purchased and applied!");
+        currentUserData.logcash -= price;
+        currentUserData.ownedTitles.push(titleId);
+        currentUserData.currentTitle = titleId;
+        logcashBalance.textContent = currentUserData.logcash;
+        renderBuyTitles();
+      } catch(e) {
+        alert("Purchase failed: "+e);
+      }
+    }
+
+    // Leaderboard tab
+    async function renderLeaderboard() {
+      contentArea.innerHTML = `<h1>Leaderboard - Top 100 by LogCash</h1>
+      <div id="leaderboard-list" aria-live="polite" aria-atomic="true" tabindex="0">
+      Loading leaderboard...
+      </div>`;
+
+      const listEl = document.getElementById('leaderboard-list');
+      try {
+        // Fixed: scrolling entire users collection with correct query
+        const snapshot = await db.collection('users')
+          .orderBy('logcash', 'desc')
+          .limit(100)
+          .get();
+
+        if(snapshot.empty) {
+          listEl.textContent = "No users found.";
+          return;
+        }
+
+        let table = document.createElement('table');
+        table.className = 'leaderboard-table';
+        table.innerHTML = `<thead><tr>
+          <th>Rank</th><th>Name</th><th>Email</th><th>LogCash</th>
+        </tr></thead>`;
+        let tbody = document.createElement('tbody');
+
+        let rank = 1;
+        snapshot.forEach(doc => {
+          const u = doc.data();
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${rank}</td>
+            <td>${escapeHtml(u.name || '')}</td>
+            <td>${escapeHtml(u.email)}</td>
+            <td>${u.logcash || 0}</td>
+          `;
+          tbody.appendChild(tr);
+          rank++;
+        });
+        table.appendChild(tbody);
+        listEl.innerHTML = '';
+        listEl.appendChild(table);
+
+      } catch(e) {
+        listEl.textContent = "Failed to load leaderboard.";
+        console.error("Leaderboard load error:", e);
+      }
+    }
+
+    // Admin Panel tab
+    async function renderAdminPanel() {
+      contentArea.innerHTML = `<div id="admin-panel" tabindex="0" aria-label="Admin Panel">
+        <h2>Admin Panel - User Management</h2>
+        <div id="admin-users-list">
+          <p>Loading users...</p>
+        </div>
+      </div>`;
+
+      const usersListEl = document.getElementById('admin-users-list');
+      try {
+        const snapshot = await db.collection('users').orderBy('logcash', 'desc').limit(500).get();
+        if(snapshot.empty) {
+          usersListEl.innerHTML = "<p>No users found.</p>";
+          return;
+        }
+
+        let table = document.createElement('table');
+        table.innerHTML = `
+          <thead><tr><th>Name</th><th>Email</th><th>LogCash</th><th>Actions</th></tr></thead>
+        `;
+        let tbody = document.createElement('tbody');
+
+        snapshot.forEach(doc => {
+          const u = doc.data();
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${escapeHtml(u.name || '')}</td>
+            <td>${escapeHtml(u.email)}</td>
+            <td>${u.logcash || 0}</td>
+            <td><button data-uid="${doc.id}" class="admin-add-cash-btn">+10 LogCash</button></td>
+          `;
+          tbody.appendChild(tr);
+        });
+        table.appendChild(tbody);
+        usersListEl.innerHTML = '';
+        usersListEl.appendChild(table);
+
+        // Attach event listeners to buttons
+        usersListEl.querySelectorAll('.admin-add-cash-btn').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const uid = btn.getAttribute('data-uid');
+            if(!uid) return;
+            btn.disabled = true;
+            btn.textContent = "Adding...";
+            try {
+              const userRef = db.collection('users').doc(uid);
+              await db.runTransaction(async (transaction) => {
+                const userDoc = await transaction.get(userRef);
+                if(!userDoc.exists) throw "User does not exist";
+                const currentCash = userDoc.data().logcash || 0;
+                transaction.update(userRef, {
+                  logcash: currentCash + 10
+                });
+              });
+              alert('Added 10 LogCash to user!');
+              renderAdminPanel();
+            } catch(e) {
+              alert('Failed to add LogCash: ' + e);
+              btn.disabled = false;
+              btn.textContent = "+10 LogCash";
+            }
+          });
+        });
+      } catch(e) {
+        usersListEl.innerHTML = "<p>Failed to load users.</p>";
+        console.error("Admin panel load error:", e);
+      }
+    }
+
+    // Escape HTML helper
+    function escapeHtml(text){
+      if(!text) return '';
+      return text.replace(/[&<>"']/g, function(m) {
+        return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];
+      });
+    }
+  </script>
 </body>
 </html>
+
