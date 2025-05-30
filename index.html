@@ -1,241 +1,531 @@
 <!DOCTYPE html>
+<!--
+  Clean Global Messaging Website with Firebase Auth and Realtime DB
+  - Email/Password Signup and Login
+  - Messaging UI shown after login
+  - Logout button
+  - Clean modern UI
+-->
+
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Global Messaging Website with Firebase</title>
+  <title>Global Messenger - Login & Chat</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+    * {
+      box-sizing: border-box;
+    }
     body {
       margin: 0;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      font-family: 'Poppins', sans-serif;
-      color: #fafafa;
+      background: #f5f7fa;
+      font-family: 'Inter', sans-serif;
+      color: #222;
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
-      overflow: hidden;
+      min-height: 100vh;
+      padding: 20px;
     }
-    .container {
-      background: rgba(0, 0, 0, 0.6);
-      width: 400px;
+    .app-container {
+      width: 420px;
       max-width: 95vw;
-      border-radius: 12px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(100,100,120,0.15);
+      overflow: hidden;
       display: flex;
       flex-direction: column;
-      height: 600px;
+      min-height: 660px;
     }
     header {
-      padding: 20px;
+      background: #4f46e5;
+      color: white;
+      padding: 24px 20px;
       text-align: center;
-      background: rgba(255,255,255,0.1);
-      border-top-left-radius: 12px;
-      border-top-right-radius: 12px;
-    }
-    header h1 {
-      margin: 0;
       font-weight: 600;
-      font-size: 1.8rem;
-      letter-spacing: 1px;
+      font-size: 1.75rem;
+      letter-spacing: 0.05em;
       user-select: none;
+    }
+    /* Auth Forms Container */
+    #auth-container {
+      flex-grow: 1;
+      padding: 32px 28px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      max-width: 100%;
+    }
+    label {
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 4px;
+      color: #444;
+    }
+    input[type="email"],
+    input[type="password"] {
+      padding: 12px 16px;
+      border: 1.5px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: border-color 0.3s ease;
+    }
+    input[type="email"]:focus,
+    input[type="password"]:focus {
+      outline: none;
+      border-color: #4f46e5;
+      box-shadow: 0 0 6px rgba(79, 70, 229, 0.3);
+    }
+    button {
+      background-color: #4f46e5;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 14px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      user-select: none;
+    }
+    button:disabled {
+      background-color: #a5b4fc;
+      cursor: not-allowed;
+    }
+    button:hover:not(:disabled) {
+      background-color: #3730a3;
+    }
+    .toggle-auth {
+      margin-top: 16px;
+      font-size: 0.9rem;
+      color: #666;
+      text-align: center;
+      user-select: none;
+    }
+    .toggle-auth button {
+      background: none;
+      border: none;
+      color: #4f46e5;
+      cursor: pointer;
+      font-weight: 600;
+      padding: 0;
+      text-decoration: underline;
+    }
+    .toggle-auth button:hover {
+      color: #3730a3;
+    }
+    .error-msg {
+      background-color: #fee2e2;
+      color: #b91c1c;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      user-select: text;
+    }
+    /* Messaging container */
+    #chat-container {
+      display: none;
+      flex-direction: column;
+      height: 100%;
+      background: #fefefe;
+    }
+    #chat-header {
+      padding: 20px;
+      background: #4f46e5;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 700;
+      font-size: 1.1rem;
+      user-select: none;
+    }
+    #logout-btn {
+      background: #ef4444;
+      border: none;
+      color: white;
+      cursor: pointer;
+      padding: 8px 16px;
+      font-weight: 600;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
+    }
+    #logout-btn:hover {
+      background: #b91c1c;
     }
     #messages {
       flex-grow: 1;
-      padding: 15px;
+      padding: 20px;
       overflow-y: auto;
-      user-select: text;
+      background: #e0e7ff;
       scrollbar-width: thin;
-      scrollbar-color: #764ba2 transparent;
-      background: rgba(255,255,255,0.05);
-      border-radius: 0 0 0 0;
+      scrollbar-color: #4f46e5 transparent;
     }
     #messages::-webkit-scrollbar {
-      width: 8px;
+      width: 9px;
     }
     #messages::-webkit-scrollbar-track {
       background: transparent;
     }
     #messages::-webkit-scrollbar-thumb {
-      background-color: #764ba2;
-      border-radius: 4px;
+      background-color: #4f46e5;
+      border-radius: 10px;
     }
     .message {
-      margin-bottom: 12px;
-      padding: 10px 14px;
-      background: rgba(118, 75, 162, 0.3);
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(118, 75, 162, 0.4);
+      background: white;
+      border-radius: 14px;
+      padding: 14px 18px;
+      margin-bottom: 14px;
+      box-shadow: 0 4px 14px rgba(79, 70, 229, 0.17);
+      max-width: 90%;
       word-wrap: break-word;
-      font-size: 0.9rem;
-      border-left: 4px solid #ffcc00;
       position: relative;
-      line-height: 1.3;
+      font-size: 1rem;
+      line-height: 1.25;
     }
     .message .meta {
-      font-weight: 600;
-      font-size: 0.75rem;
-      opacity: 0.8;
-      margin-bottom: 4px;
-      color: #ffcc00;
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: #6366f1;
+      margin-bottom: 6px;
       user-select: text;
     }
     .message .timestamp {
       position: absolute;
       bottom: 6px;
       right: 10px;
-      font-size: 0.7rem;
-      opacity: 0.6;
-      color: #ffd966;
+      font-size: 0.75rem;
+      color: #9ca3af;
       user-select: text;
     }
-    form {
+    form#messageForm {
       display: flex;
-      flex-direction: column;
-      padding: 20px;
-      background: rgba(0,0,0,0.3);
-      border-bottom-left-radius: 12px;
-      border-bottom-right-radius: 12px;
-      gap: 8px;
+      padding: 16px 20px;
+      background: #4f46e5;
+      gap: 12px;
+      user-select: none;
     }
-    input[type="text"], textarea {
+    textarea#message {
+      flex-grow: 1;
+      border-radius: 12px;
       border: none;
-      border-radius: 8px;
-      padding: 10px 14px;
-      font-size: 1rem;
-      font-family: 'Poppins', sans-serif;
+      padding: 14px 18px;
       resize: none;
-    }
-    input[type="text"] {
-      background: #eee;
-      color: #333;
-      height: 40px;
-    }
-    textarea {
-      background: #ddd;
-      color: #111;
-      min-height: 70px;
-      max-height: 140px;
-      overflow-y: auto;
-    }
-    input[type="text"]:focus, textarea:focus {
-      outline: none;
-      box-shadow: 0 0 8px #ffcc00;
-    }
-    button {
-      background: #ffcc00;
-      border: none;
-      border-radius: 8px;
-      padding: 12px;
-      font-weight: 600;
       font-size: 1rem;
+      font-family: 'Inter', sans-serif;
+      height: 54px;
+      max-height: 120px;
+      transition: box-shadow 0.3s ease;
+    }
+    textarea#message:focus {
+      outline: none;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
+      background-color: #f3f4f6;
+      color: #111;
+    }
+    button#sendBtn {
+      background-color: #e0e7ff;
+      color: #4f46e5;
+      font-weight: 700;
+      border-radius: 12px;
+      border: none;
+      padding: 0 24px;
       cursor: pointer;
       transition: background-color 0.3s ease;
-      color: #4F3A00;
       user-select: none;
+      font-size: 1.05rem;
     }
-    button:hover:not(:disabled) {
-      background: #e6b800;
-    }
-    button:disabled {
-      background: #8d7b00;
+    button#sendBtn:disabled {
+      background-color: #c7d2fe;
       cursor: not-allowed;
+      color: #a5b4fc;
     }
-    .footer {
-      text-align: center;
-      margin-top: 8px;
-      font-size: 0.75rem;
-      color: #ccc;
-      user-select: none;
+    button#sendBtn:not(:disabled):hover {
+      background-color: #dddffc;
     }
   </style>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 </head>
 <body>
-  <div class="container" role="main" aria-label="Global Messaging Website with Firebase">
+  <main class="app-container" aria-label="Global Messenger App">
     <header>
-      <h1>🌐 Global Messenger</h1>
+      Global Messenger
     </header>
-    <div id="messages" aria-live="polite" aria-relevant="additions"></div>
-    <form id="messageForm" aria-label="Send a message form">
-      <input type="text" id="username" name="username" placeholder="Your name" autocomplete="off" aria-label="Your name" required minlength="1" maxlength="32" />
-      <textarea id="message" name="message" placeholder="Your message" rows="3" aria-label="Your message" required maxlength="280"></textarea>
-      <button type="submit" id="sendBtn" disabled>Send</button>
-    </form>
-    <div class="footer">Messages are synced globally via Firebase Realtime Database</div>
-  </div>
-  <script>
-    // Your Firebase configuration
-    const firebaseConfig = {
-      apiKey: "AIzaSyBjA2O3QDuKsAGLzq008VEDug69WDroulI",
-      authDomain: "supercoollogin999.firebaseapp.com",
-      databaseURL: "https://supercoollogin999-default-rtdb.firebaseio.com",
-      projectId: "supercoollogin999",
-      storageBucket: "supercoollogin999.firebasestorage.app",
-      messagingSenderId: "472488806884",
-      appId: "1:472488806884:web:d904be3b09548dbbc51ff1",
-      measurementId: "G-03NQP912BX"
-    };
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    const messagesRef = db.ref('messages');
 
-    const messagesEl = document.getElementById('messages');
-    const form = document.getElementById('messageForm');
-    const usernameInput = document.getElementById('username');
-    const messageInput = document.getElementById('message');
-    const sendBtn = document.getElementById('sendBtn');
+    <!-- Authentication Container -->
+    <section id="auth-container" aria-live="polite">
+      <!-- Login Form -->
+      <form id="login-form" novalidate>
+        <div>
+          <label for="login-email">Email</label>
+          <input type="email" id="login-email" name="login-email" autocomplete="email" required />
+        </div>
+        <div>
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" name="login-password" minlength="6" autocomplete="current-password" required />
+        </div>
+        <button type="submit" id="login-btn" disabled>Log In</button>
+        <p class="toggle-auth">Don't have an account? <button type="button" id="show-signup">Sign Up</button></p>
+        <p class="error-msg" id="login-error" role="alert" aria-live="assertive" style="display:none;"></p>
+      </form>
 
-    // Enable send button only if both inputs have content
-    function validateForm() {
-      const valid = usernameInput.value.trim().length > 0 && messageInput.value.trim().length > 0;
-      sendBtn.disabled = !valid;
-    }
+      <!-- Signup Form -->
+      <form id="signup-form" style="display:none" novalidate>
+        <div>
+          <label for="signup-email">Email</label>
+          <input type="email" id="signup-email" name="signup-email" autocomplete="email" required />
+        </div>
+        <div>
+          <label for="signup-password">Password (min 6 chars)</label>
+          <input type="password" id="signup-password" name="signup-password" minlength="6" autocomplete="new-password" required />
+        </div>
+        <button type="submit" id="signup-btn" disabled>Sign Up</button>
+        <p class="toggle-auth">Already have an account? <button type="button" id="show-login">Log In</button></p>
+        <p class="error-msg" id="signup-error" role="alert" aria-live="assertive" style="display:none;"></p>
+      </form>
+    </section>
 
-    usernameInput.addEventListener('input', validateForm);
-    messageInput.addEventListener('input', validateForm);
+    <!-- Chat Container -->
+    <section id="chat-container" aria-live="polite">
+      <div id="chat-header">
+        <span id="greeting">Hello, User</span>
+        <button id="logout-btn" aria-label="Logout">Log Out</button>
+      </div>
+      <div id="messages" tabindex="0" aria-label="Message list"></div>
+      <form id="messageForm" aria-label="Send a message form" novalidate>
+        <textarea id="message" name="message" placeholder="Type your message..." rows="2" maxlength="280" required></textarea>
+        <button type="submit" id="sendBtn" disabled>Send</button>
+      </form>
+    </section>
+  </main>
 
-    function createMessageElement(msg) {
-      const div = document.createElement('div');
-      div.className = 'message';
+<script>
+  // Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyBjA2O3QDuKsAGLzq008VEDug69WDroulI",
+    authDomain: "supercoollogin999.firebaseapp.com",
+    databaseURL: "https://supercoollogin999-default-rtdb.firebaseio.com",
+    projectId: "supercoollogin999",
+    storageBucket: "supercoollogin999.firebasestorage.app",
+    messagingSenderId: "472488806884",
+    appId: "1:472488806884:web:d904be3b09548dbbc51ff1",
+    measurementId: "G-03NQP912BX"
+  };
 
-      const meta = document.createElement('div');
-      meta.className = 'meta';
-      meta.textContent = msg.username || "Anonymous";
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.database();
+  const messagesRef = db.ref('messages');
 
-      const text = document.createElement('div');
-      text.textContent = msg.text;
+  // Elements references
+  const authContainer = document.getElementById('auth-container');
+  const loginForm = document.getElementById('login-form');
+  const signupForm = document.getElementById('signup-form');
+  const loginEmail = document.getElementById('login-email');
+  const loginPassword = document.getElementById('login-password');
+  const loginBtn = document.getElementById('login-btn');
+  const loginError = document.getElementById('login-error');
 
-      const ts = document.createElement('div');
-      ts.className = 'timestamp';
-      let d = new Date(msg.timestamp);
-      if (isNaN(d.getTime())) {
-        d = new Date(); // fallback to current date
-      }
-      ts.textContent = d.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+  const signupEmail = document.getElementById('signup-email');
+  const signupPassword = document.getElementById('signup-password');
+  const signupBtn = document.getElementById('signup-btn');
+  const signupError = document.getElementById('signup-error');
 
-      div.appendChild(meta);
-      div.appendChild(text);
-      div.appendChild(ts);
+  const showSignupBtn = document.getElementById('show-signup');
+  const showLoginBtn = document.getElementById('show-login');
 
-      return div;
-    }
+  const chatContainer = document.getElementById('chat-container');
+  const greetingEl = document.getElementById('greeting');
+  const logoutBtn = document.getElementById('logout-btn');
 
-    // Render all messages, clearing existing
-    function renderMessages(messages) {
-      messagesEl.innerHTML = "";
-      messages.forEach(msg => {
-        messagesEl.appendChild(createMessageElement(msg));
+  const messagesEl = document.getElementById('messages');
+  const messageForm = document.getElementById('messageForm');
+  const messageInput = document.getElementById('message');
+  const sendBtn = document.getElementById('sendBtn');
+
+  // Util functions for enabling/disabling buttons
+  function updateLoginButton() {
+    loginBtn.disabled = !loginEmail.value.trim() || loginPassword.value.length < 6;
+  }
+  function updateSignupButton() {
+    signupBtn.disabled = !signupEmail.value.trim() || signupPassword.value.length < 6;
+  }
+  function updateSendButton() {
+    sendBtn.disabled = !messageInput.value.trim();
+  }
+
+  // Show/hide forms
+  function showSignup() {
+    loginForm.style.display = 'none';
+    signupForm.style.display = 'flex';
+    clearLoginErrors();
+    clearSignupErrors();
+  }
+  function showLogin() {
+    signupForm.style.display = 'none';
+    loginForm.style.display = 'flex';
+    clearLoginErrors();
+    clearSignupErrors();
+  }
+
+  showSignupBtn.onclick = showSignup;
+  showLoginBtn.onclick = showLogin;
+
+  // Clear errors
+  function clearLoginErrors() {
+    loginError.textContent = '';
+    loginError.style.display = 'none';
+  }
+  function clearSignupErrors() {
+    signupError.textContent = '';
+    signupError.style.display = 'none';
+  }
+  function clearSendError() {
+    // reserve for future use if needed
+  }
+
+  // Monitor login input
+  loginEmail.addEventListener('input', () => {
+    updateLoginButton();
+    clearLoginErrors();
+  });
+  loginPassword.addEventListener('input', () => {
+    updateLoginButton();
+    clearLoginErrors();
+  });
+
+  // Monitor signup input
+  signupEmail.addEventListener('input', () => {
+    updateSignupButton();
+    clearSignupErrors();
+  });
+  signupPassword.addEventListener('input', () => {
+    updateSignupButton();
+    clearSignupErrors();
+  });
+
+  // Monitor message input
+  messageInput.addEventListener('input', () => {
+    updateSendButton();
+  });
+
+  // Login form submit
+  loginForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    clearLoginErrors();
+    loginBtn.disabled = true;
+    auth.signInWithEmailAndPassword(loginEmail.value.trim(), loginPassword.value)
+      .catch(error => {
+        loginBtn.disabled = false;
+        loginError.textContent = error.message;
+        loginError.style.display = 'block';
       });
-      messagesEl.scrollTop = messagesEl.scrollHeight;
-    }
+  });
 
-    // Listen for messages added in realtime
-    let messages = [];
-    messagesRef.limitToLast(100).on('value', snapshot => {
+  // Signup form submit
+  signupForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    clearSignupErrors();
+    signupBtn.disabled = true;
+    auth.createUserWithEmailAndPassword(signupEmail.value.trim(), signupPassword.value)
+      .catch(error => {
+        signupBtn.disabled = false;
+        signupError.textContent = error.message;
+        signupError.style.display = 'block';
+      });
+  });
+
+  // Logout button
+  logoutBtn.addEventListener('click', () => {
+    auth.signOut();
+  });
+
+  // Authentication state change listener
+  auth.onAuthStateChanged(user => {
+    if (user) {
+      // Show chat and hide auth
+      authContainer.style.display = 'none';
+      chatContainer.style.display = 'flex';
+      greetingEl.textContent = `Hello, ${user.email}`;
+
+      // Load messages and listen for new messages
+      subscribeMessages();
+    } else {
+      // Show auth and hide chat
+      authContainer.style.display = 'flex';
+      chatContainer.style.display = 'none';
+      // Clear messages
+      messagesEl.innerHTML = '';
+      // Clear message input
+      messageInput.value = '';
+      updateSendButton();
+      // Clear inputs and errors
+      loginEmail.value = '';
+      loginPassword.value = '';
+      signupEmail.value = '';
+      signupPassword.value = '';
+      clearLoginErrors();
+      clearSignupErrors();
+      updateLoginButton();
+      updateSignupButton();
+    }
+  });
+
+  // Messaging logic
+  let messages = [];
+
+  function createMessageElement(msg) {
+    const div = document.createElement('div');
+    div.className = 'message';
+
+    const meta = document.createElement('div');
+    meta.className = 'meta';
+    // Show email if available, else anonymous fallback
+    meta.textContent = msg.username || "Anonymous";
+
+    const text = document.createElement('div');
+    text.textContent = msg.text;
+
+    const ts = document.createElement('div');
+    ts.className = 'timestamp';
+    let d = new Date(msg.timestamp);
+    if (isNaN(d.getTime())) d = new Date();
+    ts.textContent = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    div.appendChild(meta);
+    div.appendChild(text);
+    div.appendChild(ts);
+
+    return div;
+  }
+
+  function renderMessages(messages) {
+    messagesEl.innerHTML = '';
+    messages.forEach(msg => {
+      messagesEl.appendChild(createMessageElement(msg));
+    });
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  let messagesListener = null;
+
+  function subscribeMessages() {
+    // Detach previous listener if exists
+    if (messagesListener) {
+      messagesRef.off('value', messagesListener);
+    }
+    messagesListener = messagesRef.limitToLast(100).on('value', snapshot => {
       const data = snapshot.val();
       messages = [];
       for (const key in data) {
@@ -243,32 +533,42 @@
           messages.push(data[key]);
         }
       }
-      // Sort messages by timestamp ascending
-      messages.sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
+      messages.sort((a,b)=>new Date(a.timestamp) - new Date(b.timestamp));
       renderMessages(messages);
     });
+  }
 
-    // On form submit, push message to database
-    form.addEventListener('submit', e => {
-      e.preventDefault();
-      if(sendBtn.disabled) return;
+  messageForm.addEventListener('submit', e => {
+    e.preventDefault();
+    if (sendBtn.disabled) return;
+    const user = auth.currentUser;
+    if (!user) return;
 
-      const newMsg = {
-        username: usernameInput.value.trim().substring(0,32),
-        text: messageInput.value.trim().substring(0,280),
-        timestamp: new Date().toISOString()
-      };
+    const newMsg = {
+      username: user.email || "Anonymous",
+      text: messageInput.value.trim().substring(0,280),
+      timestamp: new Date().toISOString()
+    };
 
-      messagesRef.push(newMsg).then(() => {
-        messageInput.value = "";
-        validateForm();
-      }).catch((error) => {
+    sendBtn.disabled = true;
+    messagesRef.push(newMsg)
+      .then(() => {
+        messageInput.value = '';
+        updateSendButton();
+        sendBtn.disabled = false;
+      })
+      .catch(error => {
         alert("Error sending message: " + error.message);
+        sendBtn.disabled = false;
       });
-    });
+  });
 
-    validateForm();
-  </script>
+  // Initialize form buttons state
+  updateLoginButton();
+  updateSignupButton();
+  updateSendButton();
+
+</script>
 </body>
 </html>
 
