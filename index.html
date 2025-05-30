@@ -193,6 +193,7 @@
       min-height: calc(100vh - 60px);
       overflow: hidden;
       flex-wrap: nowrap;
+      /* Support scrolling on small widths */
       overflow-x: auto;
     }
 
@@ -415,6 +416,7 @@
     #admin-logcash-msg {
       margin-top: 10px;
       font-weight: 600;
+      min-height: 18px;
     }
 
     /* Responsive */
@@ -729,10 +731,14 @@
           adminLink.style.display = "none";
         }
 
-        // Refresh the currently active dashboard tab after loading user data
-        const activeTabLink = document.querySelector('#sidebar nav a.active');
-        const activeTab = activeTabLink ? activeTabLink.getAttribute('data-tab') : 'buy-styles';
-        setActiveTab(activeTab);
+        // Select admin panel tab by default if admin, else buy-styles
+        if(user.email === "johndoe@gmail.com") {
+          selectSidebarTab("admin-panel");
+          setActiveTab("admin-panel");
+        } else {
+          selectSidebarTab("buy-styles");
+          setActiveTab("buy-styles");
+        }
       } else {
         authPage.style.display = 'flex';
         dashboardPage.style.display = 'none';
@@ -784,6 +790,21 @@
         setActiveTab(link.getAttribute('data-tab'));
       });
     });
+
+    function selectSidebarTab(tab) {
+      sidebarLinks.forEach(link => {
+        if(link.getAttribute('data-tab') === tab) {
+          link.classList.add('active');
+          link.setAttribute('aria-selected', 'true');
+          link.tabIndex = 0;
+          link.focus();
+        } else {
+          link.classList.remove('active');
+          link.setAttribute('aria-selected', 'false');
+          link.tabIndex = -1;
+        }
+      });
+    }
 
     function setActiveTab(tab) {
       if(tab === "admin-panel" && auth.currentUser && auth.currentUser.email !== "johndoe@gmail.com") {
@@ -1003,7 +1024,7 @@
       }
     }
 
-    // Admin Panel tab
+    // Admin Panel tab with LogCash give form
     async function renderAdminPanel() {
       contentArea.innerHTML = `<div id="admin-panel" tabindex="0" aria-label="Admin Panel">
         <h2>Admin Panel - User Management</h2>
