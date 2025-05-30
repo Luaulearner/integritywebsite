@@ -671,17 +671,18 @@
         authError.textContent = "";
         setAuthLoading(false);
         await loadUserData(user);
-  
-        const activeTabLink = document.querySelector('#sidebar nav a.active');
-        const activeTab = activeTabLink ? activeTabLink.getAttribute('data-tab') : 'buy-styles';
-        setActiveTab(activeTab);
-  
-        // Show admin link if email matches
+
+        // Enable admin panel link only for johndoe@gmail.com
         if(user.email === "johndoe@gmail.com") {
           adminLink.style.display = "block";
         } else {
           adminLink.style.display = "none";
         }
+
+        // Refresh the currently active dashboard tab after loading user data
+        const activeTabLink = document.querySelector('#sidebar nav a.active');
+        const activeTab = activeTabLink ? activeTabLink.getAttribute('data-tab') : 'buy-styles';
+        setActiveTab(activeTab);
       } else {
         authPage.style.display = 'flex';
         dashboardPage.style.display = 'none';
