@@ -403,10 +403,12 @@
     const firebaseConfig = {
       apiKey: "AIzaSyBjA2O3QDuKsAGLzq008VEDug69WDroulI",
       authDomain: "supercoollogin999.firebaseapp.com",
+      databaseURL: "https://supercoollogin999-default-rtdb.firebaseio.com",
       projectId: "supercoollogin999",
       storageBucket: "supercoollogin999.firebasestorage.app",
       messagingSenderId: "472488806884",
-      appId: "1:472488806884:web:d904be3b09548dbbc51ff1"
+      appId: "1:472488806884:web:d904be3b09548dbbc51ff1",
+      measurementId: "G-03NQP912BX"
     };
     // ==================================
 
@@ -447,6 +449,7 @@
 
     let isLoginMode = true; // Track if we are in login or signup mode
     let currentUserDoc = null; // Current logged user Firestore doc snapshot
+    let currentUserData = null; // Cached user data in memory
 
     // Toggle login/signup UI
     function toggleAuthMode() {
@@ -587,16 +590,17 @@
     // On auth state change
     auth.onAuthStateChanged(async (user) => {
       if(user) {
-        // Show dashboard
         authPage.style.display = 'none';
         dashboardPage.style.display = 'flex';
         authError.textContent = "";
         setAuthLoading(false);
-        await loadUserData(user);
-        setupSidebarNavigation();
-        setActiveTab("buy-styles");
+        await loadUserData(user); 
+        // Refresh the currently active dashboard tab after loading user data
+        const activeTabLink = document.querySelector('#sidebar nav a.active');
+        const activeTab = activeTabLink ? activeTabLink.getAttribute('data-tab') : 'buy-styles';
+        setActiveTab(activeTab);
       } else {
-        // Show auth form
+        // Reset UI on logout
         authPage.style.display = 'flex';
         dashboardPage.style.display = 'none';
         authError.textContent = "";
@@ -621,10 +625,9 @@
         const data = userDoc.data();
 
         profileName.textContent = data.name || user.displayName || user.email;
-        profilePic.src = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(profileName.textContent)}&background=764ba2&color=fff&size=64`;
+        profilePic.src = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(profileName.textContent)}&background=ff3333&color=fff&size=64`;
         logcashBalance.textContent = data.logcash || 0;
 
-        // Save cached user data for current session
         currentUserData = data;
 
       } catch(e) {
@@ -661,9 +664,6 @@
         renderLeaderboard();
       }
     }
-
-    // Updated user data cache in page session
-    let currentUserData = null;
 
     // Buy Styles tab
     function renderBuyStyles() {
@@ -745,7 +745,6 @@
         alert("You don't have enough LogCash!");
         return;
       }
-      // Update Firestore user doc atomically
       const userDocRef = db.collection('users').doc(currentUserDoc.id);
       try {
         await db.runTransaction(async (transaction) => {
@@ -766,7 +765,6 @@
           });
         });
         alert("Style purchased and applied!");
-        // Update current balance and ownership locally
         currentUserData.logcash -= price;
         currentUserData.ownedStyles.push(styleId);
         currentUserData.currentStyle = styleId;
@@ -784,7 +782,6 @@
         alert("You don't have enough LogCash!");
         return;
       }
-      // Update Firestore user doc atomically
       const userDocRef = db.collection('users').doc(currentUserDoc.id);
       try {
         await db.runTransaction(async (transaction) => {
@@ -805,7 +802,6 @@
           });
         });
         alert("Title purchased and applied!");
-        // Update current balance and ownership locally
         currentUserData.logcash -= price;
         currentUserData.ownedTitles.push(titleId);
         currentUserData.currentTitle = titleId;
