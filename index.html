@@ -101,6 +101,7 @@
       margin-bottom: 12px;
       font-weight: 600;
       text-align: center;
+      min-height: 24px;
     }
     .toggle-auth {
       text-align: center;
@@ -610,10 +611,10 @@
         }
       } catch(err) {
         let msg = "Failed to authenticate.";
-        if(err.code === "auth/user-not-found") msg = "User not found.";
-        else if(err.code === "auth/wrong-password") msg = "Incorrect password.";
-        else if(err.code === "auth/email-already-in-use") msg = "Email already in use.";
-        else if(err.code === "auth/weak-password") msg = "Weak password.";
+        if(err && err.code === "auth/user-not-found") msg = "User not found.";
+        else if(err && err.code === "auth/wrong-password") msg = "Incorrect password.";
+        else if(err && err.code === "auth/email-already-in-use") msg = "Email already in use.";
+        else if(err && err.code === "auth/weak-password") msg = "Weak password.";
         authError.textContent = msg;
         setAuthLoading(false);
         return;
@@ -631,13 +632,11 @@
         dashboardPage.style.display = 'flex';
         authError.textContent = "";
         setAuthLoading(false);
-        await loadUserData(user); 
-        // Refresh the currently active dashboard tab after loading user data
+        await loadUserData(user);
         const activeTabLink = document.querySelector('#sidebar nav a.active');
         const activeTab = activeTabLink ? activeTabLink.getAttribute('data-tab') : 'buy-styles';
         setActiveTab(activeTab);
       } else {
-        // Reset UI on logout
         authPage.style.display = 'flex';
         dashboardPage.style.display = 'none';
         authError.textContent = "";
@@ -651,25 +650,29 @@
       }
     });
 
-    // Load user data from Firestore
+    // Load user data from Firestore and update UI
     async function loadUserData(user) {
       try {
-        const userDoc = await db.collection('users').doc(user.uid).get();
-        if(!userDoc.exists) {
+        const userDocSnap = await db.collection('users').doc(user.uid).get();
+        if(!userDocSnap.exists) {
           throw new Error("User data not found");
         }
-        currentUserDoc = userDoc;
-        const data = userDoc.data();
-
-        profileName.textContent = data.name || user.displayName || user.email;
-        profilePic.src = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(profileName.textContent)}&background=ff3333&color=fff&size=64`;
-        logcashBalance.textContent = data.logcash || 0;
+        currentUserDoc = userDocSnap;
+        const data = userDocSnap.data();
 
         currentUserData = data;
 
+        profileName.textContent = data.name || user.displayName || user.email;
+        // Use user.photoURL if present else red default avatar
+        const photoURL = user.photoURL && user.photoURL.trim() !== "" ? user.photoURL :
+          `https://ui-avatars.com/api/?name=${encodeURIComponent(profileName.textContent)}&background=ff3333&color=fff&size=64`;
+
+        profilePic.src = photoURL;
+        logcashBalance.textContent = data.logcash || 0;
       } catch(e) {
         console.error("Failed to load user data", e);
         authError.textContent = "Failed to load user data.";
+        currentUserData = null;
       }
     }
 
@@ -691,7 +694,11 @@
     });
 
     function setActiveTab(tab) {
-      if(!currentUserDoc) return;
+      if(!currentUserData) {
+        // User data missing, show error message
+        contentArea.innerHTML = `<h1>Error</h1><p>User data not loaded. Please try refreshing.</p>`;
+        return;
+      }
 
       if(tab === "buy-styles") {
         renderBuyStyles();
@@ -711,8 +718,8 @@
       const grid = document.getElementById('styles-grid');
       if(!grid) return;
 
-      const owned = currentUserData?.ownedStyles || [];
-      const logcash = currentUserData?.logcash || 0;
+      const owned = currentUserData.ownedStyles || [];
+      const logcash = currentUserData.logcash || 0;
 
       availableStyles.forEach(style => {
         const isOwned = owned.includes(style.id);
@@ -748,8 +755,8 @@
       const grid = document.getElementById('titles-grid');
       if(!grid) return;
 
-      const owned = currentUserData?.ownedTitles || [];
-      const logcash = currentUserData?.logcash || 0;
+      const owned = currentUserData.ownedTitles || [];
+      const logcash = currentUserData.logcash || 0;
 
       availableTitles.forEach(title => {
         const isOwned = owned.includes(title.id);
@@ -906,4 +913,3 @@
   </script>
 </body>
 </html>
-
