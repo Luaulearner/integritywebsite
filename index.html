@@ -1,1045 +1,372 @@
 <!DOCTYPE html>
 <html lang="en" >
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-  <title>LogCash Shop - Full Feature Dashboard</title>
-  <style>
-    /* Global and base resets */
-    * {
-      box-sizing: border-box;
-    }
-    body, html {
-      margin: 0; padding: 0; height: 100%;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #f5f7fa;
-      color: #333;
-      min-height: 100vh;
-      overflow-y: auto;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-    }
-    a {
-      color: inherit;
-      text-decoration: none;
-    }
-    button {
-      font-family: inherit;
-    }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>LogCash Shop - Professional Dark UI</title>
+<style>
+  /* Reset & base */
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #121212, #1e1e1e);
+    color: #e0e0e0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  #app {
+    max-width: 480px;
+    margin: 1.5rem auto;
+    background: #1c1c1c;
+    border-radius: 12px;
+    box-shadow:
+      0 8px 16px rgba(0,0,0,0.7),
+      inset 0 0 40px rgba(255,255,255,0.05);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
 
+  /* Tab headers */
+  .tab-header {
+    display: flex;
+    background: #282828;
+    border-bottom: 2px solid #333333;
+  }
+  .tab-header button {
+    flex: 1;
+    padding: 14px 0;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: #aaa;
+    background: #282828;
+    border: none;
+    cursor: pointer;
+    transition: color 0.3s;
+    letter-spacing: 0.1em;
+    border-bottom: 4px solid transparent;
+  }
+  .tab-header button.active {
+    color: #1db954;
+    border-bottom-color: #1db954;
+  }
+  .tab-header button:hover:not(.active) {
+    color: #80c98d;
+  }
+
+  /* Content */
+  .content {
+    padding: 28px 32px;
+    overflow-y: auto;
+    min-height: 540px;
+  }
+  form {
+    display: none;
+    flex-direction: column;
+  }
+  form.active {
+    display: flex;
+  }
+  label {
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #b3b3b3;
+  }
+  input, select {
+    padding: 12px 14px;
+    margin-bottom: 20px;
+    border: 1px solid #333;
+    border-radius: 6px;
+    background: #242424;
+    color: #ddd;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+  }
+  input::placeholder, select::placeholder {
+    color: #555;
+  }
+  input:focus, select:focus {
+    outline: none;
+    border-color: #1db954;
+    box-shadow: 0 0 10px #1db954aa;
+    background: #202020;
+  }
+  button.submit-btn {
+    padding: 14px 0;
+    border: none;
+    border-radius: 8px;
+    background: #1db954;
+    color: #121212;
+    font-weight: 700;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  button.submit-btn:hover:not(:disabled) {
+    background: #17a344;
+  }
+  button.submit-btn:disabled {
+    background: #666;
+    color: #999;
+    cursor: not-allowed;
+  }
+  .message {
+    margin-bottom: 16px;
+    font-weight: 700;
+  }
+  .message.error {
+    color: #e03e3e;
+  }
+  .message.success {
+    color: #1db954;
+  }
+
+  /* Grid items */
+  .items-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit,minmax(160px,1fr));
+    gap: 24px;
+  }
+  .item-card {
+    background: #282828;
+    border-radius: 10px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    color: #eee;
+    box-shadow: 0 2px 10px #00000066;
+    user-select: none;
+    height: 160px;
+  }
+  .item-card:hover:not(.owned):not(.disabled) {
+    box-shadow: 0 0 16px #1db954cc;
+    background: #1a1a1a;
+  }
+  .item-card h3 {
+    margin: 0;
+    font-weight: 800;
+    color: #1db954;
+  }
+  .price {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #1db954;
+  }
+  button.buy-btn {
+    margin-top: auto;
+    background: #1db954;
+    color: #121212;
+    border: none;
+    padding: 10px 14px;
+    user-select: none;
+    font-weight: 700;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  button.buy-btn:hover:not(:disabled) {
+    background: #17a344;
+  }
+  button.buy-btn:disabled {
+    background: #555;
+    cursor: not-allowed;
+    color: #999;
+  }
+
+  /* Leaderboard Styles */
+  #leaderboard-list {
+    background: #282828;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px #00000099;
+    max-height: 600px;
+    overflow-y: auto;
+    color: #eee;
+  }
+  table.leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  table.leaderboard-table th,
+  table.leaderboard-table td {
+    padding: 10px;
+    border-bottom: 1px solid #444;
+    text-align: left;
+  }
+  table.leaderboard-table th {
+    background: #1db954;
+    color: #121212;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+  table.leaderboard-table tr:nth-child(even) {
+    background: #1e1e1e;
+  }
+  .title-label {
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 6px;
+    color: #121212;
+    font-size: 0.9em;
+  }
+  .title-rich {
+    background-color: gold;
+  }
+  .title-default {
+    background-color: #1db954;
+  }
+
+  /* Admin Panel Styles */
+  #admin-panel {
+    background: #282828;
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px #0007;
+    max-width: 800px;
+    margin: auto;
+    color: #eee;
+  }
+  #admin-users-list {
+    max-height: 400px;
+    overflow-y: auto;
+    margin-bottom: 20px;
+  }
+  #admin-users-list table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  #admin-users-list th, #admin-users-list td {
+    padding: 10px;
+    border-bottom: 1px solid #444;
+    text-align: left;
+  }
+  #admin-users-list th {
+    background: #1db954;
+    color: #121212;
+    position: sticky;
+    top: 0;
+  }
+  #admin-logcash-form {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  #admin-logcash-form input[type=email], 
+  #admin-logcash-form input[type=number] {
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: none;
+    flex-grow: 1;
+    font-size: 1rem;
+  }
+  #admin-logcash-form button {
+    background: #1db954;
+    border-radius: 8px;
+    border: none;
+    padding: 10px 16px;
+    font-weight: bold;
+    cursor: pointer;
+    color: #121212;
+  }
+  #admin-logcash-form button:disabled {
+    background: #444;
+    cursor: not-allowed;
+  }
+  /* Responsive */
+  @media (max-width: 480px) {
     #app {
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-    /* Login/Signup styles */
-    #auth-page {
-      flex-grow: 1;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      color: white;
-      padding: 20px;
-      box-sizing: border-box;
-    }
-    #auth-box {
-      background: rgba(255 255 255 / 0.15);
-      padding: 40px 30px 30px 30px;
-      border-radius: 12px;
-      width: 100%;
-      max-width: 400px;
-      backdrop-filter: blur(6px);
-      box-shadow: 0 8px 32px rgba(118,75,162,0.4);
-      display: flex;
-      flex-direction: column;
-      user-select: text;
-    }
-    h2 {
-      margin-bottom: 25px;
-      text-align: center;
-      font-weight: 600;
-    }
-    input {
-      background: rgba(255 255 255 / 0.70);
-      border: none;
-      border-radius: 8px;
-      padding: 12px 14px;
-      margin-bottom: 18px;
-      font-size: 16px;
-      color: #333;
-      transition: background 0.3s;
-      width: 100%;
-      box-sizing: border-box;
-      user-select: text;
-    }
-    input::placeholder {
-      color: #666;
-    }
-    input:focus {
-      background: rgba(255 255 255 / 0.9);
-      outline: none;
-    }
-    button.primary-btn {
-      background: #ff6699;
-      border: none;
-      padding: 14px 0;
-      border-radius: 10px;
-      font-weight: 700;
-      font-size: 18px;
-      cursor: pointer;
-      color: white;
-      transition: background 0.3s ease;
-      margin-bottom: 15px;
-      width: 100%;
-      user-select: none;
-    }
-    button.primary-btn:hover {
-      background: #e05184;
-    }
-    .error-msg {
-      color: #ff4d6d;
-      margin-bottom: 12px;
-      font-weight: 600;
-      text-align: center;
-      min-height: 24px;
-      user-select: none;
-    }
-    .toggle-auth {
-      text-align: center;
-      color: #fff;
-      font-size: 14px;
-      cursor: pointer;
-      user-select: none;
-    }
-    .toggle-auth:hover {
-      text-decoration: underline;
-    }
-    .spinner {
-      border: 4px solid rgba(255, 255, 255, 0.3);
-      border-top: 4px solid white;
-      border-radius: 50%;
-      width: 24px;
-      height: 24px;
-      margin: 0 auto 18px auto;
-      animation: spin 1s linear infinite;
-      display: none;
-      user-select: none;
-    }
-    .spinner.active {
-      display: block;
-    }
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    /* Dashboard styles */
-    #dashboard-page {
-      display: none;
-      min-height: 100vh;
-      flex-direction: column;
-      display: flex;
-    }
-    header#topbar {
-      background: #fff;
-      height: 60px;
-      border-bottom: 1px solid #ddd;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0 20px;
-      flex-shrink: 0;
-    }
-    #topbar .profile-info {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      max-width: 230px;
-    }
-    #profile-pic {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      object-fit: cover;
-      box-shadow: 0 0 4px rgba(0,0,0,0.1);
-      flex-shrink: 0;
-    }
-    #profile-name {
-      font-weight: 700;
-      color: #333;
-      max-width: 150px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      user-select: text;
-    }
-    #user-title {
-      font-weight: 600;
-      font-style: italic;
-      color: #764ba2;
-      user-select: text;
-    }
-    #logcash-balance {
-      font-weight: 600;
-      background: linear-gradient(90deg, #ff6699, #764ba2);
-      -webkit-background-clip: text;
-      color: transparent;
-      user-select: text;
-    }
-    button#logout-btn {
-      background: #ff4d6d;
-      color: white;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 14px;
-      transition: background 0.3s ease;
-      user-select: none;
-    }
-    button#logout-btn:hover {
-      background: #e63b5d;
-    }
-    #dashboard-main {
-      flex-grow: 1;
-      display: flex;
-      min-height: calc(100vh - 60px);
-      overflow: hidden;
-      flex-wrap: nowrap;
-      overflow-x: auto;
-    }
-    #sidebar {
-      width: 220px;
-      background: #2f3e4d;
-      color: white;
-      display: flex;
-      flex-direction: column;
-      padding-top: 20px;
-      flex-shrink: 0;
-      min-height: 0;
-    }
-    #sidebar nav a {
-      display: flex;
-      align-items: center;
-      padding: 14px 20px;
-      border-left: 4px solid transparent;
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 15px;
-      user-select: none;
-      transition: background 0.3s ease, border-left-color 0.3s ease;
-      white-space: nowrap;
-    }
-    #sidebar nav a:hover {
-      background: #405368;
-    }
-    #sidebar nav a.active {
-      background: #1e2a38;
-      border-left-color: #ff6699;
-    }
-    #sidebar nav a svg {
-      width: 20px;
-      height: 20px;
-      fill: white;
-      margin-right: 12px;
-      flex-shrink: 0;
-    }
-    main#content-area {
-      flex-grow: 1;
-      background: #fafafa;
-      padding: 30px 40px;
-      overflow-y: auto;
-      min-height: 0;
-      box-sizing: border-box;
-      min-width: 0;
-      user-select: text;
-    }
-    main#content-area h1 {
-      margin-bottom: 25px;
-      color: #2f3e4d;
-    }
-    main#content-area p {
-      font-size: 16px;
-      line-height: 1.6;
-    }
-    .items-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit,minmax(160px,1fr));
-      gap: 20px;
-    }
-    .item-card {
-      background: white;
-      border-radius: 12px;
-      padding: 20px;
-      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      cursor: pointer;
-      transition: box-shadow 0.25s ease;
-      user-select: none;
-      min-height: 140px;
-    }
-    .item-card:hover:not(.owned):not(.disabled) {
-      box-shadow: 0 8px 20px rgba(118, 75, 162, 0.5);
-    }
-    .item-card h3 {
-      margin: 0;
-      font-weight: 700;
-      font-size: 18px;
-      color: #764ba2;
-    }
-    .item-card .price {
-      font-weight: 600;
-      color: #ff6699;
-    }
-    .item-card.owned {
-      cursor: default;
-      color: #999;
-      box-shadow: inset 0 0 15px rgba(100,75,162,0.3);
-    }
-    .item-card.owned h3 {
-      color: #444;
-    }
-    .item-card.disabled {
-      color: #ccc;
-      cursor: not-allowed;
-    }
-    .item-card.disabled:hover {
+      max-width: 100vw;
+      height: 100vh;
+      border-radius: 0;
       box-shadow: none;
     }
-    .item-card button.buy-btn {
-      margin-top: auto;
-      background: #764ba2;
-      color: white;
-      border: none;
-      padding: 8px 14px;
-      border-radius: 6px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.3s ease;
+    .items-grid {
+      grid-template-columns: 1fr;
     }
-    .item-card button.buy-btn:hover:not(:disabled) {
-      background: #5a3478;
-    }
-    .item-card button.buy-btn:disabled {
-      background: #aaa;
-      cursor: not-allowed;
-    }
-    #leaderboard-list {
-      max-height: 600px;
-      overflow-y: auto;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 6px 15px rgb(0 0 0 / 0.1);
-    }
-    table.leaderboard-table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    table.leaderboard-table th,
-    table.leaderboard-table td {
-      padding: 12px 15px;
-      border-bottom: 1px solid #eee;
-      text-align: left;
-    }
-    table.leaderboard-table th {
-      background: #764ba2;
-      color: white;
-      position: sticky;
-      top: 0;
-      z-index: 1;
-    }
-    table.leaderboard-table tr:nth-child(even) {
-      background: #fafafa;
-    }
-    .title-label {
-      font-weight: 700;
-      padding: 2px 6px;
-      border-radius: 6px;
-      color: #fff;
-      font-size: 0.9em;
-    }
-    .title-conqueror {
-      background-color: #764ba2;
-    }
-    .title-mastermind {
-      background-color: #764ba2;
-    }
-    .title-legendary {
-      background-color: #764ba2;
-    }
-    .title-trailblazer {
-      background-color: #764ba2;
-    }
-    .title-shadowwalker {
-      background-color: #764ba2;
-    }
-    .title-innovator {
-      background-color: #764ba2;
-    }
-    .title-rich {
-      background-color: goldenrod;
-    }
-    #admin-panel {
-      background: white;
+    main#content-area {
       padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
-      max-width: 900px;
-      margin: 0 auto;
-      user-select: text;
     }
-    #admin-panel h2 {
-      color: #764ba2;
-      margin-bottom: 20px;
-    }
-    #admin-users-list {
-      max-height: 400px;
-      overflow-y: auto;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      margin-bottom: 20px;
-    }
-    #admin-users-list table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    #admin-users-list th,
-    #admin-users-list td {
-      padding: 10px;
-      border-bottom: 1px solid #eee;
-      text-align: left;
-      max-width: 200px;
-      word-wrap: break-word;
-      word-break: break-word;
-    }
-    #admin-users-list th {
-      background: #764ba2;
-      color: white;
-      position: sticky;
-      top: 0;
-    }
-    #admin-logcash-form {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      max-width: 500px;
-    }
-    #admin-logcash-form input[type="email"],
-    #admin-logcash-form input[type="number"] {
-      padding: 8px 12px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      flex-grow: 1;
-      font-size: 14px;
-    }
-    #admin-logcash-form button {
-      padding: 9px 15px;
-      background: #764ba2;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      font-weight: 600;
-      font-size: 14px;
-      cursor: pointer;
-      transition: background 0.3s ease;
-    }
-    #admin-logcash-form button:disabled {
-      background: #aaa;
-      cursor: not-allowed;
-    }
-    #admin-logcash-msg {
-      margin-top: 10px;
-      font-weight: 600;
-      min-height: 18px;
-    }
-    /* Settings */
-    #settings-page {
-      max-width: 600px;
-      margin: auto;
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
-      user-select: text;
-    }
-    #settings-page h2 {
-      color: #764ba2;
-      margin-bottom: 20px;
-      font-weight: 700;
-    }
-    #settings-form {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
-    #settings-form label {
-      font-weight: 600;
-      margin-bottom: 6px;
-    }
-    #settings-form input[type="text"],
-    #settings-form input[type="url"] {
-      padding: 10px 14px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      font-size: 16px;
-      width: 100%;
-      box-sizing: border-box;
-    }
-    #settings-form button {
-      padding: 12px 20px;
-      font-size: 16px;
-      font-weight: 700;
-      border: none;
-      border-radius: 8px;
-      background: #764ba2;
-      color: white;
-      cursor: pointer;
-      user-select: none;
-      transition: background 0.3s ease;
-    }
-    #settings-form button:disabled {
-      background: #aaa;
-      cursor: not-allowed;
-    }
-    #settings-msg {
-      margin-top: 10px;
-      font-weight: 600;
-      min-height: 20px;
-    }
-    /* Trade */
-    #trade-page {
-      max-width: 700px;
-      margin: auto;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
-      padding: 20px;
-      user-select: text;
-    }
-    #trade-page h2 {
-      color: #764ba2;
-      margin-bottom: 20px;
-      font-weight: 700;
-    }
-    #trade-form {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 15px;
-      align-items: center;
-    }
-    #trade-form input[type="email"],
-    #trade-form input[type="number"],
-    #trade-form select {
-      padding: 10px 14px;
-      font-size: 16px;
-      border-radius: 8px;
-      border: 1px solid #ddd;
-      flex: 1 1 200px;
-      box-sizing: border-box;
-    }
-    #trade-form button {
-      padding: 12px 20px;
-      font-size: 16px;
-      font-weight: 700;
-      border: none;
-      border-radius: 8px;
-      background: #764ba2;
-      color: white;
-      cursor: pointer;
-      user-select: none;
-      transition: background 0.3s ease;
-      flex-shrink: 0;
-    }
-    #trade-form button:disabled {
-      background: #aaa;
-      cursor: not-allowed;
-    }
-    #trade-msg {
-      margin-top: 15px;
-      font-weight: 600;
-      min-height: 20px;
-    }
-    /* Inbox notification */
-    #inbox {
-      position: fixed;
-      top: 10px;
-      right: 10px;
-      background: #ff6699;
-      color: white;
-      border-radius: 50%;
-      width: 30px;
-      height: 30px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      cursor: pointer;
-      font-weight: bold;
-      z-index: 1000;
-      user-select: none;
-      font-size: 16px;
-    }
-    #inbox-popup {
-      position: fixed;
-      top: 50px;
-      right: 10px;
-      background: white;
-      max-width: 400px;
-      max-height: 400px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.3);
-      border-radius: 10px;
-      overflow-y: auto;
-      padding: 10px;
-      display: none;
-      z-index: 1010;
-      user-select: text;
-    }
-    #inbox-popup h3 {
-      margin-top: 0;
-      color: #764ba2;
-    }
-    .trade-request {
-      border-bottom: 1px solid #ddd;
-      padding: 8px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .trade-request:last-child {
-      border-bottom: none;
-    }
-    .trade-request img {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      object-fit: cover;
-      flex-shrink: 0;
-    }
-    .trade-request-details {
-      flex-grow: 1;
-      user-select: text;
-    }
-    .trade-request-buttons button {
-      margin-left: 5px;
-      padding: 6px 10px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: 600;
-      user-select: none;
-    }
-    .accept-btn {
-      background: #28a745;
-      color: white;
-    }
-    .decline-btn {
-      background: #dc3545;
-      color: white;
-    }
-    .accept-btn:disabled, .decline-btn:disabled {
-      background: #aaa;
-      cursor: not-allowed;
-    }
-    @media (max-width: 840px) {
-      main#content-area {
-        padding: 20px;
-      }
-      #sidebar {
-        width: 60px;
-        font-size: 12px;
-      }
-      #sidebar nav a span {
-        display: none;
-      }
-      #sidebar nav a svg {
-        margin-right: 0;
-        margin-left: auto;
-        margin-right: auto;
-      }
-      #dashboard-main {
-        flex-wrap: wrap;
-      }
-      #sidebar {
-        flex: 0 0 100%;
-        width: 100%;
-        display: flex;
-        justify-content: center;
-        padding: 10px 0;
-      }
-      #sidebar nav a {
-        padding: 8px 14px;
-        font-size: 14px;
-      }
-      main#content-area {
-        min-height: auto;
-      }
-      #admin-logcash-form {
-        flex-direction: column;
-        max-width: 100%;
-      }
-      #admin-logcash-form input, #admin-logcash-form button,
-      #trade-form input, #trade-form button, #trade-form select {
-        width: 100%;
-      }
-      #inbox-popup {
-        max-width: 90vw;
-        max-height: 50vh;
-      }
-    }
-  </style>
-  <script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-firestore-compat.js"></script>
-  <script>
-    // Firebase config and initialization
-    const firebaseConfig = {
-      apiKey: "AIzaSyBjA2O3QDuKsAGLzq008VEDug69WDroulI",
-      authDomain: "supercoollogin999.firebaseapp.com",
-      databaseURL: "https://supercoollogin999-default-rtdb.firebaseio.com",
-      projectId: "supercoollogin999",
-      storageBucket: "supercoollogin999.firebasestorage.app",
-      messagingSenderId: "472488806884",
-      appId: "1:472488806884:web:d904be3b09548dbbc51ff1",
-      measurementId: "G-03NQP912BX"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
+  }
+</style>
+</head>
+<body>
+<div id="app" role="main" aria-label="LogCash Shop Application">
+  <nav class="tab-header" role="tablist" aria-label="Authentication tabs">
+    <button id="login-tab" role="tab" aria-selected="true" aria-controls="login-form" tabindex="0" class="active">Login</button>
+    <button id="signup-tab" role="tab" aria-selected="false" aria-controls="signup-form" tabindex="-1">Sign Up</button>
+  </nav>
+  <div class="content" id="auth-content">
+    <form id="login-form" role="tabpanel" aria-labelledby="login-tab" class="active" tabindex="0">
+      <div class="message" id="login-msg" aria-live="polite"></div>
+      <label for="login-email">Email</label>
+      <input type="email" id="login-email" name="login-email" required autocomplete="username" />
+      <label for="login-password">Password</label>
+      <input type="password" id="login-password" name="login-password" required autocomplete="current-password" />
+      <button type="submit" class="submit-btn">Log In</button>
+    </form>
+    <form id="signup-form" role="tabpanel" aria-labelledby="signup-tab" tabindex="-1">
+      <div class="message" id="signup-msg" aria-live="polite"></div>
+      <label for="signup-name">Full Name</label>
+      <input type="text" id="signup-name" name="signup-name" required autocomplete="name" />
+      <label for="signup-email">Email</label>
+      <input type="email" id="signup-email" name="signup-email" required autocomplete="email" />
+      <label for="signup-password">Password</label>
+      <input type="password" id="signup-password" name="signup-password" required autocomplete="new-password" />
+      <label for="signup-password-confirm">Confirm Password</label>
+      <input type="password" id="signup-password-confirm" name="signup-password-confirm" required autocomplete="new-password" />
+      <button type="submit" class="submit-btn">Sign Up</button>
+    </form>
+  </div>
+  <section id="dashboard-page" aria-label="Dashboard" style="display:none; height: 100%;">
+    <nav class="tab-header" role="tablist" aria-label="Dashboard navigation" style="background-color: #4818a0;">
+      <button data-tab="shop" class="active" role="tab" aria-selected="true" tabindex="0" style="color:white;">Shop</button>
+      <button data-tab="leaderboard" role="tab" aria-selected="false" tabindex="-1" style="color:white;">Leaderboard</button>
+      <button data-tab="settings" role="tab" aria-selected="false" tabindex="-1" style="color:white;">Settings</button>
+      <button data-tab="trade" role="tab" aria-selected="false" tabindex="-1" style="color:white;">Trade</button>
+      <button data-tab="admin" role="tab" aria-selected="false" tabindex="-1" id="admin-link" style="color:white; display:none;">Admin</button>
+      <button id="logout-btn" style="margin-left:auto; background:#ff4d6d; border:none; color:white; border-radius: 6px; cursor:pointer; padding:6px 12px;">Logout</button>
+    </nav>
+    <main id="dashboard-content" style="padding: 24px; overflow-y: auto; height: calc(100% - 52px); color:#ddd; user-select:text;">
+    </main>
+  </section>
+</div>
 
-    // Variables and UI element references
-    const authPage = document.getElementById('auth-page');
-    const dashboardPage = document.getElementById('dashboard-page');
-    const authTitle = document.getElementById('auth-title');
-    const authEmail = document.getElementById('auth-email');
-    const authPassword = document.getElementById('auth-password');
-    const authName = document.getElementById('auth-name');
-    const authSubmit = document.getElementById('auth-submit');
-    const authToggleLink = document.getElementById('auth-toggle-link');
-    const authError = document.getElementById('auth-error');
-    const authSpinner = document.getElementById('auth-spinner');
-    const profilePic = document.getElementById('profile-pic');
-    const profileName = document.getElementById('profile-name');
-    const userTitleLabel = document.getElementById('user-title');
-    const logcashBalance = document.getElementById('logcash-balance');
-    const logoutBtn = document.getElementById('logout-btn');
-    const sidebarLinks = document.querySelectorAll('#sidebar nav a');
-    const contentArea = document.getElementById('content-area');
-    const adminLink = document.getElementById('admin-link');
+<script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-firestore-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBjA2O3QDuKsAGLzq008VEDug69WDroulI",
+    authDomain: "supercoollogin999.firebaseapp.com",
+    databaseURL: "https://supercoollogin999-default-rtdb.firebaseio.com",
+    projectId: "supercoollogin999",
+    storageBucket: "supercoollogin999.firebasestorage.app",
+    messagingSenderId: "472488806884",
+    appId: "1:472488806884:web:d904be3b09548dbbc51ff1",
+    measurementId: "G-03NQP912BX"
+  };
 
-    const inboxIcon = document.getElementById('inbox');
-    const inboxCount = document.getElementById('inbox-count');
-    const inboxPopup = document.getElementById('inbox-popup');
-    const inboxRequestsContainer = document.getElementById('inbox-requests');
-    const inboxCloseBtn = document.getElementById('inbox-close-btn');
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
 
-    const availableTitles = [
-      { id: "title1", name: "The Conqueror", price: 60, color: "#764ba2" },
-      { id: "title2", name: "Mastermind", price: 45, color: "#764ba2" },
-      { id: "title3", name: "Legendary", price: 100, color: "#764ba2" },
-      { id: "title4", name: "Trailblazer", price: 75, color: "#764ba2" },
-      { id: "title5", name: "Shadow Walker", price: 55, color: "#764ba2" },
-      { id: "title6", name: "The Innovator", price: 80, color: "#764ba2" },
-      { id: "titleRich", name: "Rich", price: 1000, color: "goldenrod" }
-    ];
-
-    const availableUpgrades = [
-      { id: "upgrade2x", name: "2x LogCash", price: 999, description: "Earn double LogCash when you log in.", effect: "2x", color: "#764ba2" }
-    ];
-
-    let isLoginMode = true;
-    let currentUserDoc = null;
-    let currentUserData = null;
-
-    // Utility functions and event listeners
-    function escapeHtml(text) {
-      if (!text) return '';
-      return text.replace(/[&<>"']/g, m => {
-        return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[m];
-      });
-    }
-
-    function toggleAuthMode() {
-      isLoginMode = !isLoginMode;
-      authError.textContent = '';
-      if (isLoginMode) {
-        authTitle.textContent = 'Login';
-        authSubmit.textContent = 'Login';
-        authToggleLink.textContent = "Don't have an account? Sign up";
-        authName.style.display = 'none';
-      } else {
-        authTitle.textContent = 'Sign Up';
-        authSubmit.textContent = 'Sign Up';
-        authToggleLink.textContent = 'Already have an account? Login';
-        authName.style.display = 'block';
-      }
-      authEmail.value = '';
-      authPassword.value = '';
-      authName.value = '';
-    }
-    authToggleLink.addEventListener('click', () => toggleAuthMode());
-    authToggleLink.addEventListener('keypress', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleAuthMode(); } });
-
-    function validateEmail(email) {
-      const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      return re.test(email);
-    }
-
-    function setLoading(loading) {
-      if (loading) {
-        authSpinner.classList.add('active');
-        authSubmit.disabled = true;
-        authEmail.disabled = true;
-        authPassword.disabled = true;
-        authName.disabled = true;
-        authToggleLink.style.pointerEvents = 'none';
-      } else {
-        authSpinner.classList.remove('active');
-        authSubmit.disabled = false;
-        authEmail.disabled = false;
-        authPassword.disabled = false;
-        authName.disabled = false;
-        authToggleLink.style.pointerEvents = 'auto';
-      }
-    }
-
-    async function ensureUserDoc(user) {
-      const userDocRef = db.collection('users').doc(user.uid);
-      const doc = await userDocRef.get();
-      if (!doc.exists) {
-        await userDocRef.set({
-          email: user.email,
-          name: user.displayName || '',
-          logcash: 10,
-          ownedTitles: [],
-          ownedUpgrades: [],
-          currentTitle: null,
-          currentUpgrade: null,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-          lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
-          tradeInbox: [],
-          banned: false
-        });
-        return await userDocRef.get();
-      } else {
-        const updates = {};
-        if (!doc.data().name && user.displayName) updates.name = user.displayName;
-        updates.lastLogin = firebase.firestore.FieldValue.serverTimestamp();
-        if (Object.keys(updates).length) await userDocRef.update(updates);
-        return await userDocRef.get();
-      }
-    }
-
-    async function creditLoginBonus(user) {
-      if (!user) return;
-      const userDocRef = db.collection('users').doc(user.uid);
-      const snapshot = await userDocRef.get();
-      const data = snapshot.data();
-      let increment = 10;
-      if (data && data.ownedUpgrades && data.ownedUpgrades.includes('upgrade2x')) {
-        increment = 20;
-      }
-      await userDocRef.update({
-        logcash: firebase.firestore.FieldValue.increment(increment),
-        lastLogin: firebase.firestore.FieldValue.serverTimestamp()
-      });
-    }
-
-    async function loginUser(email, password) {
-      const userCredential = await auth.signInWithEmailAndPassword(email, password);
-      const user = userCredential.user;
-      await ensureUserDoc(user);
-      await creditLoginBonus(user);
-      return user;
-    }
-
-    async function signupUser(email, password, name) {
-      const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-      const user = userCredential.user;
-      await user.updateProfile({ displayName: name });
-      await ensureUserDoc(user);
-      return user;
-    }
-
-    authSubmit.addEventListener('click', async () => {
-      authError.textContent = '';
-      const email = authEmail.value.trim().toLowerCase();
-      const password = authPassword.value;
-      const name = authName.value.trim();
-      if (!validateEmail(email)) {
-        authError.textContent = 'Please enter a valid email.';
-        return;
-      }
-      if (password.length < 6) {
-        authError.textContent = 'Password must be at least 6 characters.';
-        return;
-      }
-      if (!isLoginMode && name.length < 2) {
-        authError.textContent = 'Please enter your full name (min 2 chars).';
-        return;
-      }
-      setLoading(true);
-      try {
-        let userDocSnap;
-        if (isLoginMode) {
-          const user = await loginUser(email, password);
-          const doc = await db.collection('users').doc(user.uid).get();
-          if (doc.exists && doc.data().banned) {
-            await auth.signOut();
-            authError.textContent = 'Your account has been banned.';
-            setLoading(false);
-            return;
-          }
-          userDocSnap = doc;
-        } else {
-          userDocSnap = await signupUser(email, password, name);
-        }
-        currentUserDoc = userDocSnap;
-        currentUserData = userDocSnap.data();
-        await reloadUserAndShowDashboard();
-      } catch (e) {
-        let message = 'Authentication failed.';
-        if (e.code === 'auth/user-not-found') message = 'User not found.';
-        else if (e.code === 'auth/wrong-password') message = 'Incorrect password.';
-        else if (e.code === 'auth/email-already-in-use') message = 'Email already in use.';
-        else if (e.code === 'auth/weak-password') message = 'Weak password.';
-        authError.textContent = message;
-        setLoading(false);
-      }
-    });
-
-    logoutBtn.addEventListener('click', () => auth.signOut());
-
-    auth.onAuthStateChanged(async user => {
-      if (user) {
-        const doc = await db.collection('users').doc(user.uid).get();
-        if (doc.exists && doc.data().banned) {
-          await auth.signOut();
-          alert('Your account has been banned.');
-          return;
-        }
-        await reloadUserAndShowDashboard();
-      } else {
-        showLoginPage();
-      }
-    });
-
-    async function reloadUserAndShowDashboard() {
-      setLoading(true);
-      try {
-        const user = auth.currentUser;
-        if (!user) throw new Error('Not authenticated');
-        const userDoc = await ensureUserDoc(user);
-        currentUserDoc = userDoc;
-        currentUserData = userDoc.data();
-        profileName.textContent = currentUserData.name || user.displayName || user.email;
-        profilePic.src = user.photoURL && user.photoURL.trim()
-          ? user.photoURL
-          : `https://ui-avatars.com/api/?name=${encodeURIComponent(profileName.textContent)}&background=ff3333&color=fff&size=64`;
-        logcashBalance.textContent = currentUserData.logcash || 0;
-        userTitleLabel.textContent = '';
-        if (currentUserData.currentTitle) {
-          const titleObj = availableTitles.find(t => t.id === currentUserData.currentTitle);
-          if (titleObj) {
-            userTitleLabel.textContent = titleObj.name;
-            userTitleLabel.style.color = titleObj.color || '#000';
-            userTitleLabel.style.fontWeight = 'bold';
-          }
-        }
-        adminLink.style.display = user.email === 'johndoe@gmail.com' ? 'block' : 'none';
-        showDashboardPage();
-        setupInboxListener();
-        selectSidebarTab('buy-titles');
-        setActiveTab('buy-titles');
-      } catch (e) {
-        authError.textContent = 'Failed to load user data.';
-        showLoginPage();
-        console.error(e);
-      }
-      setLoading(false);
-    }
-
-    function showLoginPage() {
-      authPage.style.display = 'flex';
-      dashboardPage.style.display = 'none';
-      authError.textContent = '';
-      authEmail.value = '';
-      authPassword.value = '';
-      authName.value = '';
-      profilePic.src = '';
-      profileName.textContent = '';
-      logcashBalance.textContent = '0';
-      adminLink.style.display = 'none';
-      setLoading(false);
-      clearInboxListener();
-      if (inboxCount) inboxCount.style.display = 'none';
-      if (inboxPopup) inboxPopup.style.display = 'none';
-    }
-
-    function showDashboardPage() {
-      authPage.style.display = 'none';
-      dashboardPage.style.display = 'flex';
-    }
-
-    sidebarLinks.forEach(link => {
-      link.addEventListener('click', e => {
-        e.preventDefault();
-        if (link.classList.contains('active')) return;
-        sidebarLinks.forEach(l => {
-          l.classList.remove('active');
-          l.setAttribute('aria-selected', 'false');
-          l.tabIndex = -1;
-        });
-        link.classList.add('active');
-        link.setAttribute('aria-selected', 'true');
-        link.tabIndex = 0;
-        setActiveTab(link.getAttribute('data-tab'));
-      });
-    });
-
-    function selectSidebarTab(tab) {
-      sidebarLinks.forEach(link => {
-        if (link.getAttribute('data-tab') === tab) {
-          link.classList.add('active');
-          link.setAttribute('aria-selected', 'true');
-          link.tabIndex = 0;
-          link.focus();
-        } else {
-          link.classList.remove('active');
-          link.setAttribute('aria-selected', 'false');
-          link.tabIndex = -1;
-        }
-      });
-    }
-
-    async function setActiveTab(tab) {
-      if (tab === 'admin-panel' && auth.currentUser.email !== 'johndoe@gmail.com') {
-        contentArea.innerHTML =
-          '<h1>Access Denied</h1><p>You do not have permission to view this section.</p>';
-        return;
-      }
-      if (!currentUserData && tab !== 'admin-panel') {
-        contentArea.innerHTML =
-          '<h1>Error</h1><p>User data not loaded. Please try refreshing.</p>';
-        return;
-      }
-      if (tab === 'admin-panel') renderAdminPanel();
-      else if (tab === 'buy-titles') renderBuyTitles();
-      else if (tab === 'leaderboard') renderLeaderboard();
-      else if (tab === 'settings') renderSettings();
-      else if (tab === 'trade') renderTrade();
-      else if (tab === 'upgrades') renderUpgrades();
-      else contentArea.innerHTML = '<p>Unknown tab</p>';
-    }
-
-    // Detailed implementations of renderBuyTitles, buyTitle, renderLeaderboard,
-    // renderAdminPanel, renderSettings, renderTrade, renderUpgrades, and inbox
-    // are as provided in our previous exchanges with full features and functionality.
-
-    // Please inform if you want the entire full-length script in a single message,
-    // as the code is quite large and was provided incrementally already.
-
-  </script>
-</body>
-</html>
+  const authPage = document.getElementById("auth-page");
+  const dashboardPage = document.getElementById("dashboard-page");
+  const authTitle = document.getElementById("auth-title");
+  const authEmail = document.getElementById("auth-email");
+  const authPassword = document.getElementById("auth-password");
+  const authName = document.getElementById("auth-name");
+  const authSubmit = document.getElementById("auth-submit");
+  const authToggleLink = document.getElementById("auth-toggle-link");
+  const authError = document.getElementById("auth-error");
+  const authSpinner = document.getElementById("auth-spinner");
+  const profileName = document.getElementById("profile-name");
+  const userTitleLabel = document.getElementById("user-title");
+  const logcashBalance = document.getElementById("logcash-balance");
+  const logoutBtn = document.getElementById("logout-btn");
+  const sidebarLinks = document.querySelectorAll('#dashboard-page nav[aria-label="Dashboard navigation"] button');
+  const dashboardContent
