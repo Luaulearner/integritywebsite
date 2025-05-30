@@ -2,8 +2,8 @@
 <html lang="en" >
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-  <title>LogCash Shop - Firebase Auth & Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Login / Signup - LogCash Shop</title>
   <style>
     /* Global Resets */
     * {
@@ -12,72 +12,49 @@
     body, html {
       margin: 0; padding: 0; height: 100%;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #f5f7fa;
-      color: #333;
-      min-height: 100vh;
-      overflow-y: auto;
-    }
-    a {
-      color: inherit;
-      text-decoration: none;
-    }
-    button {
-      font-family: inherit;
-    }
-
-    /* Common container */
-    #app {
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* Login/signup page styles */
-    #auth-page {
-      flex-grow: 1;
       background: linear-gradient(135deg, #667eea, #764ba2);
       display: flex;
       justify-content: center;
       align-items: center;
       color: white;
-      padding: 20px;
-      box-sizing: border-box;
+      min-height: 100vh;
+      user-select: none;
     }
-
     #auth-box {
       background: rgba(255 255 255 / 0.15);
       padding: 40px 30px 30px 30px;
       border-radius: 12px;
       width: 100%;
-      max-width: 400px;
+      max-width: 420px;
       backdrop-filter: blur(6px);
       box-shadow: 0 8px 32px rgb(118 75 162 / 0.4);
       display: flex;
       flex-direction: column;
+      user-select: text;
     }
-
-    #auth-box h2 {
+    h2 {
       margin-bottom: 25px;
       text-align: center;
       font-weight: 600;
     }
     input {
-      background: rgba(255 255 255 / 0.30);
+      background: rgba(255 255 255 / 0.70);
       border: none;
       border-radius: 8px;
       padding: 12px 14px;
       margin-bottom: 18px;
       font-size: 16px;
-      color: white;
+      color: #333;
       transition: background 0.3s;
       width: 100%;
       box-sizing: border-box;
+      user-select: text;
     }
     input::placeholder {
-      color: #ddd;
+      color: #666;
     }
     input:focus {
-      background: rgba(255 255 255 / 0.45);
+      background: rgba(255 255 255 / 0.9);
       outline: none;
     }
     button.primary-btn {
@@ -92,6 +69,7 @@
       transition: background 0.3s ease;
       margin-bottom: 15px;
       width: 100%;
+      user-select: none;
     }
     button.primary-btn:hover {
       background: #e05184;
@@ -102,10 +80,11 @@
       font-weight: 600;
       text-align: center;
       min-height: 24px;
+      user-select: none;
     }
     .toggle-auth {
       text-align: center;
-      color: white;
+      color: #fff;
       font-size: 14px;
       cursor: pointer;
       user-select: none;
@@ -122,6 +101,7 @@
       margin: 0 auto 18px auto;
       animation: spin 1s linear infinite;
       display: none;
+      user-select: none;
     }
     .spinner.active {
       display: block;
@@ -129,389 +109,18 @@
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
-
-    /* Dashboard container */
-    #dashboard-page {
-      display: none;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-    /* Topbar */
-    header#topbar {
-      background: #fff;
-      height: 60px;
-      border-bottom: 1px solid #ddd;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0 20px;
-      flex-shrink: 0;
-    }
-    #topbar .profile-info {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    #profile-pic {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      object-fit: cover;
-      box-shadow: 0 0 4px rgba(0,0,0,0.1);
-    }
-    #profile-name {
-      font-weight: 700;
-      color: #333;
-      max-width: 120px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    #logcash-balance {
-      font-weight: 600;
-      background: linear-gradient(90deg, #ff6699, #764ba2);
-      -webkit-background-clip: text;
-      color: transparent;
-    }
-    button#logout-btn {
-      background: #ff4d6d;
-      color: white;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 14px;
-      transition: background 0.3s ease;
-    }
-    button#logout-btn:hover {
-      background: #e63b5d;
-    }
-
-    /* Main dashboard layout */
-    #dashboard-main {
-      flex-grow: 1;
-      display: flex;
-      height: auto;
-      min-height: calc(100vh - 60px);
-      overflow: hidden;
-      flex-wrap: nowrap;
-      overflow-x: auto;
-    }
-
-    /* Sidebar */
-    #sidebar {
-      width: 220px;
-      background: #2f3e4d;
-      color: white;
-      display: flex;
-      flex-direction: column;
-      padding-top: 20px;
-      flex-shrink: 0;
-      min-height: 0;
-    }
-    #sidebar nav a {
-      display: flex;
-      align-items: center;
-      padding: 14px 20px;
-      border-left: 4px solid transparent;
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 15px;
-      user-select: none;
-      transition: background 0.3s ease, border-left-color 0.3s ease;
-      white-space: nowrap;
-    }
-    #sidebar nav a:hover {
-      background: #405368;
-    }
-    #sidebar nav a.active {
-      background: #1e2a38;
-      border-left-color: #ff6699;
-    }
-    #sidebar nav a svg {
-      width: 20px;
-      height: 20px;
-      fill: white;
-      margin-right: 12px;
-      flex-shrink: 0;
-    }
-
-    /* Content area */
-    main#content-area {
-      flex-grow: 1;
-      background: #fafafa;
-      padding: 30px 40px;
-      overflow-y: auto;
-      min-height: 0;
-      box-sizing: border-box;
-      min-width: 0;
-    }
-    main#content-area h1 {
-      margin-bottom: 25px;
-      color: #2f3e4d;
-    }
-    main#content-area p {
-      font-size: 16px;
-      line-height: 1.6;
-    }
-
-    /* Buy styles and titles containers */
-    .items-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit,minmax(160px,1fr));
-      gap: 20px;
-    }
-    .item-card {
-      background: white;
-      border-radius: 12px;
-      padding: 20px;
-      box-shadow: 0 6px 15px rgb(0 0 0 / 0.1);
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      cursor: pointer;
-      transition: box-shadow 0.25s ease;
-      user-select: none;
-      min-height: 140px;
-    }
-    .item-card:hover:not(.owned):not(.disabled) {
-      box-shadow: 0 8px 20px rgb(118 75 162 / 0.5);
-    }
-    .item-card h3 {
-      margin: 0;
-      font-weight: 700;
-      font-size: 18px;
-      color: #764ba2;
-    }
-    .item-card .price {
-      font-weight: 600;
-      color: #ff6699;
-    }
-    .item-card.owned {
-      cursor: default;
-      color: #999;
-      box-shadow: inset 0 0 15px rgba(100,75,162,0.3);
-    }
-    .item-card.owned h3 {
-      color: #444;
-    }
-    .item-card.disabled {
-      color: #ccc;
-      cursor: not-allowed;
-    }
-    .item-card.disabled:hover {
-      box-shadow: none;
-    }
-
-    /* Buttons in items */
-    .item-card button.buy-btn {
-      margin-top: auto;
-      background: #764ba2;
-      color: white;
-      border: none;
-      padding: 8px 14px;
-      border-radius: 6px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.3s ease;
-    }
-    .item-card button.buy-btn:hover:not(:disabled) {
-      background: #5a3478;
-    }
-    .item-card button.buy-btn:disabled {
-      background: #aaa;
-      cursor: not-allowed;
-    }
-
-    /* Leaderboard styles */
-    #leaderboard-list {
-      max-height: 600px;
-      overflow-y: auto;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 6px 15px rgb(0 0 0 / 0.1);
-    }
-    table.leaderboard-table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    table.leaderboard-table th, table.leaderboard-table td {
-      padding: 12px 15px;
-      border-bottom: 1px solid #eee;
-      text-align: left;
-    }
-    table.leaderboard-table th {
-      background: #764ba2;
-      color: white;
-      position: sticky;
-      top: 0;
-      z-index: 1;
-    }
-    table.leaderboard-table tr:nth-child(even) {
-      background: #fafafa;
-    }
-
-    /* Admin Panel styles */
-    #admin-panel {
-      background: #fff;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
-      max-width: 900px;
-      margin: 0 auto;
-    }
-    #admin-panel h2 {
-      color: #764ba2;
-      margin-bottom: 20px;
-    }
-    #admin-users-list {
-      max-height: 400px;
-      overflow-y: auto;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      margin-bottom: 20px;
-    }
-    #admin-users-list table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    #admin-users-list th, #admin-users-list td {
-      padding: 10px;
-      border-bottom: 1px solid #eee;
-      text-align: left;
-      max-width: 200px;
-      overflow-wrap: break-word;
-      word-break: break-all;
-    }
-    #admin-users-list th {
-      background: #764ba2;
-      color: white;
-      position: sticky;
-      top: 0;
-    }
-    #admin-logcash-form {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      max-width: 500px;
-    }
-    #admin-logcash-form input[type="email"], #admin-logcash-form input[type="number"] {
-      padding: 8px 12px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      flex-grow: 1;
-      font-size: 14px;
-    }
-    #admin-logcash-form button {
-      padding: 9px 15px;
-      background: #764ba2;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      font-weight: 600;
-      font-size: 14px;
-      cursor: pointer;
-      transition: background 0.3s ease;
-    }
-    #admin-logcash-form button:disabled {
-      background: #aaa;
-      cursor: not-allowed;
-    }
-    #admin-logcash-msg {
-      margin-top: 10px;
-      font-weight: 600;
-      min-height: 18px;
-    }
-
-    /* Responsive */
-    @media (max-width: 840px) {
-      main#content-area {
-        padding: 20px;
-      }
-      #sidebar {
-        width: 60px;
-        font-size: 12px;
-      }
-      #sidebar nav a span {
-        display: none;
-      }
-      #sidebar nav a svg {
-        margin-right: 0;
-        margin-left: auto;
-        margin-right: auto;
-      }
-      #dashboard-main {
-        flex-wrap: wrap;
-      }
-      #sidebar {
-        flex: 0 0 100%;
-        width: 100%;
-        display: flex;
-        justify-content: center;
-        padding: 10px 0;
-      }
-      #sidebar nav a {
-        padding: 8px 14px;
-        font-size: 14px;
-      }
-      main#content-area {
-        min-height: auto;
-      }
-      #admin-logcash-form {
-        flex-direction: column;
-        max-width: 100%;
-      }
-      #admin-logcash-form input, #admin-logcash-form button {
-        width: 100%;
-      }
-    }
   </style>
 </head>
 <body>
-  <div id="app">
-    <!-- Authentication Page (login/signup) -->
-    <section id="auth-page" aria-label="Account signup and login">
-      <div id="auth-box" role="form" aria-describedby="auth-error">
-        <h2 id="auth-title">Login</h2>
-        <div id="auth-error" class="error-msg" role="alert" aria-live="assertive"></div>
-        <input type="email" id="auth-email" placeholder="Email" aria-label="Email" required autocomplete="username" />
-        <input type="password" id="auth-password" placeholder="Password" aria-label="Password" required autocomplete="current-password" />
-        <input type="text" id="auth-name" placeholder="Full Name (Signup only)" aria-label="Full Name" style="display:none;" autocomplete="name" />
-        <button id="auth-submit" class="primary-btn" aria-label="Submit Login or Signup">Login</button>
-        <div class="toggle-auth" id="auth-toggle-link" tabindex="0" role="button" aria-pressed="false">Don't have an account? Sign up</div>
-        <div class="spinner" id="auth-spinner" aria-hidden="true"></div>
-      </div>
-    </section>
-
-    <!-- Dashboard Page -->
-    <section id="dashboard-page" aria-label="User dashboard" style="display:none;">
-      <header id="topbar" role="banner">
-        <div class="profile-info" aria-label="User Profile Information">
-          <img src="" alt="User Profile Picture" id="profile-pic" />
-          <div>
-            <div id="profile-name"></div>
-            <div>LogCash: <span id="logcash-balance">0</span> 💰</div>
-          </div>
-        </div>
-        <button id="logout-btn" aria-label="Sign out">Logout</button>
-      </header>
-      <div id="dashboard-main">
-        <aside id="sidebar" aria-label="Dashboard navigation">
-          <nav role="navigation" aria-label="Dashboard tabs">
-            <a href="#" class="active" data-tab="buy-styles" tabindex="0" aria-selected="true" role="tab">Buy Styles</a>
-            <a href="#" data-tab="buy-titles" tabindex="-1" aria-selected="false" role="tab">Buy Titles</a>
-            <a href="#" data-tab="leaderboard" tabindex="-1" aria-selected="false" role="tab">Leaderboard</a>
-            <a href="#" data-tab="admin-panel" tabindex="-1" aria-selected="false" role="tab" id="admin-link" style="display:none;">Admin Panel</a>
-          </nav>
-        </aside>
-        <main id="content-area" tabindex="0" role="tabpanel" aria-live="polite" aria-atomic="true">
-          <h1>Loading dashboard...</h1>
-          <p>Please wait...</p>
-        </main>
-      </div>
-    </section>
+  <div id="auth-box" role="form" aria-describedby="auth-error">
+    <h2 id="auth-title">Login</h2>
+    <div id="auth-error" class="error-msg" role="alert" aria-live="assertive"></div>
+    <input type="email" id="auth-email" placeholder="Email" aria-label="Email" required autocomplete="username" />
+    <input type="password" id="auth-password" placeholder="Password" aria-label="Password" required autocomplete="current-password" />
+    <input type="text" id="auth-name" placeholder="Full Name (Signup only)" aria-label="Full Name" style="display:none;" autocomplete="name" />
+    <button id="auth-submit" class="primary-btn" aria-label="Submit Login or Signup">Login</button>
+    <div class="toggle-auth" id="auth-toggle-link" tabindex="0" role="button" aria-pressed="false">Don't have an account? Sign up</div>
+    <div class="spinner" id="auth-spinner" aria-hidden="true"></div>
   </div>
 
   <!-- Firebase SDKs -->
@@ -520,7 +129,6 @@
   <script src="https://www.gstatic.com/firebasejs/9.20.0/firebase-firestore-compat.js"></script>
 
   <script>
-    // ==== Your Firebase config here ====
     const firebaseConfig = {
       apiKey: "AIzaSyBjA2O3QDuKsAGLzq008VEDug69WDroulI",
       authDomain: "supercoollogin999.firebaseapp.com",
@@ -531,14 +139,10 @@
       appId: "1:472488806884:web:d904be3b09548dbbc51ff1",
       measurementId: "G-03NQP912BX"
     };
-    // ==================================
 
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
-
-    const authPage = document.getElementById('auth-page');
-    const dashboardPage = document.getElementById('dashboard-page');
 
     const authTitle = document.getElementById('auth-title');
     const authEmail = document.getElementById('auth-email');
@@ -549,77 +153,54 @@
     const authError = document.getElementById('auth-error');
     const authSpinner = document.getElementById('auth-spinner');
 
-    const profilePic = document.getElementById('profile-pic');
-    const profileName = document.getElementById('profile-name');
-    const logcashBalance = document.getElementById('logcash-balance');
-    const logoutBtn = document.getElementById('logout-btn');
-    const sidebarLinks = document.querySelectorAll('#sidebar nav a');
-    const contentArea = document.getElementById('content-area');
-    const adminLink = document.getElementById('admin-link');
+    let isLoginMode = true; // Track mode
 
-    // Purchase store data with more styles and titles
-    const availableStyles = [
-      { id: "style1", name: "Purple Glow", price: 30, description: "A dazzling purple theme with glow."},
-      { id: "style2", name: "Dark Mode", price: 50, description: "Sleek dark theme for night owls."},
-      { id: "style3", name: "Pastel Dream", price: 40, description: "Soft pastel colors for calm vibes."},
-      { id: "style4", name: "Solar Flare", price: 60, description: "Warm sunset hues with bright waves."},
-      { id: "style5", name: "Cyber Matrix", price: 80, description: "Futuristic neon green and black."},
-      { id: "style6", name: "Frozen Frost", price: 45, description: "Cool blues and icy accents."}
-    ];
-    const availableTitles = [
-      { id: "title1", name: "The Conqueror", price: 60 },
-      { id: "title2", name: "Mastermind", price: 45 },
-      { id: "title3", name: "Legendary", price: 100 },
-      { id: "title4", name: "Trailblazer", price: 75 },
-      { id: "title5", name: "Shadow Walker", price: 55 },
-      { id: "title6", name: "The Innovator", price: 80 }
-    ];
-
-    let isLoginMode = true; // Track if we are in login or signup mode
-    let currentUserDoc = null; // Current logged user Firestore doc snapshot
-    let currentUserData = null; // Cached user data in memory
-
-    // Toggle login/signup UI
     function toggleAuthMode() {
       isLoginMode = !isLoginMode;
       authError.textContent = "";
-      if(isLoginMode) {
+      if (isLoginMode) {
         authTitle.textContent = "Login";
         authSubmit.textContent = "Login";
         authToggleLink.textContent = "Don't have an account? Sign up";
         authName.style.display = "none";
-        authPassword.value = "";
-        authEmail.value = "";
       } else {
         authTitle.textContent = "Sign Up";
         authSubmit.textContent = "Sign Up";
         authToggleLink.textContent = "Already have an account? Login";
         authName.style.display = "block";
-        authPassword.value = "";
-        authEmail.value = "";
-        authName.value = "";
       }
+      authEmail.value = "";
+      authPassword.value = "";
+      authName.value = "";
     }
 
-    authToggleLink.addEventListener('click', toggleAuthMode);
+    authToggleLink.addEventListener('click', () => {
+      toggleAuthMode();
+    });
     authToggleLink.addEventListener('keypress', e => {
-      if(e.key === 'Enter' || e.key === ' ') {
+      if(e.key === "Enter" || e.key === " ") {
         e.preventDefault();
         toggleAuthMode();
       }
     });
 
-    // Show spinner and disable inputs
-    function setAuthLoading(loading) {
+    // Email regex simple validation
+    function validateEmail(email) {
+      const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return re.test(email);
+    }
+
+    // Enable/disable inputs & button & show spinner
+    function setLoading(loading) {
       if(loading) {
-        authSpinner.classList.add('active');
+        authSpinner.classList.add("active");
         authSubmit.disabled = true;
         authEmail.disabled = true;
         authPassword.disabled = true;
         authName.disabled = true;
         authToggleLink.style.pointerEvents = "none";
       } else {
-        authSpinner.classList.remove('active');
+        authSpinner.classList.remove("active");
         authSubmit.disabled = false;
         authEmail.disabled = false;
         authPassword.disabled = false;
@@ -628,18 +209,66 @@
       }
     }
 
-    // Simple email validation
-    function validateEmail(email) {
-      const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      return re.test(email);
+    authSubmit.addEventListener("click", async () => {
+      authError.textContent = "";
+      const email = authEmail.value.trim().toLowerCase();
+      const password = authPassword.value;
+      const name = authName.value.trim();
+
+      if(!validateEmail(email)) {
+        authError.textContent = "Invalid email address.";
+        return;
+      }
+      if(password.length < 6) {
+        authError.textContent = "Password must be at least 6 characters.";
+        return;
+      }
+      if(!isLoginMode && name.length < 2) {
+        authError.textContent = "Please enter your full name.";
+        return;
+      }
+
+      setLoading(true);
+
+      try {
+        if(isLoginMode) {
+          await loginUser(email, password);
+        } else {
+          await signupUser(email, password, name);
+        }
+        // Successful login/signup: redirect to dashboard URL
+        window.location.href = "/dashboard/index.html";
+      } catch(error) {
+        let msg = "Authentication failed.";
+        if(error.code === "auth/user-not-found") msg = "User not found.";
+        else if(error.code === "auth/wrong-password") msg = "Incorrect password.";
+        else if(error.code === "auth/email-already-in-use") msg = "Email already in use.";
+        else if(error.code === "auth/weak-password") msg = "Weak password.";
+        authError.textContent = msg;
+        setLoading(false);
+      }
+    });
+
+    async function loginUser(email, password) {
+      const userCredential = await auth.signInWithEmailAndPassword(email, password);
+      const user = userCredential.user;
+      await ensureUserDoc(user);
+      await creditLoginBonus(user);
+      return user;
     }
 
-    // Create or update user document in Firestore with defaults as needed
+    async function signupUser(email, password, name) {
+      const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+      const user = userCredential.user;
+      await user.updateProfile({ displayName: name });
+      await ensureUserDoc(user);
+      return user;
+    }
+
     async function ensureUserDoc(user) {
       const userDocRef = db.collection('users').doc(user.uid);
       const doc = await userDocRef.get();
       if (!doc.exists) {
-        // Create new user doc with default logcash
         await userDocRef.set({
           email: user.email,
           name: user.displayName || "",
@@ -652,493 +281,19 @@
           lastLogin: firebase.firestore.FieldValue.serverTimestamp()
         });
       } else {
-        // Update lastLogin and name if needed
-        const data = doc.data();
-        const updateData = {};
-        if (!data.name && user.displayName) updateData.name = user.displayName;
-        updateData.lastLogin = firebase.firestore.FieldValue.serverTimestamp();
-        if (Object.keys(updateData).length > 0) await userDocRef.update(updateData);
+        const updates = {};
+        if (!doc.data().name && user.displayName) updates.name = user.displayName;
+        updates.lastLogin = firebase.firestore.FieldValue.serverTimestamp();
+        if (Object.keys(updates).length) await userDocRef.update(updates);
       }
-      return await userDocRef.get();
     }
 
-    // Signup user in Firebase, update Firestore user doc
-    async function signupUser(email, password, name) {
-      const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-      const user = userCredential.user;
-      await user.updateProfile({ displayName: name });
-      return await ensureUserDoc(user);
-    }
-
-    // On login add 10 logcash bonus and ensure user doc
-    async function loginUser(email, password) {
-      const userCredential = await auth.signInWithEmailAndPassword(email, password);
-      const user = userCredential.user;
-      await ensureUserDoc(user);
+    async function creditLoginBonus(user) {
+      if (!user) return;
       const userDocRef = db.collection('users').doc(user.uid);
       await userDocRef.update({
         logcash: firebase.firestore.FieldValue.increment(10),
         lastLogin: firebase.firestore.FieldValue.serverTimestamp()
-      });
-      return user;
-    }
-
-    authSubmit.addEventListener('click', async () => {
-      authError.textContent = "";
-      const email = authEmail.value.trim().toLowerCase();
-      const password = authPassword.value;
-      const name = authName.value.trim();
-
-      if(!validateEmail(email)) {
-        authError.textContent = "Please enter a valid email.";
-        return;
-      }
-      if(password.length < 6) {
-        authError.textContent = "Password must be at least 6 characters.";
-        return;
-      }
-      if(!isLoginMode && name.length < 2) {
-        authError.textContent = "Please enter your full name (min 2 chars).";
-        return;
-      }
-      setAuthLoading(true);
-      try {
-        let userDoc;
-        if(isLoginMode) {
-          const user = await loginUser(email, password);
-          userDoc = await db.collection('users').doc(user.uid).get();
-        } else {
-          userDoc = await signupUser(email, password, name);
-        }
-        currentUserDoc = userDoc;
-        currentUserData = userDoc.data();
-        await reloadUIWithUserData();
-      } catch(err) {
-        let msg = "Failed to authenticate.";
-        if(err && err.code === "auth/user-not-found") msg = "User not found.";
-        else if(err && err.code === "auth/wrong-password") msg = "Incorrect password.";
-        else if(err && err.code === "auth/email-already-in-use") msg = "Email already in use.";
-        else if(err && err.code === "auth/weak-password") msg = "Weak password.";
-
-        authError.textContent = msg;
-        setAuthLoading(false);
-        return;
-      }
-    });
-
-    logoutBtn.addEventListener('click', () => {
-      auth.signOut();
-    });
-
-    auth.onAuthStateChanged(async (user) => {
-      if(user) {
-        authPage.style.display = 'none';
-        dashboardPage.style.display = 'flex';
-        authError.textContent = "";
-        setAuthLoading(false);
-        try {
-          const userDoc = await ensureUserDoc(user);
-          currentUserDoc = userDoc;
-          currentUserData = userDoc.data();
-          await reloadUIWithUserData();
-        } catch(e) {
-          authError.textContent = "Failed to load user data.";
-          console.error(e);
-        }
-      } else {
-        authPage.style.display = 'flex';
-        dashboardPage.style.display = 'none';
-        authError.textContent = "";
-        setAuthLoading(false);
-        authEmail.value = "";
-        authPassword.value = "";
-        authName.value = "";
-        profilePic.src = "";
-        profileName.textContent = "";
-        logcashBalance.textContent = "0";
-        adminLink.style.display = "none";
-      }
-    });
-
-    async function reloadUIWithUserData() {
-      if (!currentUserData) {
-        contentArea.innerHTML = `<h1>Error</h1><p>User data not loaded. Please try refreshing.</p>`;
-        return;
-      }
-      profileName.textContent = currentUserData.name || auth.currentUser.displayName || auth.currentUser.email;
-      const photoURL = auth.currentUser.photoURL && auth.currentUser.photoURL.trim() ?
-        auth.currentUser.photoURL :
-        `https://ui-avatars.com/api/?name=${encodeURIComponent(profileName.textContent)}&background=ff3333&color=fff&size=64`;
-      profilePic.src = photoURL;
-      logcashBalance.textContent = currentUserData.logcash || 0;
-      // Show admin panel tab link for the admin user only
-      if(auth.currentUser.email === "johndoe@gmail.com") {
-        adminLink.style.display = "block";
-        setActiveTab("admin-panel");
-        selectSidebarTab("admin-panel");
-      } else {
-        adminLink.style.display = "none";
-        setActiveTab("buy-styles");
-        selectSidebarTab("buy-styles");
-      }
-    }
-
-    function selectSidebarTab(tab) {
-      sidebarLinks.forEach(link => {
-        if(link.getAttribute('data-tab') === tab) {
-          link.classList.add('active');
-          link.setAttribute('aria-selected', 'true');
-          link.tabIndex = 0;
-          link.focus();
-        } else {
-          link.classList.remove('active');
-          link.setAttribute('aria-selected', 'false');
-          link.tabIndex = -1;
-        }
-      });
-    }
-
-    function setActiveTab(tab) {
-      if(tab === "admin-panel" && auth.currentUser.email !== "johndoe@gmail.com") {
-        contentArea.innerHTML = `<h1>Access Denied</h1><p>You do not have permission to view this section.</p>`;
-        return;
-      }
-      if(!currentUserData && tab !== "admin-panel") {
-        contentArea.innerHTML = `<h1>Error</h1><p>User data not loaded. Please try refreshing.</p>`;
-        return;
-      }
-      if(tab === "admin-panel") {
-        renderAdminPanel();
-      } else if(tab === "buy-styles") {
-        renderBuyStyles();
-      } else if(tab === "buy-titles") {
-        renderBuyTitles();
-      } else if(tab === "leaderboard") {
-        renderLeaderboard();
-      }
-    }
-
-    // Buy Styles tab
-    function renderBuyStyles() {
-      contentArea.innerHTML = `<h1>Buy UI Styles</h1>
-      <p>Purchase styles using your LogCash.</p>
-      <div class="items-grid" id="styles-grid"></div>`;
-
-      const grid = document.getElementById('styles-grid');
-      if(!grid) return;
-
-      const owned = currentUserData.ownedStyles || [];
-      const logcash = currentUserData.logcash || 0;
-
-      availableStyles.forEach(style => {
-        const isOwned = owned.includes(style.id);
-        const canBuy = logcash >= style.price && !isOwned;
-
-        const card = document.createElement('div');
-        card.className = "item-card";
-        if(isOwned) card.classList.add('owned');
-        if(!canBuy && !isOwned) card.classList.add('disabled');
-        card.tabIndex = 0;
-
-        card.innerHTML = `
-          <h3>${style.name}</h3>
-          <p>${style.description}</p>
-          <div class="price">${style.price} 💰</div>
-          ${isOwned ? `<button disabled>Owned</button>` : `<button class="buy-btn" ${canBuy ? '' : 'disabled'}>Buy</button>`}
-        `;
-
-        const buyBtn = card.querySelector('button.buy-btn');
-        if(buyBtn) {
-          buyBtn.addEventListener('click', () => buyStyle(style.id, style.price));
-        }
-        grid.appendChild(card);
-      });
-    }
-
-    // Buy Titles tab
-    function renderBuyTitles() {
-      contentArea.innerHTML = `<h1>Buy Titles</h1>
-      <p>Purchase titles using your LogCash.</p>
-      <div class="items-grid" id="titles-grid"></div>`;
-
-      const grid = document.getElementById('titles-grid');
-      if(!grid) return;
-
-      const owned = currentUserData.ownedTitles || [];
-      const logcash = currentUserData.logcash || 0;
-
-      availableTitles.forEach(title => {
-        const isOwned = owned.includes(title.id);
-        const canBuy = logcash >= title.price && !isOwned;
-
-        const card = document.createElement('div');
-        card.className = "item-card";
-        if(isOwned) card.classList.add('owned');
-        if(!canBuy && !isOwned) card.classList.add('disabled');
-        card.tabIndex = 0;
-
-        card.innerHTML = `
-          <h3>${title.name}</h3>
-          <div class="price">${title.price} 💰</div>
-          ${isOwned ? `<button disabled>Owned</button>` : `<button class="buy-btn" ${canBuy ? '' : 'disabled'}>Buy</button>`}
-        `;
-
-        const buyBtn = card.querySelector('button.buy-btn');
-        if(buyBtn) {
-          buyBtn.addEventListener('click', () => buyTitle(title.id, title.price));
-        }
-        grid.appendChild(card);
-      });
-    }
-
-    // Buy style purchase logic
-    async function buyStyle(styleId, price) {
-      if(!currentUserDoc) return;
-      if(currentUserData.logcash < price) {
-        alert("You don't have enough LogCash!");
-        return;
-      }
-      const userDocRef = db.collection('users').doc(currentUserDoc.id);
-      try {
-        await db.runTransaction(async (transaction) => {
-          const userDoc = await transaction.get(userDocRef);
-          if(!userDoc.exists) throw "User doc missing";
-
-          const userData = userDoc.data();
-          const logcash = userData.logcash || 0;
-          const ownedStyles = userData.ownedStyles || [];
-
-          if(logcash < price) throw "Insufficient LogCash";
-          if(ownedStyles.includes(styleId)) throw "Style already owned";
-
-          transaction.update(userDocRef, {
-            logcash: logcash - price,
-            ownedStyles: [...ownedStyles, styleId],
-            currentStyle: styleId
-          });
-        });
-        alert("Style purchased and applied!");
-        currentUserData.logcash -= price;
-        currentUserData.ownedStyles.push(styleId);
-        currentUserData.currentStyle = styleId;
-        logcashBalance.textContent = currentUserData.logcash;
-        renderBuyStyles();
-      } catch(e) {
-        alert("Purchase failed: "+e);
-      }
-    }
-
-    // Buy title purchase logic
-    async function buyTitle(titleId, price) {
-      if(!currentUserDoc) return;
-      if(currentUserData.logcash < price) {
-        alert("You don't have enough LogCash!");
-        return;
-      }
-      const userDocRef = db.collection('users').doc(currentUserDoc.id);
-      try {
-        await db.runTransaction(async (transaction) => {
-          const userDoc = await transaction.get(userDocRef);
-          if(!userDoc.exists) throw "User doc missing";
-
-          const userData = userDoc.data();
-          const logcash = userData.logcash || 0;
-          const ownedTitles = userData.ownedTitles || [];
-
-          if(logcash < price) throw "Insufficient LogCash";
-          if(ownedTitles.includes(titleId)) throw "Title already owned";
-
-          transaction.update(userDocRef, {
-            logcash: logcash - price,
-            ownedTitles: [...ownedTitles, titleId],
-            currentTitle: titleId
-          });
-        });
-        alert("Title purchased and applied!");
-        currentUserData.logcash -= price;
-        currentUserData.ownedTitles.push(titleId);
-        currentUserData.currentTitle = titleId;
-        logcashBalance.textContent = currentUserData.logcash;
-        renderBuyTitles();
-      } catch(e) {
-        alert("Purchase failed: "+e);
-      }
-    }
-
-    // Leaderboard tab
-    async function renderLeaderboard() {
-      contentArea.innerHTML = `<h1>Leaderboard - Top 100 by LogCash</h1>
-      <div id="leaderboard-list" aria-live="polite" aria-atomic="true" tabindex="0">
-      Loading leaderboard...
-      </div>`;
-
-      const listEl = document.getElementById('leaderboard-list');
-      try {
-        const snapshot = await db.collection('users')
-          .orderBy('logcash', 'desc')
-          .limit(100)
-          .get();
-
-        if(snapshot.empty) {
-          listEl.textContent = "No users found.";
-          return;
-        }
-
-        let table = document.createElement('table');
-        table.className = 'leaderboard-table';
-        table.innerHTML = `<thead><tr>
-          <th>Rank</th><th>Name</th><th>Email</th><th>LogCash</th>
-        </tr></thead>`;
-        let tbody = document.createElement('tbody');
-
-        let rank = 1;
-        snapshot.forEach(doc => {
-          const u = doc.data();
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>${rank}</td>
-            <td>${escapeHtml(u.name || '')}</td>
-            <td>${escapeHtml(u.email)}</td>
-            <td>${u.logcash || 0}</td>
-          `;
-          tbody.appendChild(tr);
-          rank++;
-        });
-        table.appendChild(tbody);
-        listEl.innerHTML = '';
-        listEl.appendChild(table);
-
-      } catch(e) {
-        listEl.textContent = "Failed to load leaderboard.";
-        console.error("Leaderboard load error:", e);
-      }
-    }
-
-    // Admin Panel tab with LogCash give form
-    async function renderAdminPanel() {
-      contentArea.innerHTML = `<div id="admin-panel" tabindex="0" aria-label="Admin Panel">
-        <h2>Admin Panel - User Management</h2>
-        <div id="admin-users-list">
-          <p>Loading users...</p>
-        </div>
-        <form id="admin-logcash-form" aria-label="Give LogCash to users">
-          <input type="email" id="admin-email-input" placeholder="User email" aria-label="User email" required />
-          <input type="number" id="admin-amount-input" placeholder="Amount (e.g. 10)" min="1" aria-label="LogCash amount" required />
-          <button type="submit" id="admin-give-cash-btn">Give LogCash</button>
-        </form>
-        <div id="admin-logcash-msg" role="alert"></div>
-      </div>`;
-
-      const usersListEl = document.getElementById('admin-users-list');
-      const form = document.getElementById('admin-logcash-form');
-      const emailInput = document.getElementById('admin-email-input');
-      const amountInput = document.getElementById('admin-amount-input');
-      const btn = document.getElementById('admin-give-cash-btn');
-      const msg = document.getElementById('admin-logcash-msg');
-
-      try {
-        const snapshot = await db.collection('users').orderBy('logcash', 'desc').limit(500).get();
-        if(snapshot.empty) {
-          usersListEl.innerHTML = "<p>No users found.</p>";
-          return;
-        }
-
-        let table = document.createElement('table');
-        table.innerHTML = `
-          <thead><tr><th>Name</th><th>Email</th><th>LogCash</th></tr></thead>
-        `;
-        let tbody = document.createElement('tbody');
-
-        snapshot.forEach(doc => {
-          const u = doc.data();
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>${escapeHtml(u.name || '')}</td>
-            <td>${escapeHtml(u.email)}</td>
-            <td>${u.logcash || 0}</td>
-          `;
-          tbody.appendChild(tr);
-        });
-        table.appendChild(tbody);
-        usersListEl.innerHTML = '';
-        usersListEl.appendChild(table);
-      } catch(e) {
-        usersListEl.innerHTML = "<p>Failed to load users.</p>";
-        console.error("Admin panel load error:", e);
-      }
-
-      form.onsubmit = async (e) => {
-        e.preventDefault();
-        msg.textContent = "";
-        const emailToGive = emailInput.value.trim().toLowerCase();
-        const amountToGive = Number(amountInput.value);
-
-        if(!validateEmail(emailToGive)) {
-          msg.style.color = "#e74c3c";
-          msg.textContent = "Please enter a valid email.";
-          return;
-        }
-        if(!(amountToGive >= 1)) {
-          msg.style.color = "#e74c3c";
-          msg.textContent = "Please enter a valid amount greater or equal to 1.";
-          return;
-        }
-
-        btn.disabled = true;
-        btn.textContent = "Giving...";
-        try {
-          // Find user doc by email
-          const query = await db.collection('users').where('email', '==', emailToGive).limit(1).get();
-          if(query.empty) {
-            msg.style.color = "#e74c3c";
-            msg.textContent = "No user found with this email.";
-            btn.disabled = false;
-            btn.textContent = "Give LogCash";
-            return;
-          }
-          const userDoc = query.docs[0];
-          await db.runTransaction(async (transaction) => {
-            const freshDoc = await transaction.get(userDoc.ref);
-            if(!freshDoc.exists) throw "User doc no longer exists";
-            const currentCash = freshDoc.data().logcash || 0;
-            transaction.update(userDoc.ref, {
-              logcash: currentCash + amountToGive
-            });
-          });
-
-          msg.style.color = "green";
-          msg.textContent = `Gave ${amountToGive} LogCash to ${emailToGive}.`;
-
-          // Refresh current user data if affected
-          await reloadUserDocIfNeeded(emailToGive);
-          renderAdminPanel();
-        } catch(err) {
-          msg.style.color = "#e74c3c";
-          msg.textContent = "Failed to give LogCash: " + err;
-          console.error(err);
-        } finally {
-          btn.disabled = false;
-          btn.textContent = "Give LogCash";
-        }
-      };
-    }
-
-    async function reloadUserDocIfNeeded(email) {
-      if (auth.currentUser.email.toLowerCase() === email.toLowerCase()) {
-        // Reload current logged user data to update balance
-        const ref = db.collection('users').doc(auth.currentUser.uid);
-        const docSnap = await ref.get();
-        currentUserDoc = docSnap;
-        currentUserData = docSnap.data();
-        logcashBalance.textContent = currentUserData.logcash || 0;
-      }
-    }
-
-    // Escape HTML helper
-    function escapeHtml(text){
-      if(!text) return '';
-      return text.replace(/[&<>"']/g, function(m) {
-        return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];
       });
     }
   </script>
