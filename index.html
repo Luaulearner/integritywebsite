@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Random Username Generator</title>
+  <title>Realistic Random Username Generator</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap" rel="stylesheet" />
   <style>
     :root {
@@ -32,6 +32,8 @@
       flex-direction: column;
       min-height: 100vh;
       padding: 2rem 1rem;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
 
     header {
@@ -39,8 +41,7 @@
       width: 100%;
       margin: 0 auto 3rem;
       display: flex;
-      justify-content: space-between;
-      align-items: center;
+      justify-content: center;
       position: sticky;
       top: 0;
       background: var(--color-bg);
@@ -48,15 +49,16 @@
       box-shadow: var(--shadow);
       border-radius: var(--rounded);
       z-index: 100;
+      user-select: none;
     }
 
     header h1 {
       font-family: var(--font-family-heading);
       font-weight: 700;
-      font-size: 1.75rem;
+      font-size: 3rem;
       margin: 0;
       color: var(--color-accent);
-      user-select: none;
+      text-align: center;
     }
 
     main {
@@ -67,13 +69,13 @@
       flex-grow: 1;
       display: flex;
       flex-direction: column;
-      gap: 3.5rem;
+      gap: 4rem;
     }
 
     section {
       background: #f9fafb;
       border-radius: var(--rounded);
-      padding: 2rem;
+      padding: 2rem 2.5rem;
       box-shadow: var(--shadow);
       display: flex;
       flex-direction: column;
@@ -85,7 +87,7 @@
     section h2 {
       font-family: var(--font-family-heading);
       font-weight: 700;
-      font-size: 2rem;
+      font-size: 2.5rem;
       margin: 0;
       color: var(--color-accent);
     }
@@ -93,7 +95,7 @@
     section p.description {
       font-size: 1rem;
       color: var(--color-text-secondary);
-      max-width: 400px;
+      max-width: 420px;
       margin: 0 auto 1rem;
     }
 
@@ -102,13 +104,13 @@
       color: white;
       font-family: var(--font-family-heading);
       font-weight: 700;
-      font-size: 1rem;
-      padding: 0.75rem 2rem;
+      font-size: 1.1rem;
+      padding: 0.85rem 3rem;
       border: none;
       border-radius: var(--rounded);
       cursor: pointer;
       transition: transform var(--transition), background-color var(--transition);
-      box-shadow: 0 4px 6px rgba(17,24,39,0.2);
+      box-shadow: 0 4px 6px rgba(17,24,39,0.15);
       user-select: none;
     }
 
@@ -121,20 +123,23 @@
 
     .username-display {
       font-family: 'Courier New', Courier, monospace;
-      font-size: 2.25rem;
+      font-size: 2.75rem;
       font-weight: 700;
       color: var(--color-accent);
       background: white;
-      padding: 0.5rem 1rem;
+      padding: 0.75rem 1.25rem;
       border-radius: var(--rounded);
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      box-shadow: 0 3px 12px rgba(0,0,0,0.12);
       user-select: all;
-      min-width: 200px;
+      min-width: 220px;
+      max-width: 100%;
+      word-break: break-word;
+      letter-spacing: 0.05em;
     }
 
     footer {
       text-align: center;
-      font-size: 0.9rem;
+      font-size: 0.95rem;
       color: var(--color-text-secondary);
       padding: 2rem 1rem 1rem;
     }
@@ -145,7 +150,7 @@
       }
 
       section h2 {
-        font-size: 1.5rem;
+        font-size: 1.8rem;
       }
 
       button.generate-btn {
@@ -153,73 +158,152 @@
       }
 
       .username-display {
-        font-size: 1.75rem;
+        font-size: 2rem;
         min-width: auto;
-        word-break: break-word;
+        letter-spacing: normal;
       }
     }
   </style>
 </head>
 <body>
   <header>
-    <h1>Random Username Generator</h1>
+    <h1>Realistic Random Username Generator</h1>
   </header>
   <main>
     <section aria-labelledby="five-letter-heading">
-      <h2 id="five-letter-heading">Generate Random Five-Letter Names</h2>
-      <p class="description">Generate random five-letter usernames with an optional underscore character, like "Z_PRH" or "UAREE".</p>
-      <button class="generate-btn" id="generateFiveBtn" type="button" aria-describedby="five-letter-desc">Generate 5-Letter Name</button>
+      <h2 id="five-letter-heading">5-Letter Usernames</h2>
+      <p class="description">Generate pronounceable five-letter usernames with optional underscore (e.g. "Z_PRH", "UAREE").</p>
+      <button class="generate-btn" id="generateFiveBtn" type="button" aria-describedby="five-letter-desc">Generate 5-Letter Username</button>
       <div class="username-display" id="fiveLetterOutput" aria-live="polite" aria-atomic="true">Press the button to generate</div>
     </section>
 
     <section aria-labelledby="six-letter-heading">
-      <h2 id="six-letter-heading">Generate Random Six-Letter Game Usernames</h2>
-      <p class="description">Get cool six-letter game usernames randomly generated just for you.</p>
+      <h2 id="six-letter-heading">6-Letter Usernames</h2>
+      <p class="description">Generate pronounceable 6-letter usernames suitable for games and profiles.</p>
       <button class="generate-btn" id="generateSixBtn" type="button" aria-describedby="six-letter-desc">Generate 6-Letter Username</button>
       <div class="username-display" id="sixLetterOutput" aria-live="polite" aria-atomic="true">Press the button to generate</div>
     </section>
+
+    <section aria-labelledby="six-to-seven-letter-heading">
+      <h2 id="six-to-seven-letter-heading">6 to 7-Letter Usernames with Underscore</h2>
+      <p class="description">Generate 6 or 7 letter usernames with an underscore near the middle, like "ALTER_N" or "MYSTE_R".</p>
+      <button class="generate-btn" id="generateSixToSevenBtn" type="button" aria-describedby="six-to-seven-desc">Generate 6-7 Letter Username</button>
+      <div class="username-display" id="sixToSevenLetterOutput" aria-live="polite" aria-atomic="true">Press the button to generate</div>
+    </section>
   </main>
   <footer>
-    &copy; 2024 Random Username Generator
+    &copy; 2024 Realistic Username Generator
   </footer>
 
   <script>
-    // Generates a random uppercase letter A-Z
-    function randomLetter() {
-      const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-      return letters.charAt(Math.floor(Math.random() * letters.length));
+    // Utility functions for random
+    function randomChoice(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
     }
 
-    // Generates a random 5 letter name with optional underscore in 2nd-4th position
+    // Letters grouped by vowels/consonants (for more natural usernames)
+    const vowels = ['A', 'E', 'I', 'O', 'U'];
+    const consonants = 
+      ['B','C','D','F','G','H','J','K','L','M','N','P','Q','R','S','T','V','W','X','Y','Z'];
+
+    // Generates a pronounceable cluster of given length: alternating consonant and vowel
+    function generateCluster(length) {
+      let cluster = '';
+      for (let i = 0; i < length; i++) {
+        if (i % 2 === 0) {
+          cluster += randomChoice(consonants);
+        } else {
+          cluster += randomChoice(vowels);
+        }
+      }
+      return cluster;
+    }
+
+    // 5 letter username generator with optional underscore and some letter clustering for pronounceability
     function generateFiveLetterName() {
-      // We'll allow underscore randomly in one of the middle positions or none
+      // Decide if underscore is used (about 50%)
       const useUnderscore = Math.random() < 0.5;
-      let nameArr = [];
-      if (useUnderscore) {
-        // place underscore randomly at pos 1, 2, or 3 (0-based index)
-        const underscorePos = Math.floor(Math.random() * 3) + 1;
+
+      if (!useUnderscore) {
+        // Generate simple CVCVC or VCVCV style
+        const startWithConsonant = Math.random() < 0.5;
+        let name = '';
         for (let i = 0; i < 5; i++) {
-          if (i === underscorePos) {
-            nameArr.push('_');
+          if ((i % 2 === 0) === startWithConsonant) {
+            name += randomChoice(consonants);
           } else {
-            nameArr.push(randomLetter());
+            name += randomChoice(vowels);
           }
         }
+        return name;
       } else {
-        for (let i = 0; i < 5; i++) {
-          nameArr.push(randomLetter());
+        // underscore in position 1, 2 or 3 (index base 0)
+        const underscorePos = Math.floor(Math.random() * 3) + 1;
+        // Build letters around underscore with clusters
+        let nameArr = [];
+
+        // Left cluster length
+        const leftLen = underscorePos;
+        // Right cluster length
+        const rightLen = 4 - underscorePos;
+
+        // Left side cluster generate C/V alternating
+        let leftCluster = '';
+        for (let i = 0; i < leftLen; i++) {
+          leftCluster += (i % 2 === 0) ? randomChoice(consonants) : randomChoice(vowels);
         }
+
+        // Right side cluster generate C/V alternating, flipped start for variety
+        let rightCluster = '';
+        for (let i = 0; i < rightLen; i++) {
+          rightCluster += (i % 2 === 0) ? randomChoice(vowels) : randomChoice(consonants);
+        }
+
+        nameArr = (leftCluster + '_' + rightCluster).toUpperCase();
+        return nameArr;
       }
-      return nameArr.join('');
     }
 
-    // Generates a random 6 letter username (only letters)
+    // 6 letter username generator pronounceable (CVCVCV or VCVCVC)
     function generateSixLetterUsername() {
-      let nameArr = [];
+      const startWithConsonant = Math.random() < 0.5;
+      let name = '';
       for (let i = 0; i < 6; i++) {
-        nameArr.push(randomLetter());
+        if ((i % 2 === 0) === startWithConsonant) {
+          name += randomChoice(consonants);
+        } else {
+          name += randomChoice(vowels);
+        }
       }
-      return nameArr.join('');
+      return name;
+    }
+
+    // 6 to 7 letter username with underscore near middle, like ALTER_N or MYSTE_R
+    function generateSixToSevenLetterWithUnderscore() {
+      // Total length 6 or 7
+      const len = Math.random() < 0.5 ? 6 : 7;
+      // Underscore position close to middle
+      const underscorePos = Math.floor(len / 2);
+
+      // Left cluster length
+      const leftLen = underscorePos;
+      // Right cluster length
+      const rightLen = len - underscorePos - 1;
+
+      // For true name feel, do consonant/vowel alternating clusters
+      // Left starting with consonant
+      let leftCluster = '';
+      for (let i = 0; i < leftLen; i++) {
+        leftCluster += (i % 2 === 0) ? randomChoice(consonants) : randomChoice(vowels);
+      }
+
+      // Right cluster alternating, start with vowel for variety
+      let rightCluster = '';
+      for (let i = 0; i < rightLen; i++) {
+        rightCluster += (i % 2 === 0) ? randomChoice(vowels) : randomChoice(consonants);
+      }
+
+      return (leftCluster + '_' + rightCluster).toUpperCase();
     }
 
     document.getElementById('generateFiveBtn').addEventListener('click', () => {
@@ -230,6 +314,11 @@
     document.getElementById('generateSixBtn').addEventListener('click', () => {
       const output = document.getElementById('sixLetterOutput');
       output.textContent = generateSixLetterUsername();
+    });
+
+    document.getElementById('generateSixToSevenBtn').addEventListener('click', () => {
+      const output = document.getElementById('sixToSevenLetterOutput');
+      output.textContent = generateSixToSevenLetterWithUnderscore();
     });
   </script>
 </body>
