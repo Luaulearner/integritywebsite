@@ -3,636 +3,235 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Admin Ban Logs - Firebase with Media Upload and Platforms</title>
+  <title>Random Username Generator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap" rel="stylesheet" />
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+    :root {
+      --color-bg: #ffffff;
+      --color-text-primary: #111827;
+      --color-text-secondary: #6b7280;
+      --color-accent: #111827;
+      --font-family-heading: 'Poppins', sans-serif;
+      --rounded: 0.75rem;
+      --shadow: 0 2px 10px rgba(0,0,0,0.05);
+      --transition: 0.3s ease;
+    }
+
     * {
       box-sizing: border-box;
     }
+
     body {
-      font-family: 'Inter', sans-serif;
-      background: linear-gradient(135deg, #2e3a59, #1c2433);
-      color: #f0f0f0;
       margin: 0;
-      padding: 0;
+      background: var(--color-bg);
+      color: var(--color-text-primary);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+        Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      line-height: 1.6;
+      display: flex;
+      flex-direction: column;
       min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-      padding: 20px;
+      padding: 2rem 1rem;
     }
-    h1 {
-      font-weight: 600;
-      font-size: 2.5rem;
-      margin-bottom: 0.5rem;
-      color: #ffd369;
-      text-shadow: 0 0 10px #ffd369aa;
-    }
-    #login-container, #app-container {
-      background: #172533;
-      border-radius: 12px;
+
+    header {
+      max-width: 1200px;
       width: 100%;
-      max-width: 650px;
-      padding: 30px 40px;
-      box-shadow: 0 0 30px #000000aa;
-    }
-    #login-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 20px;
-    }
-    #login-container input[type="password"] {
-      width: 100%;
-      padding: 14px 16px;
-      border-radius: 8px;
-      border: none;
-      font-size: 1rem;
-      outline: none;
-      transition: background 0.3s ease;
-      color: #333;
-    }
-    #login-container input[type="password"]:focus {
-      background: #fff;
-    }
-    #login-btn {
-      background: #ffd369;
-      border: none;
-      color: #1c2433;
-      font-weight: 600;
-      padding: 12px 24px;
-      border-radius: 8px;
-      cursor: pointer;
-      box-shadow: 0 4px 10px #ffd369aa;
-      transition: background 0.3s ease;
-    }
-    #login-btn:hover {
-      background: #ffc024;
-    }
-    #login-error {
-      color: #ff5555;
-      font-weight: 600;
-      display: none;
-    }
-    #app-container {
-      display: none;
-      flex-direction: column;
-    }
-    form {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 18px;
-      margin-bottom: 30px;
-    }
-    form > * {
-      flex: 1 1 45%;
-      min-width: 150px;
-    }
-    label {
-      display: block;
-      font-weight: 600;
-      margin-bottom: 8px;
-      color: #ffd369;
-      text-shadow: 0 0 8px #ffd36999;
-    }
-    input, textarea, select {
-      width: 100%;
-      padding: 12px 16px;
-      border-radius: 8px;
-      border: none;
-      font-size: 1rem;
-      resize: vertical;
-      outline: none;
-      transition: background 0.3s ease;
-      color: #333;
-    }
-    input:focus, textarea:focus, select:focus {
-      background: #fff;
-    }
-    textarea {
-      min-height: 80px;
-      flex-basis: 100%;
-    }
-    button[type=submit] {
-      background: #ffd369;
-      color: #1c2433;
-      font-weight: 600;
-      border: none;
-      padding: 14px 32px;
-      border-radius: 10px;
-      cursor: pointer;
-      box-shadow: 0 4px 10px #ffd369aa;
-      align-self: flex-start;
-      transition: background 0.3s ease;
-      margin-top: 5px;
-    }
-    button[type=submit]:hover:enabled {
-      background: #ffc024;
-    }
-    button[type=submit]:disabled {
-      background: #999851;
-      cursor: not-allowed;
-      box-shadow: none;
-    }
-    #logs-list {
-      max-height: 400px;
-      overflow-y: auto;
-      border-radius: 12px;
-      background: #243242;
-      padding: 20px;
-      box-shadow: inset 0 0 15px #00000077;
-    }
-    .log-entry {
-      background: #1f2a3a;
-      padding: 16px 20px;
-      margin-bottom: 18px;
-      border-radius: 12px;
-      box-shadow: 0 0 8px #00000088;
-      position: relative;
-      transition: background 0.3s ease;
-      color: #e1e1e1;
-    }
-    .log-entry:hover {
-      background: #2d3a56;
-    }
-    .log-header {
+      margin: 0 auto 3rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-weight: 600;
-      margin-bottom: 8px;
-      font-size: 1.1rem;
+      position: sticky;
+      top: 0;
+      background: var(--color-bg);
+      padding: 1rem 2rem;
+      box-shadow: var(--shadow);
+      border-radius: var(--rounded);
+      z-index: 100;
     }
-    .log-user {
-      color: #ffd369;
-      text-shadow: 0 0 8px #ffd369aa;
-    }
-    .log-date {
-      font-size: 0.85rem;
-      font-weight: 400;
-      color: #bbb;
-    }
-    .log-reason {
-      font-size: 1rem;
-      white-space: pre-wrap;
-      line-height: 1.3;
-      color: #eee;
-      margin-bottom: 12px;
-    }
-    .log-platform {
-      font-size: 0.9rem;
-      font-weight: 600;
-      color: #a0c4ff;
-      margin-bottom: 8px;
-    }
-    .delete-btn {
-      position: absolute;
-      top: 12px;
-      right: 14px;
-      background: transparent;
-      border: none;
-      color: #ff5555aa;
-      font-size: 20px;
-      cursor: pointer;
-      transition: color 0.3s ease;
+
+    header h1 {
+      font-family: var(--font-family-heading);
+      font-weight: 700;
+      font-size: 1.75rem;
+      margin: 0;
+      color: var(--color-accent);
       user-select: none;
     }
-    .delete-btn:hover {
-      color: #ff5555;
+
+    main {
+      max-width: 600px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 0 1rem;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 3.5rem;
     }
-    #clear-btn {
-      margin-top: 12px;
-      background: #ff5555dd;
-      border-radius: 12px;
-      border: none;
-      padding: 12px 28px;
-      color: #fff;
-      font-weight: 600;
-      cursor: pointer;
-      box-shadow: 0 4px 10px #ff4444cc;
-      align-self: center;
-      transition: background 0.3s ease;
-    }
-    #clear-btn:hover {
-      background: #ff2222ee;
-    }
-    #footer {
-      margin-top: 30px;
-      font-size: 0.85rem;
-      color: #666;
+
+    section {
+      background: #f9fafb;
+      border-radius: var(--rounded);
+      padding: 2rem;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       text-align: center;
+      gap: 1.5rem;
+    }
+
+    section h2 {
+      font-family: var(--font-family-heading);
+      font-weight: 700;
+      font-size: 2rem;
+      margin: 0;
+      color: var(--color-accent);
+    }
+
+    section p.description {
+      font-size: 1rem;
+      color: var(--color-text-secondary);
+      max-width: 400px;
+      margin: 0 auto 1rem;
+    }
+
+    button.generate-btn {
+      background: var(--color-accent);
+      color: white;
+      font-family: var(--font-family-heading);
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 0.75rem 2rem;
+      border: none;
+      border-radius: var(--rounded);
+      cursor: pointer;
+      transition: transform var(--transition), background-color var(--transition);
+      box-shadow: 0 4px 6px rgba(17,24,39,0.2);
       user-select: none;
     }
-    /* Scrollbar styles */
-    #logs-list::-webkit-scrollbar {
-      width: 9px;
+
+    button.generate-btn:hover,
+    button.generate-btn:focus {
+      background-color: #222;
+      transform: scale(1.05);
+      outline: none;
     }
-    #logs-list::-webkit-scrollbar-track {
-      background: #1a2233;
-      border-radius: 8px;
+
+    .username-display {
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 2.25rem;
+      font-weight: 700;
+      color: var(--color-accent);
+      background: white;
+      padding: 0.5rem 1rem;
+      border-radius: var(--rounded);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      user-select: all;
+      min-width: 200px;
     }
-    #logs-list::-webkit-scrollbar-thumb {
-      background: #445a88;
-      border-radius: 8px;
+
+    footer {
+      text-align: center;
+      font-size: 0.9rem;
+      color: var(--color-text-secondary);
+      padding: 2rem 1rem 1rem;
     }
-    /* Media preview styles */
-    .media-preview {
-      max-width: 100%;
-      max-height: 300px;
-      border-radius: 12px;
-      box-shadow: 0 0 15px #00000088;
-      margin-top: 8px;
-      display: block;
-    }
-    .media-video {
-      max-width: 100%;
-      max-height: 300px;
-      border-radius: 12px;
-      box-shadow: 0 0 15px #00000088;
-      margin-top: 8px;
-      display: block;
-    }
+
     @media (max-width: 480px) {
-      form > * {
-        flex-basis: 100%;
+      main {
+        padding: 0 0.5rem;
       }
-    }
-    #upload-progress {
-      margin-top: 8px;
-      color: #ffd369;
-      font-weight: 600;
+
+      section h2 {
+        font-size: 1.5rem;
+      }
+
+      button.generate-btn {
+        width: 100%;
+      }
+
+      .username-display {
+        font-size: 1.75rem;
+        min-width: auto;
+        word-break: break-word;
+      }
     }
   </style>
-  <!-- Firebase App (the core Firebase SDK) -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <!-- Firebase Realtime Database -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-  <!-- Firebase Storage -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
 </head>
 <body>
-
-  <div id="login-container">
-    <h1>Admin Login</h1>
-    <input type="password" id="admin-password" placeholder="Enter Admin Password" autocomplete="off" />
-    <button id="login-btn">Login</button>
-    <div id="login-error">Incorrect password. Try again.</div>
-  </div>
-
-  <div id="app-container">
-    <h1>Ban Logs</h1>
-    <form id="log-form" enctype="multipart/form-data">
-      <div>
-        <label for="user">Username/Banned User</label>
-        <input type="text" id="user" name="user" required placeholder="Username or Identifier" />
-      </div>
-      <div>
-        <label for="platform">Platform</label>
-        <select id="platform" name="platform" required>
-          <option value="" disabled selected>Select Platform</option>
-          <option value="Roblox">Roblox (Ingame)</option>
-          <option value="Discord">Discord (Discord Server)</option>
-          <option value="Other">Other</option>
-        </select>
-      </div>
-      <div>
-        <label for="date">Date &amp; Time</label>
-        <input type="datetime-local" id="date" name="date" required />
-      </div>
-      <div style="flex-basis: 100%;">
-        <label for="reason">Reason</label>
-        <textarea id="reason" name="reason" required placeholder="Reason for ban or notes"></textarea>
-      </div>
-      <div style="flex-basis: 100%;">
-        <label for="media">Upload Photo or Video (optional)</label>
-        <input type="file" id="media" name="media" accept="image/*,video/*" />
-        <div id="media-preview-container"></div>
-        <div id="upload-progress"></div>
-      </div>
-      <button type="submit" id="submit-btn">Save Log</button>
-    </form>
-
-    <section id="logs-list" aria-live="polite" aria-label="List of saved ban logs">
-      <!-- Logs will appear here -->
+  <header>
+    <h1>Random Username Generator</h1>
+  </header>
+  <main>
+    <section aria-labelledby="five-letter-heading">
+      <h2 id="five-letter-heading">Generate Random Five-Letter Names</h2>
+      <p class="description">Generate random five-letter usernames with an optional underscore character, like "Z_PRH" or "UAREE".</p>
+      <button class="generate-btn" id="generateFiveBtn" type="button" aria-describedby="five-letter-desc">Generate 5-Letter Name</button>
+      <div class="username-display" id="fiveLetterOutput" aria-live="polite" aria-atomic="true">Press the button to generate</div>
     </section>
-    <button id="clear-btn" title="Clear all logs">Clear All Logs</button>
-  </div>
 
-  <div id="footer">&copy; 2024 Admin Ban Log System</div>
-  
+    <section aria-labelledby="six-letter-heading">
+      <h2 id="six-letter-heading">Generate Random Six-Letter Game Usernames</h2>
+      <p class="description">Get cool six-letter game usernames randomly generated just for you.</p>
+      <button class="generate-btn" id="generateSixBtn" type="button" aria-describedby="six-letter-desc">Generate 6-Letter Username</button>
+      <div class="username-display" id="sixLetterOutput" aria-live="polite" aria-atomic="true">Press the button to generate</div>
+    </section>
+  </main>
+  <footer>
+    &copy; 2024 Random Username Generator
+  </footer>
+
   <script>
-    (function() {
-      // Firebase config from user
-      const firebaseConfig = {
-        apiKey: "AIzaSyBjA2O3QDuKsAGLzq008VEDug69WDroulI",
-        authDomain: "supercoollogin999.firebaseapp.com",
-        databaseURL: "https://supercoollogin999-default-rtdb.firebaseio.com",
-        projectId: "supercoollogin999",
-        storageBucket: "supercoollogin999.firebasestorage.app",
-        messagingSenderId: "472488806884",
-        appId: "1:472488806884:web:d904be3b09548dbbc51ff1",
-        measurementId: "G-03NQP912BX"
-      };
-      // Initialize Firebase
-      const appFirebase = firebase.initializeApp(firebaseConfig);
-      const db = firebase.database();
-      const storage = firebase.storage();
+    // Generates a random uppercase letter A-Z
+    function randomLetter() {
+      const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+      return letters.charAt(Math.floor(Math.random() * letters.length));
+    }
 
-      const correctPassword = 'adminsystem000donotleaktopeoplepleasethankscontinuewithyourloggingadministrator';
-      const loginContainer = document.getElementById('login-container');
-      const appContainer = document.getElementById('app-container');
-      const loginBtn = document.getElementById('login-btn');
-      const passwordInput = document.getElementById('admin-password');
-      const loginError = document.getElementById('login-error');
-
-      const form = document.getElementById('log-form');
-      const logsList = document.getElementById('logs-list');
-      const clearBtn = document.getElementById('clear-btn');
-      const mediaInput = document.getElementById('media');
-      const mediaPreviewContainer = document.getElementById('media-preview-container');
-      const uploadProgress = document.getElementById('upload-progress');
-      const submitBtn = document.getElementById('submit-btn');
-      const platformSelect = document.getElementById('platform');
-
-      function setDateTimeNow() {
-        const now = new Date();
-        const localISOTime = now.toISOString().slice(0,16);
-        document.getElementById('date').value = localISOTime;
-      }
-      setDateTimeNow();
-
-      // Preview chosen media
-      mediaInput.addEventListener('change', () => {
-        mediaPreviewContainer.innerHTML = '';
-        uploadProgress.textContent = '';
-        const file = mediaInput.files[0];
-        if (!file) return;
-        const fileType = file.type;
-        const url = URL.createObjectURL(file);
-        if (fileType.startsWith('image/')) {
-          const img = document.createElement('img');
-          img.src = url;
-          img.alt = "Selected image preview";
-          img.className = 'media-preview';
-          mediaPreviewContainer.appendChild(img);
-        } else if (fileType.startsWith('video/')) {
-          const video = document.createElement('video');
-          video.src = url;
-          video.controls = true;
-          video.className = 'media-video';
-          mediaPreviewContainer.appendChild(video);
-        } else {
-          mediaPreviewContainer.textContent = 'Unsupported media type for preview.';
-        }
-      });
-
-      function escapeHtml(text) {
-        const map = {
-          '&': '&amp;',
-          '<': '&lt;',
-          '>': '&gt;',
-          '"': '&quot;',
-          "'": '&#039;'
-        };
-        return text.replace(/[&<>"']/g, function(m) { return map[m]; });
-      }
-
-      async function loadLogsFromFirebase() {
-        try {
-          const snapshot = await db.ref('banLogs').once('value');
-          const logsObj = snapshot.val();
-          if (!logsObj) return [];
-          return Object.keys(logsObj).map(key => ({
-            id: key,
-            user: logsObj[key].user,
-            platform: logsObj[key].platform,
-            date: logsObj[key].date,
-            reason: logsObj[key].reason,
-            mediaURL: logsObj[key].mediaURL || null,
-            mediaType: logsObj[key].mediaType || null
-          }));
-        } catch (err) {
-          throw err;
-        }
-      }
-
-      async function saveLogToFirebase(log) {
-        try {
-          const logsRef = db.ref('banLogs');
-          return await logsRef.push(log);
-        } catch (err) {
-          throw err;
-        }
-      }
-
-      async function deleteLogFromFirebase(id) {
-        if (!id) return;
-        try {
-          const ref = db.ref('banLogs/' + id);
-          const snapshot = await ref.once('value');
-          const log = snapshot.val();
-          if (log && log.mediaURL) {
-            const storageRef = storage.refFromURL(log.mediaURL);
-            await storageRef.delete().catch(() => {});
+    // Generates a random 5 letter name with optional underscore in 2nd-4th position
+    function generateFiveLetterName() {
+      // We'll allow underscore randomly in one of the middle positions or none
+      const useUnderscore = Math.random() < 0.5;
+      let nameArr = [];
+      if (useUnderscore) {
+        // place underscore randomly at pos 1, 2, or 3 (0-based index)
+        const underscorePos = Math.floor(Math.random() * 3) + 1;
+        for (let i = 0; i < 5; i++) {
+          if (i === underscorePos) {
+            nameArr.push('_');
+          } else {
+            nameArr.push(randomLetter());
           }
-          await ref.remove();
-        } catch (err) {
-          throw err;
+        }
+      } else {
+        for (let i = 0; i < 5; i++) {
+          nameArr.push(randomLetter());
         }
       }
+      return nameArr.join('');
+    }
 
-      async function clearLogsFromFirebase() {
-        try {
-          const snapshot = await db.ref('banLogs').once('value');
-          const logsObj = snapshot.val();
-          if (logsObj) {
-            const keys = Object.keys(logsObj);
-            const deletePromises = [];
-            for (const key of keys) {
-              if (logsObj[key].mediaURL) {
-                try {
-                  const storageRef = storage.refFromURL(logsObj[key].mediaURL);
-                  deletePromises.push(storageRef.delete());
-                } catch {}
-              }
-            }
-            await Promise.all(deletePromises);
-          }
-          await db.ref('banLogs').remove();
-        } catch (err) {
-          throw err;
-        }
+    // Generates a random 6 letter username (only letters)
+    function generateSixLetterUsername() {
+      let nameArr = [];
+      for (let i = 0; i < 6; i++) {
+        nameArr.push(randomLetter());
       }
+      return nameArr.join('');
+    }
 
-      function renderLogs(logs) {
-        logsList.innerHTML = '';
-        if (!logs || logs.length === 0) {
-          logsList.innerHTML = '<p style="color:#bbb; text-align:center;">No ban logs saved yet.</p>';
-          return;
-        }
-        logs.slice().reverse().forEach(log => {
-          const logEl = document.createElement('article');
-          logEl.className = 'log-entry';
+    document.getElementById('generateFiveBtn').addEventListener('click', () => {
+      const output = document.getElementById('fiveLetterOutput');
+      output.textContent = generateFiveLetterName();
+    });
 
-          // Platform display with icon and color accent
-          let platformHTML = '';
-          if(log.platform){
-            let platformName = escapeHtml(log.platform);
-            platformHTML = `<div class="log-platform">Platform: ${platformName}</div>`;
-          }
-
-          let mediaHTML = '';
-          if (log.mediaURL) {
-            const safeUrl = escapeHtml(log.mediaURL);
-            if (log.mediaType && log.mediaType.startsWith('image/')) {
-              mediaHTML = `<img src="${safeUrl}" alt="Attached image" class="media-preview" loading="lazy" />`;
-            } else if (log.mediaType && log.mediaType.startsWith('video/')) {
-              mediaHTML = `<video src="${safeUrl}" controls class="media-video" preload="none"></video>`;
-            } else {
-              mediaHTML = `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer" style="color:#ffd369;">View attached media</a>`;
-            }
-          }
-
-          logEl.innerHTML = `
-            <button class="delete-btn" aria-label="Delete this log">&#10005;</button>
-            <div class="log-header">
-              <span class="log-user">${escapeHtml(log.user)}</span>
-              <time class="log-date" datetime="${log.date}">${new Date(log.date).toLocaleString()}</time>
-            </div>
-            ${platformHTML}
-            <div class="log-reason">${escapeHtml(log.reason).replace(/\n/g, '<br>')}</div>
-            ${mediaHTML}
-          `;
-
-          logEl.querySelector('.delete-btn').addEventListener('click', () => {
-            if (!confirm('Are you sure you want to delete this log?')) return;
-            deleteLogFromFirebase(log.id).then(() => {
-              refreshLogs();
-            }).catch(err => {
-              alert('Failed to delete log: ' + err.message);
-            });
-          });
-
-          logsList.appendChild(logEl);
-        });
-      }
-
-      async function refreshLogs() {
-        try {
-          const logs = await loadLogsFromFirebase();
-          renderLogs(logs);
-        } catch (err) {
-          logsList.innerHTML = '<p style="color:#ff5555; text-align:center;">Failed to load logs: ' + escapeHtml(err.message) + '</p>';
-        }
-      }
-
-      loginBtn.addEventListener('click', () => {
-        const pass = passwordInput.value.trim();
-        if (pass === correctPassword) {
-          loginError.style.display = 'none';
-          loginContainer.style.display = 'none';
-          appContainer.style.display = 'flex';
-          document.getElementById('user').focus();
-          refreshLogs();
-        } else {
-          loginError.style.display = 'block';
-          passwordInput.value = '';
-          passwordInput.focus();
-        }
-      });
-
-      passwordInput.addEventListener('keyup', e => {
-        if (e.key === 'Enter') loginBtn.click();
-      });
-
-      form.addEventListener('submit', async e => {
-        e.preventDefault();
-
-        const user = form.user.value.trim();
-        const platform = platformSelect.value;
-        const date = form.date.value;
-        const reason = form.reason.value.trim();
-
-        if (!user || !platform || !date || !reason) {
-          alert('Please fill in all fields including platform.');
-          return;
-        }
-
-        submitBtn.disabled = true;
-        uploadProgress.textContent = 'Uploading media (if any)...';
-
-        let mediaURL = null;
-        let mediaType = null;
-        const file = mediaInput.files[0];
-
-        try {
-          if (file) {
-            mediaType = file.type;
-            const timestamp = Date.now();
-            const ext = file.name.split('.').pop();
-            const safeUser = user.replace(/[^a-zA-Z0-9_-]/g, '_');
-            const filename = `banLogs/${safeUser}_${timestamp}.${ext}`;
-
-            const storageRef = storage.ref(filename);
-            const uploadTask = storageRef.put(file);
-
-            await new Promise((resolve, reject) => {
-              uploadTask.on('state_changed',
-                snapshot => {
-                  const percent = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                  uploadProgress.textContent = `Uploading media: ${percent.toFixed(0)}%`;
-                },
-                error => {
-                  reject(error);
-                },
-                () => {
-                  uploadTask.snapshot.ref.getDownloadURL().then(url => {
-                    mediaURL = url;
-                    resolve();
-                  });
-                }
-              );
-            });
-          }
-
-          const log = { user, platform, date, reason };
-          if (mediaURL) {
-            log.mediaURL = mediaURL;
-            log.mediaType = mediaType;
-          }
-
-          await saveLogToFirebase(log);
-          form.reset();
-          mediaPreviewContainer.innerHTML = '';
-          uploadProgress.textContent = '';
-          setDateTimeNow();
-          refreshLogs();
-          form.user.focus();
-        } catch (err) {
-          alert('Failed to save log: ' + err.message);
-        } finally {
-          submitBtn.disabled = false;
-          uploadProgress.textContent = '';
-        }
-      });
-
-      clearBtn.addEventListener('click', () => {
-        if (!confirm('Are you sure you want to clear all logs? This action cannot be undone.')) return;
-        submitBtn.disabled = true;
-        uploadProgress.textContent = 'Clearing all logs...';
-        clearLogsFromFirebase().then(() => {
-          refreshLogs();
-        }).catch(err => {
-          alert('Failed to clear logs: ' + err.message);
-        }).finally(() => {
-          submitBtn.disabled = false;
-          uploadProgress.textContent = '';
-        });
-      });
-    })();
+    document.getElementById('generateSixBtn').addEventListener('click', () => {
+      const output = document.getElementById('sixLetterOutput');
+      output.textContent = generateSixLetterUsername();
+    });
   </script>
-
 </body>
 </html>
 
