@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>SuperCool Bank - Secure Login</title>
+  <title>WorldWide Bank - Secure Client Portal</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
   <script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-app.js"></script>
@@ -23,41 +23,42 @@
       min-height: 100vh;
       font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
         Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-      background: linear-gradient(135deg, #1a237e, #283593);
-      color: #e0e0e0;
+      background: linear-gradient(135deg, #003366, #004080);
+      color: #f1f5f9;
       display: flex;
       justify-content: center;
       align-items: center;
       overflow-x: hidden;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
+      user-select: none;
     }
 
     .container {
-      background: rgba(255 255 255 / 0.1);
-      backdrop-filter: saturate(180%) blur(25px);
-      border-radius: 24px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
-      max-width: 420px;
+      background: #ffffff;
+      color: #1f2937;
+      border-radius: 16px;
+      box-shadow: 0 12px 40px rgb(0 0 0 / 0.25);
+      max-width: 460px;
       width: 90%;
-      padding: 36px 36px 48px;
+      padding: 36px 40px 48px;
       text-align: center;
-      user-select: none;
+      user-select: text;
+      font-weight: 500;
     }
 
     h1 {
       margin-bottom: 24px;
-      font-weight: 800;
-      font-size: 2.4rem;
-      color: #64b5f6;
-      text-shadow: 0 0 8px #bbdefb;
+      font-weight: 700;
+      font-size: 2.5rem;
+      color: #0f172a;
       user-select: text;
     }
 
     form {
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 22px;
       text-align: left;
     }
 
@@ -65,51 +66,52 @@
       font-weight: 600;
       font-size: 1rem;
       margin-bottom: 6px;
-      color: #bbdefb;
+      color: #334155;
+      user-select: text;
     }
 
     input[type="email"],
     input[type="password"] {
-      padding: 12px 16px;
-      border-radius: 14px;
-      border: none;
+      padding: 14px 18px;
+      border-radius: 12px;
+      border: 1.8px solid #cbd5e1;
       outline: none;
       font-size: 1rem;
       font-weight: 400;
-      background-color: rgba(255 255 255 / 0.15);
-      color: #e0e0e0;
-      transition: background-color 0.25s ease;
+      color: #0f172a;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      user-select: text;
     }
 
     input[type="email"]:focus,
     input[type="password"]:focus {
-      background-color: rgba(255 255 255 / 0.3);
-      box-shadow: 0 0 8px #64b5f6;
-      color: #fff;
+      border-color: #2563eb;
+      box-shadow: 0 0 10px rgb(37 99 235 / 0.4);
+      color: #0f172a;
     }
 
     button {
       margin-top: 12px;
-      background: linear-gradient(135deg, #448aff 0%, #1976d2 100%);
+      background: #2563eb;
       color: white;
       font-size: 1.15rem;
       font-weight: 700;
       padding: 16px 0;
       border: none;
-      border-radius: 20px;
+      border-radius: 12px;
       cursor: pointer;
-      box-shadow: 0 6px 20px rgb(25 118 210 / 0.6);
-      transition: background-color 0.3s, transform 0.1s ease;
+      box-shadow: 0 8px 24px rgb(37 99 235 / 0.4);
+      transition: background-color 0.3s ease, transform 0.15s ease;
       user-select: none;
       display: flex;
       justify-content: center;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
     }
 
     button:hover {
-      background: linear-gradient(135deg, #2979ff 0%, #115293 100%);
-      transform: scale(1.05);
+      background: #1e40af;
+      transform: scale(1.04);
     }
 
     button:active {
@@ -122,57 +124,70 @@
     }
 
     #error-message {
-      color: #ff6f6f;
+      color: #ef4444;
       font-weight: 600;
-      margin-top: 8px;
+      margin-top: 10px;
       min-height: 1.2em;
       user-select: text;
     }
 
     #success-message {
-      color: #81c784;
+      color: #22c55e;
       font-weight: 600;
-      margin-top: 8px;
+      margin-top: 10px;
       min-height: 1.2em;
       user-select: text;
     }
 
     .switch-auth {
-      margin-top: 16px;
+      margin-top: 20px;
       font-size: 0.9rem;
-      color: #90caf9;
+      color: #2563eb;
       cursor: pointer;
       user-select: none;
       text-decoration: underline;
+      text-align: center;
+      font-weight: 600;
     }
 
     .switch-auth:hover {
-      color: #bbdefb;
+      color: #1e40af;
     }
 
-    /* Dashboard page style */
+    /* Dashboard styles */
     #dashboard {
       display: none;
-      text-align: center;
+      max-width: 520px;
+      background: #f8fafc;
+      border-radius: 16px;
+      box-shadow: 0 12px 36px rgb(0 0 0 / 0.2);
+      color: #1e293b;
+      padding: 40px 48px;
       user-select: text;
+      text-align: center;
     }
 
     #dashboard h2 {
-      color: #90caf9;
-      margin-bottom: 24px;
+      color: #1e40af;
+      margin-bottom: 36px;
       font-weight: 700;
+      font-size: 2rem;
+      letter-spacing: 0.03em;
     }
 
     #dashboard .account-info p {
-      margin: 8px 0;
+      margin: 12px 0;
       font-size: 1.1rem;
+      font-weight: 500;
+      color: #334155;
+      user-select: text;
     }
 
     #logout-btn {
-      margin-top: 24px;
-      background: #ff5252;
-      padding: 14px 0;
-      border-radius: 20px;
+      margin-top: 36px;
+      background: #ef4444;
+      padding: 16px 0;
+      border-radius: 12px;
       border: none;
       color: white;
       font-weight: 700;
@@ -181,37 +196,38 @@
       transition: background-color 0.3s ease;
       user-select: none;
       width: 100%;
+      letter-spacing: 0.05em;
     }
 
     #logout-btn:hover {
-      background: #e04848;
+      background: #b91c1c;
     }
 
     /* Loading overlay */
     #loading-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(10, 10, 30, 0.75);
+      background: rgba(20, 22, 41, 0.85);
       display: flex;
       justify-content: center;
       align-items: center;
       z-index: 999;
-      color: #64b5f6;
+      color: #2563eb;
       font-weight: 700;
-      font-size: 1.4rem;
+      font-size: 1.6rem;
       user-select: none;
       display: none;
       flex-direction: column;
-      gap: 16px;
+      gap: 20px;
+      font-family: 'Inter', sans-serif;
     }
 
-    /* Spinner */
     .spinner {
-      border: 6px solid rgba(100, 181, 246, 0.3);
-      border-top: 6px solid #64b5f6;
+      border: 6px solid rgba(37, 99, 235, 0.3);
+      border-top: 6px solid #2563eb;
       border-radius: 50%;
-      width: 44px;
-      height: 44px;
+      width: 48px;
+      height: 48px;
       animation: spin 1s linear infinite;
       user-select: none;
     }
@@ -221,38 +237,54 @@
         transform: rotate(360deg);
       }
     }
+
+    /* Responsive adjustments */
+    @media (max-width: 520px) {
+      .container, #dashboard {
+        padding: 28px 24px;
+        width: 90%;
+      }
+
+      h1 {
+        font-size: 2rem;
+      }
+
+      #dashboard h2 {
+        font-size: 1.6rem;
+      }
+    }
   </style>
 </head>
 
 <body>
-  <div class="container" id="auth-container" role="main" aria-label="Authentication form">
-    <h1>SuperCool Bank</h1>
-    <form id="auth-form" autocomplete="off" aria-describedby="form-desc">
-      <div id="form-desc" style="display:none;">Login or sign up to access your account</div>
+  <div class="container" id="auth-container" role="main" aria-label="Secure Client Login">
+    <h1>WorldWide Bank</h1>
+    <form id="auth-form" autocomplete="off" aria-describedby="form-desc" novalidate>
+      <div id="form-desc" style="display:none;">Login or sign up to access your secure banking portal.</div>
 
       <label for="email">Email address</label>
-      <input type="email" id="email" name="email" required autocomplete="username" aria-required="true" aria-describedby="email-desc" />
-      <div id="email-desc" style="display:none;">Enter your valid email address</div>
+      <input type="email" id="email" name="email" required autocomplete="username" aria-required="true" aria-describedby="email-desc" placeholder="you@example.com" />
+      <div id="email-desc" style="display:none;">Please enter a valid email address.</div>
 
       <label for="password">Password</label>
-      <input type="password" id="password" name="password" required autocomplete="current-password" aria-required="true" aria-describedby="password-desc" minlength="6" />
-      <div id="password-desc" style="display:none;">Enter your password, minimum 6 characters</div>
+      <input type="password" id="password" name="password" required autocomplete="current-password" aria-required="true" aria-describedby="password-desc" minlength="6" placeholder="Enter password" />
+      <div id="password-desc" style="display:none;">Password must be at least 6 characters.</div>
 
       <button type="submit" id="auth-btn" aria-label="Submit login form"><span class="material-icons" aria-hidden="true">lock_open</span> Login</button>
       <div id="error-message" role="alert" aria-live="assertive"></div>
       <div id="success-message" role="alert" aria-live="polite"></div>
     </form>
-    <div class="switch-auth" role="button" tabindex="0" id="toggle-auth" aria-pressed="false">Don't have an account? Sign up here</div>
+    <div class="switch-auth" role="button" tabindex="0" id="toggle-auth" aria-pressed="false">Don't have an account? Create one here</div>
   </div>
 
-  <div class="container" id="dashboard" role="region" aria-label="User dashboard">
+  <section class="container" id="dashboard" role="region" aria-label="Banking client dashboard">
     <h2>Welcome, <span id="user-email"></span></h2>
-    <div class="account-info">
+    <div class="account-info" aria-live="polite" aria-atomic="true" role="region" aria-label="Account Information">
       <p><strong>Account ID:</strong> <span id="account-id"></span></p>
-      <p><strong>Account Balance:</strong> $<span id="account-balance">0.00</span></p>
+      <p><strong>Current Balance:</strong> $<span id="account-balance">0.00</span></p>
     </div>
-    <button id="logout-btn" aria-label="Logout from account">Logout</button>
-  </div>
+    <button id="logout-btn" aria-label="Logout from your account">Logout</button>
+  </section>
 
   <div id="loading-overlay" role="alert" aria-live="assertive">
     <div class="spinner" aria-hidden="true"></div>
@@ -273,12 +305,10 @@
       ref,
       set,
       get,
-      child,
-      update,
-      onValue
+      onValue,
+      update
     } from "https://www.gstatic.com/firebasejs/9.1.2/firebase-database.js";
 
-    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyBjA2O3QDuKsAGLzq008VEDug69WDroulI",
       authDomain: "supercoollogin999.firebaseapp.com",
@@ -290,7 +320,6 @@
       measurementId: "G-FSD3TZLK82"
     };
 
-    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getDatabase(app);
@@ -314,9 +343,11 @@
 
     function setLoading(loading) {
       loadingOverlay.style.display = loading ? "flex" : "none";
+      authBtn.disabled = loading;
+      logoutBtn.disabled = loading;
+      toggleAuthBtn.disabled = loading;
     }
 
-    // Toggle login/signup mode
     function toggleAuthMode() {
       isLoginMode = !isLoginMode;
       authBtn.textContent = "";
@@ -329,7 +360,7 @@
         icon.textContent = "lock_open";
         authBtn.appendChild(icon);
         authBtn.appendChild(document.createTextNode(" Login"));
-        toggleAuthBtn.textContent = "Don't have an account? Sign up here";
+        toggleAuthBtn.textContent = "Don't have an account? Create one here";
         toggleAuthBtn.setAttribute("aria-pressed", "false");
       } else {
         icon.textContent = "person_add";
@@ -352,12 +383,13 @@
     });
 
     async function createUserData(user) {
-      // Create initial user data in database
       const userRef = ref(db, 'users/' + user.uid);
+      const startupBalance = 1000 + Math.floor(Math.random() * 500); // Business-like random starting balance
       await set(userRef, {
         email: user.email,
-        accountBalance: 1000, // initial fake balance
+        accountBalance: startupBalance,
         createdAt: Date.now(),
+        transactions: []
       });
     }
 
@@ -365,45 +397,48 @@
       const userRef = ref(db, 'users/' + uid);
       const snapshot = await get(userRef);
       if (snapshot.exists()) {
-        const data = snapshot.val();
-        return data;
+        return snapshot.val();
       }
       return null;
     }
 
-    // Show dashboard with user data
     async function showDashboard(user) {
       setLoading(true);
       try {
-        const data = await loadUserData(user.uid);
+        let data = await loadUserData(user.uid);
         if (!data) {
           await createUserData(user);
-          userEmailDisplay.textContent = user.email;
-          accountIdDisplay.textContent = user.uid;
-          accountBalanceDisplay.textContent = "1,000.00";
-        } else {
-          userEmailDisplay.textContent = data.email || user.email;
-          accountIdDisplay.textContent = user.uid;
-          accountBalanceDisplay.textContent = (data.accountBalance || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+          data = await loadUserData(user.uid);
         }
+
+        userEmailDisplay.textContent = data.email || user.email;
+        accountIdDisplay.textContent = user.uid;
+        accountBalanceDisplay.textContent = Number(data.accountBalance).toLocaleString(undefined, {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        });
+
         authContainer.style.display = "none";
         dashboard.style.display = "block";
 
-        // Real-time updates to balance
-        const userRef = ref(db, 'users/' + user.uid + '/accountBalance');
-        onValue(userRef, (snap) => {
+        // Listen for balance updates
+        const userBalRef = ref(db, 'users/' + user.uid + '/accountBalance');
+        onValue(userBalRef, (snap) => {
           if (snap.exists()) {
-            accountBalanceDisplay.textContent = snap.val().toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            accountBalanceDisplay.textContent = Number(snap.val()).toLocaleString(undefined, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            });
           }
         });
+
       } catch (error) {
-        alert("Failed to load user data: " + error.message);
+        errorMessage.textContent = "Failed to load your account data.";
       } finally {
         setLoading(false);
       }
     }
 
-    // Sign-in form handling
     authForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       errorMessage.textContent = "";
@@ -413,20 +448,24 @@
       const email = authForm.email.value.trim();
       const password = authForm.password.value;
 
+      if (!email || !password || password.length < 6) {
+        errorMessage.textContent = "Please fill all fields correctly.";
+        setLoading(false);
+        return;
+      }
+
       try {
         if (isLoginMode) {
-          // Login
           const userCredential = await signInWithEmailAndPassword(auth, email, password);
           await showDashboard(userCredential.user);
         } else {
-          // Signup
           const userCredential = await createUserWithEmailAndPassword(auth, email, password);
           await createUserData(userCredential.user);
-          successMessage.textContent = "Account created, logging you in...";
+          successMessage.textContent = "Account successfully created. Logging in...";
           await showDashboard(userCredential.user);
         }
       } catch (error) {
-        errorMessage.textContent = error.message;
+        errorMessage.textContent = error.message.replace(/Firebase:\s*/, "").trim();
       } finally {
         setLoading(false);
       }
@@ -434,22 +473,25 @@
 
     logoutBtn.addEventListener("click", async () => {
       try {
+        setLoading(true);
         await signOut(auth);
         dashboard.style.display = "none";
         authContainer.style.display = "block";
-        toggleAuthMode(); // reset to login mode on logout
+        toggleAuthMode();
       } catch (error) {
-        alert("Logout failed: " + error.message);
+        alert("Logout Error: " + error.message);
+      } finally {
+        setLoading(false);
       }
     });
 
-    // On page load, check auth state
     onAuthStateChanged(auth, (user) => {
       if (user) {
         showDashboard(user);
       } else {
         dashboard.style.display = "none";
         authContainer.style.display = "block";
+        if (!isLoginMode) toggleAuthMode();
       }
     });
   </script>
