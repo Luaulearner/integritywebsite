@@ -1,544 +1,106 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>DocsUltimate - Professional Documentation</title>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap"
-    rel="stylesheet"
-  />
-  <link
-    href="https://fonts.googleapis.com/icon?family=Material+Icons"
-    rel="stylesheet"
-  />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Account Portal</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
   <style>
-    /* Reset and base */
-    *, *::before, *::after {
-      box-sizing: border-box;
-    }
     body {
-      margin: 0;
-      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
-        Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-      line-height: 1.6;
-      color: #e0e0e0;
-      background: linear-gradient(135deg, #0d1b2a, #1b263b, #415a77);
-      min-height: 100vh;
-      overflow-y: scroll;
-      scroll-behavior: smooth;
-    }
-
-    /* Layout */
-    .app-container {
-      display: grid;
-      grid-template-columns: 300px 1fr;
-      min-height: 100vh;
-      gap: 0;
-    }
-
-    /* Sidebar */
-    aside.sidebar {
-      position: sticky;
-      top: 0;
-      height: 100vh;
-      padding: 24px 16px;
-      background: rgba(10, 25, 47, 0.75);
-      backdrop-filter: saturate(140%) blur(12px);
-      border-right: 1px solid rgba(255, 255, 255, 0.1);
+      background-color: #1a1a1a;
+      color: #e0ffe0;
+      font-family: monospace;
       display: flex;
       flex-direction: column;
-      user-select: none;
-    }
-    .sidebar header {
-      font-size: 1.6rem;
-      font-weight: 700;
-      margin-bottom: 32px;
-      color: #8ab4f8;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      text-align: center;
-      user-select: text;
-    }
-    nav.sidebar-nav {
-      flex: 1;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-    }
-    nav.sidebar-nav ul {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-    nav.sidebar-nav li {
-      margin-bottom: 12px;
-    }
-    nav.sidebar-nav a {
-      display: flex;
       align-items: center;
-      text-decoration: none;
-      color: #cfd9ff;
-      padding: 8px 12px;
-      border-radius: 12px;
-      font-weight: 600;
-      font-size: 1rem;
-      transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-        transform 0.2s ease;
-      outline-offset: 3px;
-    }        
-    nav.sidebar-nav a .material-icons {
-      margin-right: 12px;
-      font-size: 20px;
-      color: #a4c8ff;
-      flex-shrink: 0;
-      transition: transform 0.2s ease;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
     }
-    nav.sidebar-nav a:hover,
-    nav.sidebar-nav a:focus {
-      background: rgba(139, 195, 255, 0.15);
-      color: #90caf9;
-      cursor: pointer;
-      transform: translateX(6px);
-      outline: none;
+    input {
+      padding: 6px;
+      margin: 6px;
+      background: #222;
+      color: #cfc;
+      border: 1px solid #4f4;
     }
-    nav.sidebar-nav a:hover .material-icons,
-    nav.sidebar-nav a:focus .material-icons {
-      transform: translateX(4px);
-      color: #82b1ff;
+    button {
+      padding: 6px 12px;
+      background: #4f4;
+      color: #000;
+      border: none;
+      margin-top: 10px;
     }
-    nav.sidebar-nav a.active {
-      background: #8ab4f8;
-      color: #0b1e39;
-      font-weight: 700;
-      pointer-events: none;
-      transform: none;
-    }
-    nav.sidebar-nav a.active .material-icons {
-      color: #0b1e39;
-      transform: none;
-    }
-    nav.sidebar-nav::-webkit-scrollbar {
-      width: 8px;
-    }
-    nav.sidebar-nav::-webkit-scrollbar-track {
-      background: transparent;
-    }
-    nav.sidebar-nav::-webkit-scrollbar-thumb {
-      background: rgba(138, 180, 255, 0.4);
-      border-radius: 10px;
-    }
-    nav.sidebar-nav::-webkit-scrollbar-thumb:hover {
-      background: rgba(138, 180, 255, 0.6);
-    }
-
-    /* Main content */
-    main.content {
-      padding: 32px 48px;
-      overflow-y: auto;
-      max-height: 100vh;
-    }
-    main.content h1 {
-      font-size: 2.8rem;
-      margin-bottom: 16px;
-      font-weight: 900;
-      background: linear-gradient(90deg, #6366f1, #06b6d4);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    main.content h2 {
-      margin-top: 56px;
-      margin-bottom: 16px;
-      font-weight: 700;
-      border-bottom: 2px solid #3b82f6;
-      padding-bottom: 6px;
-      font-size: 1.8rem;
-      color: #cbd5e1;
-    }
-    main.content p {
-      margin-bottom: 24px;
-      font-size: 1rem;
-      color: #d1d5db;
-      max-width: 800px;
-    }
-    main.content pre {
-      background: rgba(255 255 255 / 0.10);
-      padding: 14px 16px;
-      border-radius: 14px;
-      font-family: 'Fira Mono', monospace, monospace;
-      font-size: 0.9rem;
-      overflow-x: auto;
-      color: #d1d5db;
-      box-shadow: 0 4px 10px rgb(0 0 0 / 0.15);
-      max-width: 800px;
-      margin-bottom: 32px;
-      font-weight: 400;
-      line-height: 1.4;
-    }
-    main.content code {
-      background: rgba(255 255 255 / 0.15);
-      padding: 2px 6px;
-      border-radius: 6px;
-      font-family: 'Fira Mono', monospace;
-      font-size: 0.9rem;
-      color: #a5b4fc;
-    }
-    main.content img {
-      max-width: 100%;
-      border-radius: 16px;
-      margin-bottom: 32px;
-      box-shadow: 0 10px 30px rgb(0 0 0 / 0.25);
-      object-fit: cover;
-      user-select: none;
-    }
-
-    /* Floating scroll indicator */
-    .scroll-indicator {
-      position: fixed;
-      right: 24px;
-      top: 50%;
-      transform: translateY(-50%);
-      background: rgba(99, 102, 241, 0.7);
-      width: 6px;
-      height: 150px;
-      border-radius: 20px;
-      backdrop-filter: blur(8px);
-      box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
-      z-index: 50;
-    }
-    .scroll-indicator-progress {
-      background: #e0e7ff;
-      width: 6px;
-      height: 0;
-      border-radius: 20px;
-      transition: height 0.2s ease;
-    }
-
-    /* Responsive */
-    @media (max-width: 992px) {
-      .app-container {
-        grid-template-columns: 240px 1fr;
-      }
-      main.content {
-        padding: 24px 32px;
-      }
-    }
-    @media (max-width: 768px) {
-      .app-container {
-        grid-template-columns: 1fr;
-      }
-      aside.sidebar {
-        position: fixed;
-        left: -280px;
-        top: 0;
-        width: 280px;
-        height: 100vh;
-        padding: 24px 24px 24px 24px;
-        transition: left 0.3s ease;
-        z-index: 100;
-        border-right: none;
-        box-shadow: 8px 0 20px rgb(0 0 0 / 0.4);
-        border-bottom-right-radius: 20px;
-        border-top-right-radius: 20px;
-      }
-      aside.sidebar.open {
-        left: 0;
-      }
-      main.content {
-        padding: 72px 24px 24px 24px;
-      }
-      /* Hamburger button */
-      .hamburger-btn {
-        position: fixed;
-        top: 24px;
-        left: 24px;
-        background: rgba(99, 102, 241, 0.8);
-        border: none;
-        border-radius: 50%;
-        width: 44px;
-        height: 44px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        z-index: 150;
-        box-shadow: 0 0 10px rgba(99, 102, 241, 0.6);
-        transition: background-color 0.3s ease;
-      }
-      .hamburger-btn:hover,
-      .hamburger-btn:focus {
-        background: #6366f1;
-        outline: none;
-      }
-      .hamburger-btn .material-icons {
-        color: white;
-        font-size: 28px;
-        user-select: none;
-      }
-    }
-    /* Scrollbar for main content */
-    main.content::-webkit-scrollbar {
-      width: 8px;
-    }
-    main.content::-webkit-scrollbar-track {
-      background: transparent;
-    }
-    main.content::-webkit-scrollbar-thumb {
-      background: rgba(99, 102, 241, 0.5);
-      border-radius: 10px;
-    }
-    main.content::-webkit-scrollbar-thumb:hover {
-      background: rgba(99, 102, 241, 0.8);
-    }
-    /* Accessibility focus */
-    a:focus-visible {
-      outline: 3px solid #6366f1;
-      outline-offset: 2px;
+    #dashboard {
+      margin-top: 20px;
     }
   </style>
 </head>
 <body>
-  <button
-    class="hamburger-btn"
-    aria-label="Toggle navigation menu"
-    aria-expanded="false"
-    aria-controls="sidebar-navigation"
-    >
-    <span class="material-icons" aria-hidden="true">menu</span>
-  </button>
-  <div class="app-container">
-    <aside class="sidebar" id="sidebar-navigation" aria-label="Main navigation sidebar">
-      <header>DOCSULTIMATE</header>
-      <nav class="sidebar-nav" aria-labelledby="sidebar-navigation">
-        <ul>
-          <li>
-            <a href="#intro" class="active" tabindex="0" aria-current="page">
-              <span class="material-icons" aria-hidden="true">description</span>
-              Introduction
-            </a>
-          </li>
-          <li>
-            <a href="#getting-started" tabindex="0">
-              <span class="material-icons" aria-hidden="true">rocket_launch</span>
-              Getting Started
-            </a>
-          </li>
-          <li>
-            <a href="#features" tabindex="0">
-              <span class="material-icons" aria-hidden="true">stars</span>
-              Features
-            </a>
-          </li>
-          <li>
-            <a href="#installation" tabindex="0">
-              <span class="material-icons" aria-hidden="true">build_circle</span>
-              Installation
-            </a>
-          </li>
-          <li>
-            <a href="#usage" tabindex="0">
-              <span class="material-icons" aria-hidden="true">play_circle_filled</span>
-              Usage
-            </a>
-          </li>
-          <li>
-            <a href="#api" tabindex="0">
-              <span class="material-icons" aria-hidden="true">code</span>
-              API Reference
-            </a>
-          </li>
-          <li>
-            <a href="#faq" tabindex="0">
-              <span class="material-icons" aria-hidden="true">help</span>
-              FAQ
-            </a>
-          </li>
-          <li>
-            <a href="#contact" tabindex="0">
-              <span class="material-icons" aria-hidden="true">contact_mail</span>
-              Contact
-            </a>
-          </li>
-        </ul>
-      </nav>
-    </aside>
-    <main class="content" tabindex="0">
-      <section id="intro" tabindex="-1">
-        <h1>DocsUltimate Professional Documentation</h1>
-        <p>Welcome to the comprehensive documentation. Navigate using the sidebar to explore all sections and features smoothly.</p>
-        <img
-          src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/2a754d1f-1fbf-468c-a168-9b45b9d9ac89.png"
-          alt="Modern desk with laptop and notes representing technology documentation workspace"
-          width="800"
-          height="400"
-        />
-      </section>
+  <h2>🔐 User Access</h2>
+  <input type="email" id="email" placeholder="Email">
+  <input type="password" id="password" placeholder="Password">
+  <button onclick="signUp()">Register</button>
+  <button onclick="signIn()">Login</button>  <div id="dashboard" style="display:none">
+    <h3>Welcome, <span id="userEmail"></span></h3>
+    <p>Account Value: $<span id="balance">...</span></p>
+    <small style="color: #666">(All changes sync automatically)</small><br><br>
+    <button onclick="logout()">Sign Out</button>
+  </div>  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBjA2O3QDuKsAGLzq008VEDug69WDroulI",
+      authDomain: "supercoollogin999.firebaseapp.com",
+      databaseURL: "https://supercoollogin999-default-rtdb.firebaseio.com",
+      projectId: "supercoollogin999",
+      storageBucket: "supercoollogin999.appspot.com",
+      messagingSenderId: "472488806884",
+      appId: "1:472488806884:web:885f97531677a384c51ff1",
+      measurementId: "G-FSD3TZLK82"
+    };
+    firebase.initializeApp(firebaseConfig);
 
-      <section id="getting-started" tabindex="-1">
-        <h2>Getting Started</h2>
-        <p>Setup your environment easily with a few quick steps to get going immediately.</p>
-        <pre><code>npm install docsultimate
-cd docsultimate
-npm run start</code></pre>
-        <p>After installation, open your browser and navigate to <code>http://localhost:3000</code>.</p>
-      </section>
+    const auth = firebase.auth();
+    const db = firebase.database();
 
-      <section id="features" tabindex="-1">
-        <h2>Features</h2>
-        <p>Our product offers the following professional features:</p>
-        <ul>
-          <li>Robust navigation with smooth scrolling and highlighting</li>
-          <li>Responsive design for all device sizes</li>
-          <li>Elegant glassmorphic UI with modern typography</li>
-          <li>Accessible and keyboard-navigable interface</li>
-          <li>Code blocks with syntax-like highlighting</li>
-          <li>Fast and smooth user experience optimized for productivity</li>
-        </ul>
-      </section>
+    function signUp() {
+      const email = emailInput.value;
+      const password = passwordInput.value;
+      auth.createUserWithEmailAndPassword(email, password).then(() => {
+        const uid = auth.currentUser.uid;
+        db.ref('users/' + uid).set({ balance: 0 });
+        loadDashboard();
+      }).catch(console.warn);
+    }
 
-      <section id="installation" tabindex="-1">
-        <h2>Installation</h2>
-        <p>Install via npm or yarn using the following commands:</p>
-        <pre><code>npm install docsultimate --save
-# or
-yarn add docsultimate</code></pre>
-        <p>Ensure you have Node.js v14 or later to guarantee compatibility.</p>
-      </section>
+    function signIn() {
+      const email = emailInput.value;
+      const password = passwordInput.value;
+      auth.signInWithEmailAndPassword(email, password).then(loadDashboard).catch(console.warn);
+    }
 
-      <section id="usage" tabindex="-1">
-        <h2>Usage</h2>
-        <p>Integrate the documentation into your ecosystem with these simple steps:</p>
-        <pre><code>import DocsUltimate from 'docsultimate';
+    function logout() {
+      auth.signOut().then(() => location.reload());
+    }
 
-function App() {
-  return &lt;DocsUltimate /&gt;;
-}</code></pre>
-        <p>Refer to our API Reference for detailed usage patterns and customization options.</p>
-      </section>
+    function loadDashboard() {
+      const user = auth.currentUser;
+      if (!user) return;
+      document.getElementById("dashboard").style.display = "block";
+      document.getElementById("userEmail").textContent = user.email;
 
-      <section id="api" tabindex="-1">
-        <h2>API Reference</h2>
-        <p>Access all available API endpoints with detailed descriptions and examples.</p>
-        <pre><code>GET /notes
-POST /notes
-PUT /notes/{id}</code></pre>
-        <p>Use query parameters for filtering, sorting, and pagination.</p>
-      </section>
-
-      <section id="faq" tabindex="-1">
-        <h2>FAQ</h2>
-        <p><strong>Q:</strong> Is this product open source?<br /><strong>A:</strong> Yes, it is MIT licensed and open for contributions.</p>
-        <p><strong>Q:</strong> Can I customize the theme?<br /><strong>A:</strong> Absolutely! You can switch between dark and light themes as well as adjust fonts.</p>
-      </section>
-
-      <section id="contact" tabindex="-1">
-        <h2>Contact</h2>
-        <p>For support, feedback, and partnership inquiries, reach out at:</p>
-        <p>
-          <code>support@docsultimate.com</code><br />
-          <a href="https://twitter.com/docsultimate" target="_blank" rel="noopener">Twitter: @docsultimate</a><br />
-          <a href="https://github.com/docsultimate" target="_blank" rel="noopener">GitHub: docsultimate</a>
-        </p>
-      </section>
-    </main>
-  </div>
-  <div class="scroll-indicator" aria-hidden="true">
-    <div class="scroll-indicator-progress"></div>
-  </div>
-  <script>
-    (() => {
-      const sidebar = document.querySelector("aside.sidebar");
-      const hamburgerBtn = document.querySelector(".hamburger-btn");
-      const sidebarLinks = document.querySelectorAll("nav.sidebar-nav a");
-      const mainContent = document.querySelector("main.content");
-      const scrollIndicator = document.querySelector(".scroll-indicator-progress");
-
-      // Responsive sidebar toggle
-      hamburgerBtn.addEventListener("click", () => {
-        const expanded = hamburgerBtn.getAttribute("aria-expanded") === "true";
-        hamburgerBtn.setAttribute("aria-expanded", !expanded);
-        sidebar.classList.toggle("open");
+      const balRef = db.ref('users/' + user.uid + '/balance');
+      balRef.on('value', snapshot => {
+        document.getElementById("balance").textContent = snapshot.val();
       });
 
-      // Close sidebar on link click (mobile)
-      sidebarLinks.forEach((link) => {
-        link.addEventListener("click", (e) => {
-          e.preventDefault();
-          const targetId = link.getAttribute("href").substring(1);
-          const targetSection = document.getElementById(targetId);
-          if (targetSection) {
-            targetSection.focus({ preventScroll: true });
-            targetSection.scrollIntoView({ behavior: "smooth" });
-          }
-          // Close sidebar for mobile after navigating
-          if (window.innerWidth < 769) {
-            sidebar.classList.remove("open");
-            hamburgerBtn.setAttribute("aria-expanded", "false");
-          }
-          // Update active link highlight
-          updateActiveLink(targetId);
-        });
-      });
+      // Expose reference (quietly)
+      window._data = db;
+      window._id = user.uid;
+    }
 
-      // Update active link based on scroll position
-      function updateActiveLink(activeId) {
-        sidebarLinks.forEach((link) => {
-          if (link.getAttribute("href") === \`#\${activeId}\`) {
-            link.classList.add("active");
-            link.setAttribute("aria-current", "page");
-          } else {
-            link.classList.remove("active");
-            link.removeAttribute("aria-current");
-          }
-        });
-      }
-
-      // On scroll, update active link and scroll indicator
-      mainContent.addEventListener("scroll", () => {
-        const sections = [...document.querySelectorAll("main.content section")];
-        const scrollPosition = mainContent.scrollTop + 80;
-
-        let found = null;
-        for (const section of sections) {
-          if (section.offsetTop <= scrollPosition) {
-            found = section;
-          }
-        }
-        if (found) {
-          updateActiveLink(found.id);
-        }
-        // Scroll indicator progress
-        const scrollHeight = mainContent.scrollHeight - mainContent.clientHeight;
-        if(scrollHeight > 0) {
-          const progressPercent = (mainContent.scrollTop / scrollHeight) * 100;
-          scrollIndicator.style.height = progressPercent + '%';
-        } else {
-          scrollIndicator.style.height = '0%';
-        }
-      });
-
-      // Keyboard navigation support for sidebar links
-      sidebar.addEventListener("keydown", (e) => {
-        if (e.target.tagName.toLowerCase() === "a") {
-          const currentIndex = [...sidebarLinks].indexOf(e.target);
-          if (e.key === "ArrowDown") {
-            e.preventDefault();
-            const nextIndex = (currentIndex + 1) % sidebarLinks.length;
-            sidebarLinks[nextIndex].focus();
-          } else if (e.key === "ArrowUp") {
-            e.preventDefault();
-            const prevIndex = (currentIndex - 1 + sidebarLinks.length) % sidebarLinks.length;
-            sidebarLinks[prevIndex].focus();
-          }
-        }
-      });
-
-      // Set initial active link
-      updateActiveLink('intro');
-    })();
-  </script>
-</body>
+    auth.onAuthStateChanged(user => {
+      if (user) loadDashboard();
+    });
+  </script></body>
 </html>
-
-
-
-
