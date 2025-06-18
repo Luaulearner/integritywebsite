@@ -1,0 +1,130 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Multi-Lang Hacker Console</title>
+  <style>
+    body {
+      background-color: #0d0d0d;
+      color: #00ff88;
+      font-family: monospace;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    #header {
+      background: #111;
+      padding: 10px;
+      text-align: center;
+      border-bottom: 1px solid #222;
+    }
+    #console {
+      flex: 1;
+      padding: 10px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      font-size: 14px;
+    }
+    #inputBar {
+      display: flex;
+      padding: 10px;
+      background-color: #111;
+    }
+    #langSelect, #commandInput, #runBtn {
+      margin-right: 10px;
+    }
+    #commandInput {
+      flex: 1;
+      background: #000;
+      color: #0f0;
+      border: none;
+      padding: 5px;
+    }
+    #runBtn {
+      background: #222;
+      color: #0f0;
+      border: none;
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+    #runBtn:hover {
+      background: #333;
+    }
+    select, input {
+      border: none;
+      padding: 5px;
+      background: #000;
+      color: #0f0;
+    }
+  </style>
+</head>
+<body>
+  <div id="header">
+    <h1>💻 Hacker Terminal Console</h1>
+  </div>  <div id="console">Initializing console...</div>  <div id="inputBar">
+    <select id="langSelect">
+      <option value="python">Python</option>
+      <option value="lua">Lua</option>
+    </select>
+    <input id="commandInput" placeholder="Type your code here..." />
+    <button id="runBtn">Run</button>
+  </div>  <script src="https://cdn.jsdelivr.net/pyodide/v0.21.3/full/pyodide.js"></script>  <script src="https://unpkg.com/fengari-web@0.1.4/dist/fengari-web.js"></script>  <script>
+    const consoleElem = document.getElementById("console");
+    const input = document.getElementById("commandInput");
+    const runBtn = document.getElementById("runBtn");
+    const lang = document.getElementById("langSelect");
+
+    function logOutput(text) {
+      consoleElem.innerText += `\n> ${text}`;
+      consoleElem.scrollTop = consoleElem.scrollHeight;
+    }
+
+    async function runPython(code) {
+      try {
+        await pyodide.loadPackage("micropip");
+        const result = await pyodide.runPythonAsync(code);
+        logOutput(result !== undefined ? result : "[done]");
+      } catch (e) {
+        logOutput("Python error: " + e);
+      }
+    }
+
+    function runLua(code) {
+      try {
+        const L = fengari.lauxlib.luaL_newstate();
+        fengari.lualib.luaL_openlibs(L);
+        fengari.lauxlib.luaL_dostring(L, fengari.to_luastring(code));
+        logOutput("[Lua executed]");
+      } catch (e) {
+        logOutput("Lua error: " + e.message);
+      }
+    }
+
+    runBtn.addEventListener("click", async () => {
+      const code = input.value;
+      const selected = lang.value;
+      logOutput(`Running ${selected.toUpperCase()} code...`);
+
+      if (selected === "python") {
+        await runPython(code);
+      } else if (selected === "lua") {
+        runLua(code);
+      }
+
+      input.value = "";
+    });
+
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") runBtn.click();
+    });
+
+    let pyodide = null;
+    (async () => {
+      logOutput("Loading Python...");
+      pyodide = await loadPyodide();
+      logOutput("Python ready. Select language and type code.");
+    })();
+  </script></body>
+</html>
