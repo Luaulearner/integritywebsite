@@ -1,264 +1,343 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>WorldWide Bank - Secure Client Portal</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
-  <script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-database.js"></script>
-  <style>
-    /* Reset & base */
-    *, *::before, *::after {
-      box-sizing: border-box;
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SuperCool Bank - Interactive Client Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+<script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.1.2/firebase-database.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  body,html {
+    margin:0; padding:0; min-height:100vh;
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+      Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+    background: linear-gradient(135deg, #003366, #004080);
+    color: #f1f5f9;
+    display: flex; justify-content: center; align-items: center;
+    user-select: none;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+  }
+  .container {
+    background: #fff;
+    color: #1f2937;
+    border-radius: 16px;
+    box-shadow: 0 14px 44px rgb(0 0 0 / 0.25);
+    max-width: 900px;
+    width: 95%;
+    padding: 36px 48px 48px;
+    user-select: text;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  h1 {
+    margin-bottom: 24px;
+    font-weight: 700;
+    font-size: 2.6rem;
+    color: #0f172a;
+    user-select: text;
+    text-align: center;
+  }
+  form {
+    display:flex; flex-direction: column; gap:22px; text-align:left;
+  }
+  label {
+    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 6px;
+    color: #334155;
+    user-select: text;
+  }
+  input[type=email], input[type=password] {
+    padding:14px 18px;
+    border-radius: 12px;
+    border: 1.8px solid #cbd5e1;
+    outline:none;
+    font-size:1rem;
+    font-weight:400;
+    color:#0f172a;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+  input[type=email]:focus, input[type=password]:focus {
+    border-color:#2563eb;
+    box-shadow: 0 0 12px rgb(37 99 235 / 0.4);
+  }
+  button {
+    margin-top:12px;
+    background:#2563eb;
+    color:white;
+    font-size:1.25rem;
+    font-weight:700;
+    padding:16px 0;
+    border:none;
+    border-radius: 14px;
+    cursor:pointer;
+    box-shadow: 0 10px 30px rgb(37 99 235 / 0.5);
+    transition: background-color 0.3s ease, transform 0.15s ease;
+    user-select:none;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:10px;
+  }
+  button:hover {
+    background:#1e40af;
+    transform: scale(1.06);
+  }
+  button:active {
+    transform: scale(0.96);
+  }
+  .material-icons {
+    font-size: 26px;
+    user-select:none;
+  }
+  #error-message {
+    color: #ef4444;
+    font-weight: 600;
+    margin-top: 10px;
+    min-height: 1.2em;
+    user-select: text;
+    transition: opacity 0.3s ease;
+  }
+  #success-message {
+    color: #22c55e;
+    font-weight: 600;
+    margin-top: 10px;
+    min-height: 1.2em;
+    user-select: text;
+    transition: opacity 0.3s ease;
+  }
+  .switch-auth {
+    margin-top: 20px;
+    font-size: 0.9rem;
+    color: #2563eb;
+    cursor: pointer;
+    user-select: none;
+    text-decoration: underline;
+    text-align: center;
+    font-weight: 600;
+    transition: color 0.3s ease;
+  }
+  .switch-auth:hover { color:#1e40af; }
+  /* Dashboard */
+  #dashboard {
+    display:none;
+    max-width: 900px;
+    background: #f8fafc;
+    border-radius: 16px;
+    box-shadow: 0 14px 44px rgb(0 0 0 / 0.22);
+    color: #1e293b;
+    padding: 40px 48px;
+    user-select: text;
+    overflow: auto;
+    max-height: 85vh;
+  }
+  #dashboard h2 {
+    color: #1e40af;
+    margin-bottom: 28px;
+    font-weight: 700;
+    font-size: 2.25rem;
+    letter-spacing: 0.03em;
+    user-select: text;
+  }
+  #dashboard .account-info p {
+    margin: 12px 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #334155;
+  }
+  #logout-btn {
+    margin-top: 36px;
+    background: #ef4444;
+    padding: 18px 0;
+    border-radius: 14px;
+    border: none;
+    color: white;
+    font-weight: 700;
+    font-size: 1.15rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    user-select: none;
+    width: 100%;
+    letter-spacing: 0.05em;
+    box-shadow: 0 6px 18px rgb(239 68 68 / 0.6);
+  }
+  #logout-btn:hover { background: #b91c1c; }
+  #loading-overlay {
+    position: fixed; inset: 0;
+    background: rgba(20, 22, 41, 0.9);
+    display: flex; justify-content: center; align-items: center;
+    z-index: 999; color: #2563eb; font-weight:700; font-size:1.8rem; user-select:none;
+    display: none; flex-direction: column; gap: 20px; font-family: 'Inter', sans-serif;
+  }
+  .spinner {
+    border: 6px solid rgba(37, 99, 235, 0.25);
+    border-top: 6px solid #2563eb;
+    border-radius: 50%;
+    width: 54px; height:54px;
+    animation: spin 1.2s linear infinite;
+  }
+  @keyframes spin { to {transform: rotate(360deg);} }
+
+  /* Sections inside dashboard */
+  .dashboard-section {
+    margin-bottom: 36px;
+    border-radius: 16px;
+    background: white;
+    box-shadow: 0 8px 20px rgb(0 0 0 / 0.07);
+    padding: 24px;
+    color: #1e293b;
+  }
+  .dashboard-section h3 {
+    margin-bottom: 20px;
+    color: #2563eb;
+    font-weight: 700;
+    border-bottom: 2px solid #60a5fa;
+    padding-bottom: 8px;
+    font-size: 1.5rem;
+  }
+
+  /* Mini-game styles */
+  #minigame {
+    user-select: none;
+  }
+  #minigame button {
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 20px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin: 6px 8px 12px 0;
+    min-width: 48px;
+    box-shadow: 0 4px 12px rgb(59 130 246 / 0.5);
+    outline-offset: 2px;
+    outline-color: transparent;
+  }
+  #minigame button:hover:not(:disabled) { background: #2563eb; }
+  #minigame button:disabled {
+    background: #93c5fd;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+  #minigame p, #minigame .message {
+    margin: 8px 0 0 0;
+    font-weight: 600;
+    min-height: 1.7em;
+    font-size: 1.1rem;
+    color: #334155;
+  }
+
+  /* Shop styles */
+  #shop-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    justify-content: flex-start;
+  }
+  .shop-item {
+    background: #eff6ff;
+    box-shadow: 0 6px 20px rgb(0 0 0 / 0.07);
+    padding: 18px;
+    border-radius: 16px;
+    width: 180px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: transform 0.3s ease;
+  }
+  .shop-item:hover:not(.disabled) {
+    transform: translateY(-6px);
+    box-shadow: 0 15px 30px rgb(59 130 246 / 0.4);
+  }
+  .shop-item h4 {
+    margin: 0 0 10px;
+    font-weight: 700;
+    font-size: 1.2rem;
+    color: #1e40af;
+  }
+  .shop-item p {
+    font-size: 1rem;
+    margin: 0 0 16px;
+    min-height: 3em;
+    line-height: 1.3;
+    text-align: center;
+    color: #334155;
+  }
+  .shop-item button {
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 14px;
+    padding: 10px 16px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    box-shadow: 0 6px 22px rgb(37 99 235 / 0.6);
+    width: 100%;
+    transition: background-color 0.3s ease;
+  }
+  .shop-item button:hover:not(:disabled) { background: #1e40af; }
+  .shop-item button:disabled {
+    background: #93c5fd;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+  .shop-item.disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+
+  /* Leaderboard styles */
+  #leaderboard table {
+    border-collapse: collapse;
+    width: 100%;
+    table-layout: fixed;
+  }
+  #leaderboard th,
+  #leaderboard td {
+    border: 1px solid #cbd5e1;
+    padding: 10px 14px;
+    font-weight: 600;
+    color: #334155;
+    text-align: left;
+    overflow-wrap: anywhere;
+  }
+  #leaderboard th {
+    background-color: #2563eb;
+    color: white;
+    font-size: 1rem;
+  }
+  #leaderboard tbody tr:nth-child(even) {
+    background-color: #f1f5fe;
+  }
+  #leaderboard tbody tr:hover {
+    background-color: #e0e7ff;
+  }
+  @media(max-width:720px) {
+    .container, #dashboard {
+      width: 95%;
+      padding: 28px 24px 36px;
     }
-
-    body,
-    html {
-      margin: 0;
-      padding: 0;
-      min-height: 100vh;
-      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
-        Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-      background: linear-gradient(135deg, #003366, #004080);
-      color: #f1f5f9;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      overflow-x: hidden;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-      user-select: none;
-    }
-
-    .container {
-      background: #ffffff;
-      color: #1f2937;
-      border-radius: 16px;
-      box-shadow: 0 12px 40px rgb(0 0 0 / 0.25);
-      max-width: 460px;
-      width: 90%;
-      padding: 36px 40px 48px;
-      text-align: center;
-      user-select: text;
-      font-weight: 500;
-    }
-
-    h1 {
-      margin-bottom: 24px;
-      font-weight: 700;
-      font-size: 2.5rem;
-      color: #0f172a;
-      user-select: text;
-    }
-
-    form {
-      display: flex;
-      flex-direction: column;
-      gap: 22px;
-      text-align: left;
-    }
-
-    label {
-      font-weight: 600;
-      font-size: 1rem;
-      margin-bottom: 6px;
-      color: #334155;
-      user-select: text;
-    }
-
-    input[type="email"],
-    input[type="password"] {
-      padding: 14px 18px;
-      border-radius: 12px;
-      border: 1.8px solid #cbd5e1;
-      outline: none;
-      font-size: 1rem;
-      font-weight: 400;
-      color: #0f172a;
-      transition: border-color 0.3s ease, box-shadow 0.3s ease;
-      user-select: text;
-    }
-
-    input[type="email"]:focus,
-    input[type="password"]:focus {
-      border-color: #2563eb;
-      box-shadow: 0 0 10px rgb(37 99 235 / 0.4);
-      color: #0f172a;
-    }
-
-    button {
-      margin-top: 12px;
-      background: #2563eb;
-      color: white;
-      font-size: 1.15rem;
-      font-weight: 700;
-      padding: 16px 0;
-      border: none;
-      border-radius: 12px;
-      cursor: pointer;
-      box-shadow: 0 8px 24px rgb(37 99 235 / 0.4);
-      transition: background-color 0.3s ease, transform 0.15s ease;
-      user-select: none;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 10px;
-    }
-
-    button:hover {
-      background: #1e40af;
-      transform: scale(1.04);
-    }
-
-    button:active {
-      transform: scale(0.95);
-    }
-
-    .material-icons {
-      font-size: 24px;
-      user-select: none;
-    }
-
-    #error-message {
-      color: #ef4444;
-      font-weight: 600;
-      margin-top: 10px;
-      min-height: 1.2em;
-      user-select: text;
-    }
-
-    #success-message {
-      color: #22c55e;
-      font-weight: 600;
-      margin-top: 10px;
-      min-height: 1.2em;
-      user-select: text;
-    }
-
-    .switch-auth {
-      margin-top: 20px;
-      font-size: 0.9rem;
-      color: #2563eb;
-      cursor: pointer;
-      user-select: none;
-      text-decoration: underline;
-      text-align: center;
-      font-weight: 600;
-    }
-
-    .switch-auth:hover {
-      color: #1e40af;
-    }
-
-    /* Dashboard styles */
-    #dashboard {
-      display: none;
-      max-width: 520px;
-      background: #f8fafc;
-      border-radius: 16px;
-      box-shadow: 0 12px 36px rgb(0 0 0 / 0.2);
-      color: #1e293b;
-      padding: 40px 48px;
-      user-select: text;
-      text-align: center;
-    }
-
-    #dashboard h2 {
-      color: #1e40af;
-      margin-bottom: 36px;
-      font-weight: 700;
-      font-size: 2rem;
-      letter-spacing: 0.03em;
-    }
-
-    #dashboard .account-info p {
-      margin: 12px 0;
-      font-size: 1.1rem;
-      font-weight: 500;
-      color: #334155;
-      user-select: text;
-    }
-
-    #logout-btn {
-      margin-top: 36px;
-      background: #ef4444;
-      padding: 16px 0;
-      border-radius: 12px;
-      border: none;
-      color: white;
-      font-weight: 700;
-      font-size: 1.1rem;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-      user-select: none;
-      width: 100%;
-      letter-spacing: 0.05em;
-    }
-
-    #logout-btn:hover {
-      background: #b91c1c;
-    }
-
-    /* Loading overlay */
-    #loading-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(20, 22, 41, 0.85);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 999;
-      color: #2563eb;
-      font-weight: 700;
-      font-size: 1.6rem;
-      user-select: none;
-      display: none;
-      flex-direction: column;
-      gap: 20px;
-      font-family: 'Inter', sans-serif;
-    }
-
-    .spinner {
-      border: 6px solid rgba(37, 99, 235, 0.3);
-      border-top: 6px solid #2563eb;
-      border-radius: 50%;
-      width: 48px;
-      height: 48px;
-      animation: spin 1s linear infinite;
-      user-select: none;
-    }
-
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
-    }
-
-    /* Responsive adjustments */
-    @media (max-width: 520px) {
-      .container, #dashboard {
-        padding: 28px 24px;
-        width: 90%;
-      }
-
-      h1 {
-        font-size: 2rem;
-      }
-
-      #dashboard h2 {
-        font-size: 1.6rem;
-      }
-    }
-  </style>
+    h1 { font-size: 2rem; }
+    #dashboard h2 { font-size: 1.8rem; }
+    .dashboard-section h3 { font-size: 1.3rem; }
+    #shop-list { justify-content: center; }
+    .shop-item { width: 140px; }
+  }
+</style>
 </head>
-
 <body>
+  <!-- Authentication container -->
   <div class="container" id="auth-container" role="main" aria-label="Secure Client Login">
-    <h1>WorldWide Bank</h1>
+    <h1>WorldWide App Bank</h1>
     <form id="auth-form" autocomplete="off" aria-describedby="form-desc" novalidate>
       <div id="form-desc" style="display:none;">Login or sign up to access your secure banking portal.</div>
 
@@ -277,12 +356,48 @@
     <div class="switch-auth" role="button" tabindex="0" id="toggle-auth" aria-pressed="false">Don't have an account? Create one here</div>
   </div>
 
+  <!-- Dashboard container -->
   <section class="container" id="dashboard" role="region" aria-label="Banking client dashboard">
     <h2>Welcome, <span id="user-email"></span></h2>
     <div class="account-info" aria-live="polite" aria-atomic="true" role="region" aria-label="Account Information">
       <p><strong>Account ID:</strong> <span id="account-id"></span></p>
       <p><strong>Current Balance:</strong> $<span id="account-balance">0.00</span></p>
     </div>
+
+    <div class="dashboard-section" id="minigame-section">
+      <h3>Mini Game: Guess the Number</h3>
+      <div id="minigame" aria-live="polite" aria-atomic="true">
+        <p>Guess a number from 1 to 5. You earn $10 if you guess correctly.</p>
+        <div id="guess-buttons" aria-label="Guess number buttons"></div>
+        <p class="message" id="game-message" aria-live="assertive" aria-atomic="true"></p>
+      </div>
+    </div>
+
+    <div class="dashboard-section" id="shop-section">
+      <h3>Shop</h3>
+      <div id="shop" aria-live="polite" aria-atomic="true">
+        <div id="shop-list" aria-label="Available shop items"></div>
+      </div>
+    </div>
+
+    <div class="dashboard-section" id="leaderboard-section">
+      <h3>Leaderboard</h3>
+      <div id="leaderboard" aria-live="polite" aria-atomic="true">
+        <table aria-label="Top users leaderboard">
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>User</th>
+              <th>Balance ($)</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboard-body">
+            <tr><td colspan="3">Loading leaderboard...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
     <button id="logout-btn" aria-label="Logout from your account">Logout</button>
   </section>
 
@@ -306,7 +421,10 @@
       set,
       get,
       onValue,
-      update
+      update,
+      query,
+      orderByChild,
+      limitToLast
     } from "https://www.gstatic.com/firebasejs/9.1.2/firebase-database.js";
 
     const firebaseConfig = {
@@ -324,7 +442,6 @@
     const auth = getAuth(app);
     const db = getDatabase(app);
 
-    // Elements
     const authContainer = document.getElementById("auth-container");
     const dashboard = document.getElementById("dashboard");
     const authForm = document.getElementById("auth-form");
@@ -339,8 +456,31 @@
     const accountBalanceDisplay = document.getElementById("account-balance");
     const logoutBtn = document.getElementById("logout-btn");
 
-    let isLoginMode = true;
+    const guessButtonsContainer = document.getElementById("guess-buttons");
+    const gameMessage = document.getElementById("game-message");
 
+    const shopList = document.getElementById("shop-list");
+    const leaderboardBody = document.getElementById("leaderboard-body");
+
+    let isLoginMode = true;
+    let currentUser = null;
+    let userData = null;
+    let minigameCooldown = false;
+
+    const SHOP_ITEMS = [
+      {id: 'premium_card', name: 'Premium Credit Card', price: 500, desc: '+5% interest on savings', icon:'credit_card'},
+      {id: 'gold_account', name: 'Gold Account', price: 1000, desc: 'Lower fees and better support', icon:'star'},
+      {id: 'investment_plan', name: 'Investment Plan', price: 2500, desc: 'Earn up to 8% annual returns', icon:'trending_up'},
+      {id: 'savings_booster', name: 'Savings Booster', price: 1200, desc: 'Add $50 monthly bonus', icon:'savings'},
+      {id: 'vip_support', name: 'VIP Support', price: 800, desc: 'Priority customer service', icon:'headset_mic'},
+      {id: 'loan_offer', name: 'Loan Offer', price: 3000, desc: 'Unlock exclusive loan options', icon:'attach_money'},
+      {id: 'personal_advisor', name: 'Personal Advisor', price: 3500, desc: 'Get financial advice', icon:'person'},
+      {id: 'mobile_app', name: 'Mobile App', price: 1500, desc: 'Manage bank on the go', icon:'smartphone'},
+      {id: 'safe_deposit', name: 'Safe Deposit Box', price: 2000, desc: 'Secure physical storage', icon:'lock'},
+      {id: 'crypto_access', name: 'Crypto Access', price: 2700, desc: 'Trade cryptocurrencies', icon:'currency_bitcoin'}
+    ];
+
+    // Utils
     function setLoading(loading) {
       loadingOverlay.style.display = loading ? "flex" : "none";
       authBtn.disabled = loading;
@@ -376,7 +516,7 @@
 
     toggleAuthBtn.addEventListener("click", toggleAuthMode);
     toggleAuthBtn.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" || e.key === " ") {
+      if(e.key === "Enter" || e.key === " ") {
         e.preventDefault();
         toggleAuthMode();
       }
@@ -384,118 +524,243 @@
 
     async function createUserData(user) {
       const userRef = ref(db, 'users/' + user.uid);
-      const startupBalance = 1000 + Math.floor(Math.random() * 500); // Business-like random starting balance
       await set(userRef, {
         email: user.email,
-        accountBalance: startupBalance,
+        accountBalance: 0,
         createdAt: Date.now(),
-        transactions: []
+        inventory: {}
       });
     }
 
     async function loadUserData(uid) {
       const userRef = ref(db, 'users/' + uid);
       const snapshot = await get(userRef);
-      if (snapshot.exists()) {
+      if(snapshot.exists()) {
         return snapshot.val();
       }
       return null;
     }
 
-    async function showDashboard(user) {
-      setLoading(true);
-      try {
-        let data = await loadUserData(user.uid);
-        if (!data) {
-          await createUserData(user);
-          data = await loadUserData(user.uid);
+    function updateBalanceUI() {
+      const bal = userData?.accountBalance || 0;
+      accountBalanceDisplay.textContent = bal.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+    }
+
+    function updateInventoryUI() {
+      shopList.querySelectorAll('.shop-item').forEach(el => {
+        const id = el.dataset.id;
+        if(userData.inventory && userData.inventory[id]){
+          el.classList.add('disabled');
+          const btn = el.querySelector('button');
+          btn.disabled = true;
+          btn.textContent = 'Owned';
+          btn.style.backgroundColor = '#6b7280';
+          btn.style.cursor = 'default';
+        } else {
+          el.classList.remove('disabled');
+          const btn = el.querySelector('button');
+          btn.disabled = false;
+          btn.textContent = 'Buy';
+          btn.style.backgroundColor = '#2563eb';
+          btn.style.cursor = 'pointer';
         }
+      });
+    }
 
-        userEmailDisplay.textContent = data.email || user.email;
-        accountIdDisplay.textContent = user.uid;
-        accountBalanceDisplay.textContent = Number(data.accountBalance).toLocaleString(undefined, {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2
-        });
+    async function updateUserBalance(newBalance) {
+      if(!currentUser) return;
+      const balRef = ref(db,'users/'+currentUser.uid+'/accountBalance');
+      await set(balRef,newBalance);
+      userData.accountBalance = newBalance;
+      updateBalanceUI();
+    }
 
-        authContainer.style.display = "none";
-        dashboard.style.display = "block";
+    async function addInventoryItem(itemId) {
+      if(!currentUser) return;
+      const path = 'users/' + currentUser.uid + '/inventory/' + itemId;
+      await set(ref(db, path), true);
+      if(!userData.inventory) userData.inventory = {};
+      userData.inventory[itemId] = true;
+      updateInventoryUI();
+    }
 
-        // Listen for balance updates
-        const userBalRef = ref(db, 'users/' + user.uid + '/accountBalance');
-        onValue(userBalRef, (snap) => {
-          if (snap.exists()) {
-            accountBalanceDisplay.textContent = Number(snap.val()).toLocaleString(undefined, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2
-            });
+    // Mini-game: Guess the Number, $10 for correct guess, 3 sec cooldown
+    function setupMiniGame(){
+      guessButtonsContainer.innerHTML = '';
+      for(let i=1; i<=5; i++){
+        const btn = document.createElement('button');
+        btn.textContent = i;
+        btn.setAttribute('aria-label',`Guess number ${i}`);
+        btn.addEventListener('click', ()=>playMiniGame(i));
+        guessButtonsContainer.appendChild(btn);
+      }
+      gameMessage.textContent = '';
+    }
+    async function playMiniGame(guess){
+      if(minigameCooldown) return;
+      minigameCooldown = true;
+      disableMiniGameButtons(true);
+      gameMessage.textContent = 'Checking...';
+      const randomNum = Math.floor(Math.random()*5)+1;
+      await delay(1000);
+      if(guess === randomNum){
+        gameMessage.textContent = `Congrats! You guessed correctly and earned $10 (number was ${randomNum}).`;
+        const newBal = (userData.accountBalance||0)+10;
+        await updateUserBalance(newBal);
+      } else {
+        gameMessage.textContent = `Sorry, wrong guess! The correct number was ${randomNum}. Try again.`;
+      }
+      setTimeout(() => {
+        minigameCooldown = false;
+        gameMessage.textContent = '';
+        disableMiniGameButtons(false);
+      }, 3000); // 3 second cooldown
+    }
+    function disableMiniGameButtons(disable){
+      [...guessButtonsContainer.children].forEach(btn => btn.disabled = disable );
+    }
+    function delay(ms){return new Promise(res=>setTimeout(res,ms));}
+
+    // Render shop items
+    function renderShop(){
+      shopList.innerHTML = '';
+      SHOP_ITEMS.forEach(item => {
+        const div = document.createElement('div');
+        div.classList.add('shop-item');
+        div.dataset.id = item.id;
+        div.innerHTML = `
+          <h4><span class="material-icons" aria-hidden="true" style="vertical-align:middle;color:#2563eb;">${item.icon}</span> ${item.name}</h4>
+          <p>${item.desc}</p>
+          <button aria-label="Buy ${item.name} for $${item.price}">Buy</button>
+        `;
+        const btn=div.querySelector('button');
+        btn.addEventListener('click', async () => {
+          if(userData.accountBalance >= item.price && (!userData.inventory || !userData.inventory[item.id])){
+            const newBal = userData.accountBalance - item.price;
+            await updateUserBalance(newBal);
+            await addInventoryItem(item.id);
+            showSuccess(`Purchased ${item.name} for $${item.price}.`);
+          }else if(userData.inventory && userData.inventory[item.id]){
+            alert(`You already own ${item.name}.`);
+          }else{
+            alert("Insufficient balance.");
           }
         });
+        shopList.appendChild(div);
+      });
+    }
+    function showSuccess(msg){
+      successMessage.textContent = msg;
+      setTimeout(()=>successMessage.textContent='',3500);
+    }
 
-      } catch (error) {
-        errorMessage.textContent = "Failed to load your account data.";
-      } finally {
+    // Leaderboard realtime update showing top 10 by balance
+    function setupLeaderboardListener(){
+      const usersRef = ref(db,'users');
+      const leaderboardQ = query(usersRef,orderByChild('accountBalance'), limitToLast(10));
+      onValue(leaderboardQ, snapshot  => {
+        if(!snapshot.exists()) return;
+        const data = snapshot.val();
+        const entries = Object.entries(data).map(([uid, info])=>({
+          uid,
+          email: info.email || 'Unknown',
+          accountBalance: info.accountBalance || 0
+        }));
+        entries.sort((a,b) => b.accountBalance - a.accountBalance);
+        leaderboardBody.innerHTML = '';
+        entries.forEach(({uid,email,accountBalance}, idx) => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${idx+1}</td>
+            <td title="${email}">${email.length > 18 ? email.slice(0,15)+'...' : email}</td>
+            <td>${accountBalance.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+          `;
+          leaderboardBody.appendChild(tr);
+        });
+      });
+    }
+
+    async function showDashboard(user){
+      setLoading(true);
+      try{
+        currentUser = user;
+        userData = await loadUserData(user.uid);
+        if(!userData){
+          await createUserData(user);
+          userData = await loadUserData(user.uid);
+        }
+        userEmailDisplay.textContent = userData.email || user.email;
+        accountIdDisplay.textContent = user.uid;
+        updateBalanceUI();
+        authContainer.style.display = 'none';
+        dashboard.style.display = 'flex';
+
+        updateInventoryUI();
+        renderShop();
+        setupMiniGame();
+        setupLeaderboardListener();
+      } catch(e){
+        errorMessage.textContent = 'Failed to load account data.';
+      } finally{
         setLoading(false);
       }
     }
 
-    authForm.addEventListener("submit", async (e) => {
+    authForm.addEventListener('submit', async e=>{
       e.preventDefault();
-      errorMessage.textContent = "";
-      successMessage.textContent = "";
+      errorMessage.textContent = '';
+      successMessage.textContent = '';
       setLoading(true);
-
       const email = authForm.email.value.trim();
       const password = authForm.password.value;
 
-      if (!email || !password || password.length < 6) {
-        errorMessage.textContent = "Please fill all fields correctly.";
+      if(!email || !password || password.length<6){
+        errorMessage.textContent = 'Please complete all fields with valid info (password min 6 chars).';
         setLoading(false);
         return;
       }
-
-      try {
-        if (isLoginMode) {
-          const userCredential = await signInWithEmailAndPassword(auth, email, password);
-          await showDashboard(userCredential.user);
-        } else {
-          const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-          await createUserData(userCredential.user);
-          successMessage.textContent = "Account successfully created. Logging in...";
-          await showDashboard(userCredential.user);
+      try{
+        if(isLoginMode){
+          const userCred = await signInWithEmailAndPassword(auth,email,password);
+          await showDashboard(userCred.user);
+        }else{
+          const userCred = await createUserWithEmailAndPassword(auth,email,password);
+          await createUserData(userCred.user);
+          successMessage.textContent = 'Account created. Redirecting...';
+          await showDashboard(userCred.user);
         }
-      } catch (error) {
-        errorMessage.textContent = error.message.replace(/Firebase:\s*/, "").trim();
-      } finally {
+      }catch(e){
+        errorMessage.textContent = e.message.replace(/Firebase:\s*/, '').trim();
+        console.error(e);
+      }finally{
         setLoading(false);
       }
     });
 
-    logoutBtn.addEventListener("click", async () => {
-      try {
+    logoutBtn.addEventListener('click', async () => {
+      try{
         setLoading(true);
         await signOut(auth);
-        dashboard.style.display = "none";
-        authContainer.style.display = "block";
-        toggleAuthMode();
-      } catch (error) {
-        alert("Logout Error: " + error.message);
-      } finally {
+        dashboard.style.display = 'none';
+        authContainer.style.display = 'block';
+        if(!isLoginMode) toggleAuthMode();
+      }catch(e){
+        alert("Logout error: "+e.message);
+      }finally{
         setLoading(false);
       }
     });
 
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
+    onAuthStateChanged(auth, user => {
+      if(user){
         showDashboard(user);
-      } else {
-        dashboard.style.display = "none";
-        authContainer.style.display = "block";
-        if (!isLoginMode) toggleAuthMode();
+      }else{
+        dashboard.style.display = 'none';
+        authContainer.style.display = 'block';
+        if(!isLoginMode) toggleAuthMode();
       }
     });
   </script>
 </body>
-
 </html>
 
