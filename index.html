@@ -77,15 +77,24 @@
     const lang = document.getElementById("langSelect");
 
     function logOutput(text) {
-      consoleElem.innerText += `\n> ${text}`;
+      consoleElem.innerText += `\n${text}`;
       consoleElem.scrollTop = consoleElem.scrollHeight;
     }
 
     async function runPython(code) {
       try {
-        await pyodide.loadPackage("micropip");
-        const result = await pyodide.runPythonAsync(code);
-        logOutput(result !== undefined ? result : "[done]");
+        await pyodide.loadPackagesFromImports(code);
+        const result = await pyodide.runPythonAsync(`
+import sys
+class Logger:
+  def write(self, msg):
+    if msg.strip():
+      js.logOutput(msg)
+  def flush(self): pass
+sys.stdout = Logger()
+sys.stderr = Logger()
+` + code);
+        if (result !== undefined) logOutput(result);
       } catch (e) {
         logOutput("Python error: " + e);
       }
@@ -95,7 +104,11 @@
       try {
         const L = fengari.lauxlib.luaL_newstate();
         fengari.lualib.luaL_openlibs(L);
-        fengari.lauxlib.luaL_dostring(L, fengari.to_luastring(code));
+        fengari.interop.push(L, {
+          print: (...args) => logOutput(args.join(" "))
+        });
+        fengari.lua.lua_setglobal(L, fengari.to_luastring("js"));
+        fengari.lauxlib.luaL_dostring(L, fengari.to_luastring(`js = require("js")\nprint = js.global:print()\n` + code));
         logOutput("[Lua executed]");
       } catch (e) {
         logOutput("Lua error: " + e.message);
@@ -105,7 +118,7 @@
     runBtn.addEventListener("click", async () => {
       const code = input.value;
       const selected = lang.value;
-      logOutput(`Running ${selected.toUpperCase()} code...`);
+      logOutput(`> ${selected.toUpperCase()} > ${code}`);
 
       if (selected === "python") {
         await runPython(code);
@@ -124,7 +137,7 @@
     (async () => {
       logOutput("Loading Python...");
       pyodide = await loadPyodide();
-      logOutput("Python ready. Select language and type code.");
+      logOutput("Python ready. You can now write Python or Lua code.");
     })();
   </script></body>
 </html>
